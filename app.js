@@ -300,10 +300,6 @@ function initNavigation() {
       renderTeachersTable(adminSearch.value.trim());
     });
   }
-
-  // Seed Button
-  const seedBtn = document.getElementById('btn-seed-teachers');
-  if (seedBtn) seedBtn.addEventListener('click', seedMasterTeachersToFirestore);
 }
 
 export function switchToAdminPanel() {

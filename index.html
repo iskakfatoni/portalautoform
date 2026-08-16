@@ -301,12 +301,6 @@
             <button class="admin-subtab-btn" data-subtarget="subtab-forms">
               <i class="fa-solid fa-list-check"></i> Manajemen Formulir
             </button>
-            <button class="admin-subtab-btn" data-subtarget="subtab-import-export">
-              <i class="fa-solid fa-file-import"></i> Impor & Ekspor (CSV/Excel)
-            </button>
-            <button class="admin-subtab-btn" data-subtarget="subtab-firebase-settings">
-              <i class="fa-solid fa-gear"></i> Pengaturan Firebase
-            </button>
           </div>
 
           <!-- Subtab 1: Manajemen Guru -->
@@ -317,12 +311,6 @@
                 <input type="text" id="admin-teacher-search" placeholder="Cari nama atau NIP guru...">
               </div>
               <div class="admin-btn-group">
-                <button id="btn-export-teachers-quick" onclick="window.exportTeachersToExcel()" class="btn btn-secondary btn-sm" title="Unduh file Excel data guru beserta link masing-masing">
-                  <i class="fa-solid fa-file-excel text-green"></i> Ekspor Excel (.xlsx)
-                </button>
-                <button id="btn-seed-teachers" class="btn btn-secondary btn-sm" title="Upload otomatis 94 data guru bawaan ke Firestore">
-                  <i class="fa-solid fa-cloud-arrow-up"></i> 🚀 Seed 94 Master Guru
-                </button>
                 <button id="btn-modal-add-teacher" class="btn btn-primary btn-sm">
                   <i class="fa-solid fa-plus"></i> Tambah Guru Baru
                 </button>
@@ -377,101 +365,6 @@
                   <!-- Populated by app.js -->
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          <!-- Subtab 3: Impor & Ekspor Data (Excel .xlsx / JSON) -->
-          <div id="subtab-import-export" class="admin-subpane">
-            <div class="io-grid">
-              
-              <!-- Ekspor Card -->
-              <div class="io-card">
-                <div class="io-header">
-                  <div class="io-icon io-icon-export"><i class="fa-solid fa-file-excel"></i></div>
-                  <div>
-                    <h4>Ekspor Data & Link Guru ke Excel</h4>
-                    <p>Unduh file Microsoft Excel asli (<code>.xlsx</code>) yang berisi daftar seluruh guru lengkap dengan link portal personal, link auto-fill, dan link jurnal mereka.</p>
-                  </div>
-                </div>
-
-                <div class="io-body">
-                  <p class="io-hint"><i class="fa-solid fa-circle-check"></i> File Excel ini dapat dibuka langsung di Microsoft Excel atau Google Sheets dan siap dibagikan ke masing-masing guru.</p>
-                  <div class="io-btn-row">
-                    <button id="btn-do-export-excel" onclick="window.exportTeachersToExcel()" class="btn btn-primary">
-                      <i class="fa-solid fa-file-excel"></i> Unduh File Excel (.xlsx)
-                    </button>
-                    <button id="btn-do-export-json" onclick="window.exportTeachersToJSON()" class="btn btn-secondary">
-                      <i class="fa-solid fa-code"></i> Unduh Format JSON
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Impor Card -->
-              <div class="io-card">
-                <div class="io-header">
-                  <div class="io-icon io-icon-import"><i class="fa-solid fa-file-arrow-up"></i></div>
-                  <div>
-                    <h4>Impor Data Guru dari Excel</h4>
-                    <p>Unggah file Excel (<code>.xlsx</code> / <code>.xls</code>) atau CSV untuk menambahkan atau memperbarui data NIP, kelas binaan, dan link jurnal banyak guru sekaligus.</p>
-                  </div>
-                </div>
-
-                <div class="io-body">
-                  <div class="file-upload-box" id="drop-zone-excel">
-                    <i class="fa-solid fa-file-excel file-icon text-green"></i>
-                    <p>Pilih atau Tarik File Excel (.xlsx / .xls) ke sini</p>
-                    <span class="file-format-hint">Format kolom: <code>Nama Guru, NIP, Kelas Binaan, Peran, URL Jurnal Pribadi</code></span>
-                    <input type="file" id="input-file-excel" accept=".xlsx,.xls,.csv" class="file-input-hidden">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('input-file-excel').click()">
-                      <i class="fa-solid fa-folder-open"></i> Pilih File Excel (.xlsx / .xls)
-                    </button>
-                  </div>
-                  <div id="import-preview-status" class="import-status-text"></div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Subtab 4: Pengaturan Firebase -->
-          <div id="subtab-firebase-settings" class="admin-subpane">
-            <div class="settings-card">
-              <h4><i class="fa-solid fa-cloud"></i> Konfigurasi Kredensial Firebase</h4>
-              <p class="settings-desc">Kredensial proyek Firebase aktif saat ini. Data tersinkron otomatis ke Cloud Firestore.</p>
-
-              <form id="firebase-config-form">
-                <div class="form-grid-2">
-                  <div class="input-group">
-                    <label for="cfg-api-key">API Key</label>
-                    <input type="text" id="cfg-api-key" class="form-control font-mono" placeholder="AIzaSy...">
-                  </div>
-                  <div class="input-group">
-                    <label for="cfg-project-id">Project ID</label>
-                    <input type="text" id="cfg-project-id" class="form-control font-mono" placeholder="form-autoform">
-                  </div>
-                  <div class="input-group">
-                    <label for="cfg-auth-domain">Auth Domain</label>
-                    <input type="text" id="cfg-auth-domain" class="form-control font-mono" placeholder="form-autoform.firebaseapp.com">
-                  </div>
-                  <div class="input-group">
-                    <label for="cfg-app-id">App ID</label>
-                    <input type="text" id="cfg-app-id" class="form-control font-mono" placeholder="1:792855598347:web:...">
-                  </div>
-                </div>
-
-                <div class="settings-actions">
-                  <button type="submit" class="btn btn-primary">
-                    <i class="fa-solid fa-floppy-disk"></i> Simpan & Hubungkan Firebase
-                  </button>
-                  <button type="button" id="btn-sync-all-to-firestore" class="btn btn-primary" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload 92 Guru & 5 Form ke Firestore
-                  </button>
-                  <button type="button" id="btn-reset-firebase-config" class="btn btn-secondary">
-                    <i class="fa-solid fa-rotate-left"></i> Reset ke Default
-                  </button>
-                </div>
-              </form>
             </div>
           </div>
 
