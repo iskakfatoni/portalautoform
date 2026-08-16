@@ -527,28 +527,41 @@ function setupUserPortal() {
     });
   }
 
-  // 3. Tombol Admin Kecil di Layar 1
-  if (btnLandingAdmin) {
-    btnLandingAdmin.addEventListener('click', () => {
-      // Tampilkan main header & nav tabs untuk navigasi admin
+  // 3. Tombol Admin Kecil di Layar 1 & Header Admin Button
+  const handleOpenAdminPanel = () => {
+    if (currentUser) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-admin'));
       const mainHeader = document.getElementById('app-main-header');
-      const navTabs = document.getElementById('app-nav-tabs');
       if (mainHeader) mainHeader.classList.remove('hidden');
-      if (navTabs) navTabs.classList.remove('hidden');
-
-      // Buka Modal Login Admin atau Tab Admin
+    } else {
       const modal = document.getElementById('modal-login');
-      if (currentUser) {
-        document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('[data-target="tab-admin"]').classList.add('active');
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-admin'));
+      if (modal) modal.classList.remove('hidden');
+    }
+  };
+
+  if (btnLandingAdmin) {
+    btnLandingAdmin.addEventListener('click', handleOpenAdminPanel);
+  }
+
+  const btnHeaderAdmin = document.getElementById('btn-show-login-modal');
+  if (btnHeaderAdmin) {
+    btnHeaderAdmin.addEventListener('click', handleOpenAdminPanel);
+  }
+
+  // 4. Tombol "Kembali ke Portal Guru" dari Panel Admin
+  const btnAdminBack = document.getElementById('btn-admin-back-to-portal');
+  if (btnAdminBack) {
+    btnAdminBack.addEventListener('click', () => {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-user-portal'));
+      if (activeTeacher && activeTeacher.nip && activeTeacher.nip !== '-') {
+        showPortalView(activeTeacher);
       } else {
-        if (modal) modal.classList.remove('hidden');
+        showLandingView();
       }
     });
   }
 
-  // 4. Tombol "Ganti NIP / Keluar" di Layar 2
+  // 5. Tombol "Ganti NIP / Keluar" di Layar 2
   if (btnBackToLanding) {
     btnBackToLanding.addEventListener('click', () => {
       window.history.pushState({}, '', window.location.pathname);
@@ -556,24 +569,12 @@ function setupUserPortal() {
     });
   }
 
-  // 5. Salin Link Personal Portal
+  // 6. Salin Link Personal Portal
   if (btnCopyPortalUrl) {
     btnCopyPortalUrl.addEventListener('click', () => {
       const link = getPersonalPortalUrl(activeTeacher);
       copyToClipboard(link);
       showToast(`Link portal personal ${activeTeacher.name} disalin!`);
-    });
-  }
-
-  // 6. Tombol Profil Saya di Header
-  if (btnQuickMyProfile) {
-    btnQuickMyProfile.addEventListener('click', () => {
-      const myProfile = currentTeachers.find(t => t.name.includes("MUCHAMAD ISKAK FATONI")) || currentTeachers[0];
-      if (myProfile) {
-        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(myProfile.nip.replace(/\s+/g, ''))}`;
-        window.history.pushState({ nip: myProfile.nip }, '', newUrl);
-        showPortalView(myProfile);
-      }
     });
   }
 }

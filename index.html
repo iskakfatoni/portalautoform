@@ -31,7 +31,7 @@
   <!-- App Wrapper -->
   <div class="app-wrapper">
 
-    <!-- Top Navigation Header -->
+    <!-- Top Minimalist Header -->
     <header class="main-header" id="app-main-header">
       <div class="brand-container">
         <a href="./" class="brand-link">
@@ -40,33 +40,21 @@
           </div>
           <div class="brand-text">
             <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
-            <span class="brand-subtitle">Multi-User Cloud Edition</span>
           </div>
         </a>
       </div>
 
       <div class="header-actions">
-        <!-- Cloud Status Badge -->
-        <div class="status-badge" id="cloud-status-badge" title="Status Koneksi Database">
-          <span class="status-dot" id="cloud-status-dot"></span>
-          <span id="cloud-status-text">Memuat...</span>
-        </div>
-
-        <!-- Quick Dual-Role Switch for Admin (Guru Saya <-> Admin) -->
-        <button id="btn-quick-my-profile" class="btn btn-sm btn-my-profile" title="Buka Profil Saya Sebagai Guru">
-          <i class="fa-solid fa-user-tie"></i> Profil Saya
-        </button>
-
         <!-- Theme Toggle -->
-        <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema" aria-label="Ganti Tema">
+        <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema Terang/Gelap" aria-label="Ganti Tema">
           <i class="fa-solid fa-sun light-icon"></i>
           <i class="fa-solid fa-moon dark-icon"></i>
         </button>
 
-        <!-- Admin Auth Button -->
+        <!-- Admin Auth Area -->
         <div id="auth-container">
           <button id="btn-show-login-modal" class="btn btn-sm btn-outline-admin">
-            <i class="fa-solid fa-shield-halved"></i> Login Admin
+            <i class="fa-solid fa-shield-halved"></i> Admin
           </button>
 
           <div id="admin-user-profile" class="admin-user-profile hidden">
@@ -74,7 +62,6 @@
               <i class="fa-solid fa-user-shield"></i>
             </div>
             <div class="admin-info">
-              <span class="admin-label">Admin & Guru</span>
               <span class="admin-email" id="admin-user-email">iskakfatoni@gmail.com</span>
             </div>
             <button id="btn-admin-logout" class="btn-logout" title="Keluar Admin">
@@ -84,22 +71,6 @@
         </div>
       </div>
     </header>
-
-    <!-- Main Navigation Bar -->
-    <nav class="nav-tabs-container" id="app-nav-tabs">
-      <button class="nav-tab-btn active" data-target="tab-user-portal">
-        <i class="fa-solid fa-chalkboard-user"></i> Portal Guru (NIP)
-      </button>
-      <button class="nav-tab-btn" data-target="tab-builder">
-        <i class="fa-solid fa-link"></i> Link Generator
-      </button>
-      <button class="nav-tab-btn" id="nav-btn-admin" data-target="tab-admin">
-        <i class="fa-solid fa-gauge-high"></i> Panel Admin <span id="admin-lock-icon"><i class="fa-solid fa-lock"></i></span>
-      </button>
-      <button class="nav-tab-btn" data-target="tab-guide">
-        <i class="fa-solid fa-circle-question"></i> Panduan
-      </button>
-    </nav>
 
     <!-- Content Sections -->
     <main class="content-area">
@@ -298,6 +269,16 @@
         <!-- If Authenticated as Admin -->
         <div id="admin-dashboard-view" class="admin-dashboard-view hidden">
           
+          <!-- Top Back Action for Admin -->
+          <div class="admin-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <button id="btn-admin-back-to-portal" class="btn btn-secondary btn-sm">
+              <i class="fa-solid fa-arrow-left"></i> Kembali ke Portal Guru
+            </button>
+            <span class="badge-role" style="font-size: 0.82rem; color: var(--text-muted);">
+              <i class="fa-solid fa-shield-halved"></i> Mode Administrator Aktif
+            </span>
+          </div>
+
           <!-- Admin Stat Bar -->
           <div class="admin-stats-grid">
             <div class="stat-card">
