@@ -22,7 +22,13 @@ import {
 
 // Master Data Awal (94 Guru)
 const INITIAL_TEACHERS = [
-  { name: "MUCHAMAD ISKAK FATONI, S.Pd.", nip: "198109092022211004", class: "XII TEI 2", role: "Walikelas" },
+  { 
+    name: "MUCHAMAD ISKAK FATONI, S.Pd.", 
+    nip: "198109092022211004", 
+    class: "XII TEI 2", 
+    role: "Walikelas",
+    journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
+  },
   { name: "HERMAWANTO, S.Pd., M.Psi", nip: "-", class: "X TAV", role: "Walikelas" },
   { name: "NURUL HIDAYATI, S.Pd., M.Psi", nip: "-", class: "X TEI 1", role: "Walikelas" },
   { name: "Drs. MOEHAIMIN", nip: "-", class: "X TEI 2", role: "Walikelas" },
@@ -200,7 +206,8 @@ let activeTeacher = {
   name: "MUCHAMAD ISKAK FATONI, S.Pd.",
   nip: "198109092022211004",
   class: "XII TEI 2",
-  role: "Walikelas"
+  role: "Walikelas",
+  journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
 };
 let currentUser = null;
 const ADMIN_EMAIL = "iskakfatoni@gmail.com";
@@ -555,6 +562,13 @@ function populateGuruSelect(selectElem) {
 }
 
 function generateFormUrlForTeacher(form, teacher) {
+  // Jika form adalah Jurnal Mengajar pribadi guru
+  if (form.id === "form_jurnal_mengajar") {
+    if (teacher.journalFormUrl) {
+      return teacher.journalFormUrl;
+    }
+  }
+
   const params = new URLSearchParams();
   params.set('usp', 'pp_url');
   if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
@@ -590,7 +604,19 @@ function renderUserPortal() {
   container.innerHTML = activeForms.map(form => {
     const generatedUrl = generateFormUrlForTeacher(form, activeTeacher);
     const formIcon = form.icon || "fa-solid fa-file-signature";
-    const statusBadge = form.statusBadge || "Auto-Fill Siap";
+    
+    let statusBadge = form.statusBadge || "Auto-Fill Siap";
+    let customDesc = form.description || 'Laporan administrasi berkala.';
+
+    if (form.id === "form_jurnal_mengajar") {
+      if (activeTeacher.journalFormUrl) {
+        statusBadge = "Jurnal Pribadi Aktif";
+        customDesc = `Formulir jurnal mengajar harian khusus milik <strong>${activeTeacher.name}</strong>.`;
+      } else {
+        statusBadge = "Belum Ada Link";
+        customDesc = "Link jurnal khusus guru ini belum ditambahkan oleh Admin.";
+      }
+    }
 
     return `
       <article class="form-card">
@@ -606,11 +632,11 @@ function renderUserPortal() {
 
         <div class="card-body">
           <h4 class="card-title">${form.name}</h4>
-          <p class="card-desc">${form.description || 'Laporan administrasi berkala.'}</p>
+          <p class="card-desc">${customDesc}</p>
 
           <div class="data-preview-box">
             <div class="data-preview-title">
-              <i class="fa-solid fa-circle-info"></i> Isian Otomatis Guru:
+              <i class="fa-solid fa-circle-info"></i> Data Terhubung:
             </div>
             <ul class="data-items-list">
               <li>
@@ -925,17 +951,19 @@ function exportTeachersToCSV() {
   const defaultForm = currentForms[0] || INITIAL_FORMS[0];
   
   // Headers
-  const headers = ["No", "Nama Guru", "NIP", "Kelas Binaan", "Peran", "Link Portal Guru", "Link AutoFill Form"];
+  const headers = ["No", "Nama Guru", "NIP", "Kelas Binaan", "Peran", "URL Jurnal Pribadi", "Link Portal Guru", "Link AutoFill Form"];
   
   const rows = currentTeachers.map((t, idx) => {
     const portalUrl = getPersonalPortalUrl(t);
     const formUrl = defaultForm ? generateFormUrlForTeacher(defaultForm, t) : "";
+    const journalUrl = t.journalFormUrl || "";
     return [
       idx + 1,
       `"${t.name.replace(/"/g, '""')}"`,
       `"${(t.nip || '-').replace(/"/g, '""')}"`,
       `"${(t.class || '-').replace(/"/g, '""')}"`,
       `"${(t.role || 'Guru').replace(/"/g, '""')}"`,
+      `"${journalUrl.replace(/"/g, '""')}"`,
       `"${portalUrl}"`,
       `"${formUrl}"`
     ];
@@ -981,36 +1009,36 @@ async function parseAndImportCSV(csvText, statusDiv) {
   }
 
   const importedList = [];
-  // Skip header if it exists
   const startIndex = lines[0].toLowerCase().includes("nama") ? 1 : 0;
 
   for (let i = startIndex; i < lines.length; i++) {
-    // Parse CSV line (handle quotes and comma/semicolon)
     const line = lines[i];
     const delimiter = line.includes(";") ? ";" : ",";
     const parts = line.split(delimiter).map(p => p.trim().replace(/^["']|["']$/g, ''));
 
     if (parts.length >= 2) {
-      // Expecting: [No/Index,] Nama, NIP, Kelas, Peran
       let name = "";
       let nip = "-";
       let cls = "-";
       let role = "Walikelas";
+      let journalFormUrl = "";
 
       if (isNaN(parts[0])) {
         name = parts[0];
         nip = parts[1] || "-";
         cls = parts[2] || "-";
         role = parts[3] || "Walikelas";
+        journalFormUrl = parts[4] || "";
       } else {
         name = parts[1];
         nip = parts[2] || "-";
         cls = parts[3] || "-";
         role = parts[4] || "Walikelas";
+        journalFormUrl = parts[5] || "";
       }
 
       if (name) {
-        importedList.push({ name, nip, class: cls, role });
+        importedList.push({ name, nip, class: cls, role, journalFormUrl });
       }
     }
   }
@@ -1233,8 +1261,9 @@ function initModals() {
       const nip = document.getElementById('edit-teacher-nip').value.trim();
       const cls = document.getElementById('edit-teacher-class').value;
       const role = document.getElementById('edit-teacher-role').value;
+      const journalFormUrl = document.getElementById('edit-teacher-journal-url').value.trim();
 
-      await saveTeacherHandler({ name, nip, class: cls, role });
+      await saveTeacherHandler({ name, nip, class: cls, role, journalFormUrl });
       modalTeacher.classList.add('hidden');
     });
   }
@@ -1323,6 +1352,7 @@ function openTeacherModal(teacher = null) {
   const nipInp = document.getElementById('edit-teacher-nip');
   const classInp = document.getElementById('edit-teacher-class');
   const roleInp = document.getElementById('edit-teacher-role');
+  const journalInp = document.getElementById('edit-teacher-journal-url');
 
   if (teacher) {
     title.innerHTML = `<i class="fa-solid fa-user-pen"></i> Edit Data Guru`;
@@ -1331,6 +1361,7 @@ function openTeacherModal(teacher = null) {
     nipInp.value = teacher.nip && teacher.nip !== '-' ? teacher.nip : '';
     classInp.value = teacher.class || '-';
     roleInp.value = teacher.role || 'Walikelas';
+    if (journalInp) journalInp.value = teacher.journalFormUrl || '';
   } else {
     title.innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Data Guru`;
     nameInp.value = '';
@@ -1338,6 +1369,7 @@ function openTeacherModal(teacher = null) {
     nipInp.value = '';
     classInp.value = 'XII TEI 2';
     roleInp.value = 'Walikelas';
+    if (journalInp) journalInp.value = '';
   }
   modal.classList.remove('hidden');
 }
