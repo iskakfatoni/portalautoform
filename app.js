@@ -234,39 +234,93 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 /* ==========================================================================
-   1. URL Routing Khusus per Guru (?nip=... atau ?guru=...)
+   1. Tab Navigation & URL Routing Khusus per Guru (?nip=...)
    ========================================================================== */
+
+function initNavigation() {
+  const tabBtns = document.querySelectorAll('.nav-tab-btn');
+  const tabPanes = document.querySelectorAll('.tab-pane');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-target');
+      
+      tabBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      tabPanes.forEach(pane => {
+        if (pane.id === targetId) {
+          pane.classList.add('active');
+        } else {
+          pane.classList.remove('active');
+        }
+      });
+    });
+  });
+}
 
 function checkUrlParamsForTeacher() {
   const params = new URLSearchParams(window.location.search);
   const nipParam = params.get('nip');
-  const guruParam = params.get('guru');
 
   if (nipParam && nipParam !== '-') {
-    const found = currentTeachers.find(t => t.nip === nipParam);
+    const cleanNip = nipParam.replace(/\s+/g, '');
+    const found = currentTeachers.find(t => t.nip && t.nip.replace(/\s+/g, '') === cleanNip);
     if (found) {
-      setActiveTeacher(found, false);
-      showToast(`Link personal aktif untuk: ${found.name}`);
+      showPortalView(found);
+      showToast(`Selamat datang, ${found.name}!`);
       return;
     }
   }
 
-  if (guruParam) {
-    const found = currentTeachers.find(t => t.name.toLowerCase() === guruParam.toLowerCase());
-    if (found) {
-      setActiveTeacher(found, false);
-      showToast(`Link personal aktif untuk: ${found.name}`);
-      return;
-    }
+  // Jika tidak ada NIP atau NIP salah, tampilkan Layar 1 (Landing Page Input NIP)
+  showLandingView();
+}
+
+function showLandingView() {
+  const landingView = document.getElementById('view-landing-nip');
+  const portalView = document.getElementById('view-teacher-portal');
+  const errorMsg = document.getElementById('landing-nip-error');
+  const inputNip = document.getElementById('landing-nip-input');
+
+  if (landingView) landingView.classList.remove('hidden');
+  if (portalView) portalView.classList.add('hidden');
+  if (errorMsg) errorMsg.classList.add('hidden');
+  if (inputNip) {
+    inputNip.value = '';
+    inputNip.focus();
   }
+}
+
+function showPortalView(teacher) {
+  activeTeacher = teacher;
+  
+  const landingView = document.getElementById('view-landing-nip');
+  const portalView = document.getElementById('view-teacher-portal');
+
+  if (landingView) landingView.classList.add('hidden');
+  if (portalView) portalView.classList.remove('hidden');
+
+  // Update profil banner
+  const nameEl = document.getElementById('active-teacher-name');
+  const nipEl = document.getElementById('active-teacher-nip');
+  const classEl = document.getElementById('active-teacher-class');
+  const roleEl = document.getElementById('active-teacher-role');
+
+  if (nameEl) nameEl.textContent = teacher.name;
+  if (nipEl) nipEl.textContent = teacher.nip || '-';
+  if (classEl) classEl.textContent = teacher.class || '-';
+  if (roleEl) roleEl.textContent = teacher.role || 'Guru';
+
+  renderUserPortal();
 }
 
 function getPersonalPortalUrl(teacher) {
   const base = window.location.origin + window.location.pathname;
   if (teacher.nip && teacher.nip !== '-') {
-    return `${base}?nip=${encodeURIComponent(teacher.nip)}`;
+    return `${base}?nip=${encodeURIComponent(teacher.nip.replace(/\s+/g, ''))}`;
   }
-  return `${base}?guru=${encodeURIComponent(teacher.name)}`;
+  return `${base}?nip=${encodeURIComponent(teacher.name)}`;
 }
 
 /* ==========================================================================
@@ -308,7 +362,7 @@ function setupFirebaseConnection() {
       handleAdminLogoutState();
     }
 
-    renderUserPortal();
+    checkUrlParamsForTeacher();
     renderAdminTables();
   }
 }
@@ -340,8 +394,6 @@ async function fetchFirestoreData() {
 
     // Re-check URL parameter after fetching cloud data
     checkUrlParamsForTeacher();
-
-    renderUserPortal();
     renderAdminTables();
   } catch (error) {
     console.warn("Gagal memuat data dari Firestore:", error);
@@ -414,145 +466,103 @@ function handleAdminLogoutState() {
 }
 
 /* ==========================================================================
-   4. Portal Guru (Pencarian NIP & Render Formulir)
+   4. Landing Page NIP Gate & Portal Guru
    ========================================================================== */
 
 function setupUserPortal() {
-  const searchInput = document.getElementById('portal-nip-search');
-  const guruSelect = document.getElementById('portal-guru-select');
-  const suggestionsBox = document.getElementById('search-suggestions');
+  const formLandingNip = document.getElementById('form-landing-nip');
+  const landingNipInput = document.getElementById('landing-nip-input');
+  const landingError = document.getElementById('landing-nip-error');
+  const btnBackToLanding = document.getElementById('btn-back-to-landing-nip');
+  const btnLandingAdmin = document.getElementById('btn-landing-admin-gate');
   const btnCopyPortalUrl = document.getElementById('btn-copy-personal-portal-url');
   const btnQuickMyProfile = document.getElementById('btn-quick-my-profile');
 
-  // Quick switch "Profil Saya" in header
-  if (btnQuickMyProfile) {
-    btnQuickMyProfile.addEventListener('click', () => {
-      const myProfile = currentTeachers.find(t => t.name.includes("MUCHAMAD ISKAK FATONI")) || {
-        name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-        nip: "198109092022211004",
-        class: "XII TEI 2",
-        role: "Walikelas"
-      };
-      setActiveTeacher(myProfile);
-      
-      // Switch to tab user portal
-      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelector('[data-target="tab-user-portal"]').classList.add('active');
-      document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-user-portal'));
+  // 1. Submit NIP di Landing Page (Layar 1)
+  if (formLandingNip) {
+    formLandingNip.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const inputVal = landingNipInput.value.trim().replace(/\s+/g, '');
+      if (!inputVal) return;
+
+      // Cari guru berdasarkan NIP
+      const found = currentTeachers.find(t => t.nip && t.nip.replace(/\s+/g, '') === inputVal);
+
+      if (found) {
+        if (landingError) landingError.classList.add('hidden');
+        // Update URL tanpa reload
+        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(found.nip.replace(/\s+/g, ''))}`;
+        window.history.pushState({ nip: found.nip }, '', newUrl);
+        showPortalView(found);
+        showToast(`Selamat datang, ${found.name}!`);
+      } else {
+        if (landingError) {
+          landingError.classList.remove('hidden');
+          landingError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> NIP <strong>${landingNipInput.value}</strong> tidak ditemukan di database guru. Pastikan 18 digit NIP sudah benar.`;
+        }
+      }
     });
   }
 
-  // Copy personal portal URL button
+  // 2. Quick Chips di Landing Page
+  document.querySelectorAll('.quick-chip-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const nip = btn.getAttribute('data-nip');
+      if (nip) {
+        if (landingNipInput) landingNipInput.value = nip;
+        if (formLandingNip) formLandingNip.dispatchEvent(new Event('submit'));
+      }
+    });
+  });
+
+  // 3. Tombol Admin Kecil di Layar 1
+  if (btnLandingAdmin) {
+    btnLandingAdmin.addEventListener('click', () => {
+      // Buka Modal Login Admin atau Tab Admin
+      const modal = document.getElementById('modal-login');
+      if (currentUser) {
+        // Jika sudah login admin, buka tab admin
+        document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector('[data-target="tab-admin"]').classList.add('active');
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-admin'));
+      } else {
+        if (modal) modal.classList.remove('hidden');
+      }
+    });
+  }
+
+  // 4. Tombol "Ganti NIP / Keluar" di Layar 2
+  if (btnBackToLanding) {
+    btnBackToLanding.addEventListener('click', () => {
+      window.history.pushState({}, '', window.location.pathname);
+      showLandingView();
+    });
+  }
+
+  // 5. Salin Link Personal Portal
   if (btnCopyPortalUrl) {
     btnCopyPortalUrl.addEventListener('click', () => {
       const link = getPersonalPortalUrl(activeTeacher);
       copyToClipboard(link);
-      showToast(`Link personal untuk ${activeTeacher.name} disalin!`);
+      showToast(`Link portal personal ${activeTeacher.name} disalin!`);
     });
   }
 
-  // Populate select dropdown
-  populateGuruSelect(guruSelect);
-
-  // Event Change Guru Select
-  guruSelect.addEventListener('change', () => {
-    const selectedName = guruSelect.value;
-    if (!selectedName) return;
-    const found = currentTeachers.find(t => t.name === selectedName);
-    if (found) {
-      setActiveTeacher(found);
-    }
-  });
-
-  // Autocomplete search
-  searchInput.addEventListener('input', () => {
-    const query = searchInput.value.trim().toLowerCase();
-    if (!query) {
-      suggestionsBox.classList.add('hidden');
-      return;
-    }
-
-    const matches = currentTeachers.filter(t => 
-      t.name.toLowerCase().includes(query) || (t.nip && t.nip.includes(query))
-    );
-
-    if (matches.length === 0) {
-      suggestionsBox.innerHTML = `<div class="suggestion-item"><span class="suggestion-meta">Tidak ada guru ditemukan</span></div>`;
-    } else {
-      suggestionsBox.innerHTML = matches.slice(0, 8).map(t => `
-        <div class="suggestion-item" data-name="${t.name}">
-          <div>
-            <div class="suggestion-name">${t.name}</div>
-            <div class="suggestion-meta">NIP: ${t.nip || '-'} &bull; Kelas: ${t.class || '-'}</div>
-          </div>
-          <i class="fa-solid fa-chevron-right" style="font-size:0.75rem;opacity:0.6;"></i>
-        </div>
-      `).join('');
-
-      suggestionsBox.querySelectorAll('.suggestion-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const name = item.getAttribute('data-name');
-          const found = currentTeachers.find(t => t.name === name);
-          if (found) {
-            setActiveTeacher(found);
-            searchInput.value = '';
-            suggestionsBox.classList.add('hidden');
-          }
-        });
-      });
-    }
-    suggestionsBox.classList.remove('hidden');
-  });
-
-  // Close suggestions if click outside
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.search-field-box')) {
-      suggestionsBox.classList.add('hidden');
-    }
-  });
-
-  // Quick preset pills
-  document.querySelectorAll('.quick-pill').forEach(pill => {
-    pill.addEventListener('click', () => {
-      const nip = pill.getAttribute('data-nip');
-      const name = pill.getAttribute('data-name');
-      const cls = pill.getAttribute('data-class');
-      const found = currentTeachers.find(t => t.nip === nip) || { name, nip, class: cls, role: "Walikelas" };
-      setActiveTeacher(found);
-
-      document.querySelectorAll('.quick-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
+  // 6. Tombol Profil Saya di Header
+  if (btnQuickMyProfile) {
+    btnQuickMyProfile.addEventListener('click', () => {
+      const myProfile = currentTeachers.find(t => t.name.includes("MUCHAMAD ISKAK FATONI")) || currentTeachers[0];
+      if (myProfile) {
+        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(myProfile.nip.replace(/\s+/g, ''))}`;
+        window.history.pushState({ nip: myProfile.nip }, '', newUrl);
+        showPortalView(myProfile);
+      }
     });
-  });
-
-  renderUserPortal();
+  }
 }
 
-function setActiveTeacher(teacher, updateUrl = true) {
-  activeTeacher = teacher;
-  
-  // Update banner
-  document.getElementById('active-teacher-name').textContent = teacher.name;
-  document.getElementById('active-teacher-nip').textContent = teacher.nip || '-';
-  document.getElementById('active-teacher-class').textContent = teacher.class || '-';
-  document.getElementById('active-teacher-role').textContent = teacher.role || 'Guru';
-
-  // Sync select dropdown if exists
-  const select = document.getElementById('portal-guru-select');
-  if (select) select.value = teacher.name;
-
-  renderUserPortal();
-}
-
-function populateGuruSelect(selectElem) {
-  if (!selectElem) return;
-  selectElem.innerHTML = '<option value="">-- Pilih Guru --</option>';
-  currentTeachers.forEach(t => {
-    const opt = document.createElement('option');
-    opt.value = t.name;
-    opt.textContent = `${t.name} (${t.nip !== '-' ? t.nip : t.class})`;
-    selectElem.appendChild(opt);
-  });
+function setActiveTeacher(teacher) {
+  showPortalView(teacher);
 }
 
 function generateFormUrlForTeacher(form, teacher) {

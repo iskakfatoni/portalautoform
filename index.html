@@ -105,85 +105,105 @@
     <main class="content-area">
 
       <!-- ====================================================================
-           TAB 1: PORTAL GURU (Pencarian Berbasis NIP & Formulir Terpersonalisasi)
+           TAB 1: PORTAL GURU (Layar 1 Input NIP & Layar 2 Link Formulir)
            ==================================================================== -->
       <section id="tab-user-portal" class="tab-pane active">
-        
-        <!-- NIP Selection Card -->
-        <div class="selector-card">
-          <div class="selector-header">
-            <div class="selector-icon">
-              <i class="fa-solid fa-id-badge"></i>
+
+        <!-- LAYAR 1: LANDING PAGE (Input NIP Gate) -->
+        <div id="view-landing-nip" class="landing-view">
+          <div class="landing-hero-card">
+            <div class="landing-icon-badge">
+              <i class="fa-solid fa-id-card-clip"></i>
             </div>
-            <div>
-              <h3 class="selector-title">Pilih Profil Guru / Masukkan NIP</h3>
-              <p class="selector-desc">Pilih nama Anda atau cari berdasarkan NIP untuk memuat formulir dengan isian otomatis.</p>
+
+            <div class="landing-text-header">
+              <h2 class="landing-title">Portal Formulir Guru</h2>
+              <p class="landing-subtitle">Masukkan NIP Anda untuk membuka seluruh tautan formulir, presensi, dan jurnal mengajar dengan isian otomatis.</p>
+            </div>
+
+            <form id="form-landing-nip" class="landing-nip-form" autocomplete="off">
+              <div class="landing-input-group">
+                <i class="fa-solid fa-magnifying-glass input-left-icon"></i>
+                <input 
+                  type="text" 
+                  id="landing-nip-input" 
+                  class="landing-nip-input font-mono" 
+                  placeholder="Masukkan 18 Digit NIP Anda..." 
+                  maxlength="25" 
+                  autofocus 
+                  required
+                >
+                <button type="submit" class="btn btn-primary btn-landing-go" id="btn-landing-go">
+                  <span>Buka Portal</span> <i class="fa-solid fa-arrow-right"></i>
+                </button>
+              </div>
+              <div id="landing-nip-error" class="landing-error-msg hidden">
+                <i class="fa-solid fa-circle-exclamation"></i> NIP tidak ditemukan di database. Pastikan digit NIP sudah benar.
+              </div>
+            </form>
+
+            <!-- Quick Access Chip for Pak Iskak -->
+            <div class="landing-quick-chips">
+              <span class="chip-label">Akses Cepat Pengujian:</span>
+              <button type="button" class="quick-chip-btn" data-nip="198109092022211004">
+                <i class="fa-solid fa-user-check"></i> MUCHAMAD ISKAK FATONI, S.Pd. (198109092022211004)
+              </button>
+            </div>
+
+            <!-- Discrete Admin Gate Button -->
+            <div class="landing-admin-footer">
+              <button type="button" id="btn-landing-admin-gate" class="btn-admin-discrete" title="Masuk ke Panel Kontrol Admin">
+                <i class="fa-solid fa-lock"></i> <span>Panel Admin</span>
+              </button>
             </div>
           </div>
+        </div>
 
-          <div class="selector-form-grid">
-            <div class="search-field-box">
-              <label for="portal-nip-search"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama Guru / NIP:</label>
-              <div class="input-with-icon">
-                <input type="text" id="portal-nip-search" class="form-control" placeholder="Ketik nama guru atau 18 digit NIP..." autocomplete="off">
-                <div id="search-suggestions" class="search-suggestions hidden"></div>
+        <!-- LAYAR 2: LAYAR LINK FORMULIR GURU (Muncul Saat NIP Benar) -->
+        <div id="view-teacher-portal" class="portal-view hidden">
+          
+          <!-- Active Teacher Profile Banner with Shareable Direct Link -->
+          <div class="teacher-profile-banner" id="teacher-profile-banner">
+            <div class="profile-avatar">
+              <i class="fa-solid fa-user-graduate"></i>
+            </div>
+            <div class="profile-details">
+              <div class="profile-badge-row">
+                <span class="profile-badge"><i class="fa-solid fa-circle-check"></i> Profil Teridentifikasi</span>
+                <span class="profile-role-badge" id="active-teacher-role">Walikelas</span>
+              </div>
+              <h2 class="profile-name" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
+              <div class="profile-meta">
+                <span class="meta-item"><i class="fa-solid fa-id-card"></i> NIP: <strong class="font-mono" id="active-teacher-nip">198109092022211004</strong></span>
+                <span class="meta-item"><i class="fa-solid fa-chalkboard"></i> Kelas Binaan: <strong class="badge-class" id="active-teacher-class">XII TEI 2</strong></span>
               </div>
             </div>
-
-            <div class="search-field-box">
-              <label for="portal-guru-select"><i class="fa-solid fa-list-check"></i> Atau Pilih Dari Daftar Guru:</label>
-              <select id="portal-guru-select" class="form-control">
-                <option value="">-- Pilih Guru --</option>
-              </select>
+            
+            <!-- Share & Switch Action Buttons -->
+            <div class="profile-share-box">
+              <button id="btn-copy-personal-portal-url" class="btn btn-secondary btn-sm" title="Salin Tautan Portal Khusus Guru Ini">
+                <i class="fa-solid fa-share-nodes"></i> Salin Link Portal Saya
+              </button>
+              <button id="btn-back-to-landing-nip" class="btn btn-outline-danger btn-sm" title="Kembali ke Layar Masukkan NIP">
+                <i class="fa-solid fa-arrow-left"></i> Ganti NIP / Keluar
+              </button>
             </div>
           </div>
 
-          <!-- Quick Select Favorites / Preset Pills -->
-          <div class="quick-pills-row">
-            <span class="quick-label"><i class="fa-solid fa-fire"></i> Akses Cepat:</span>
-            <button class="quick-pill active" data-nip="198109092022211004" data-name="MUCHAMAD ISKAK FATONI, S.Pd." data-class="XII TEI 2">
-              <i class="fa-solid fa-star"></i> MUCHAMAD ISKAK FATONI, S.Pd. (XII TEI 2)
-            </button>
-          </div>
-        </div>
-
-        <!-- Active Teacher Profile Banner with Shareable Direct Link -->
-        <div class="teacher-profile-banner" id="teacher-profile-banner">
-          <div class="profile-avatar">
-            <i class="fa-solid fa-user-graduate"></i>
-          </div>
-          <div class="profile-details">
-            <div class="profile-badge-row">
-              <span class="profile-badge"><i class="fa-solid fa-circle-check"></i> Profil Aktif</span>
-              <span class="profile-role-badge" id="active-teacher-role">Walikelas</span>
+          <!-- Available Forms Section for Active Teacher -->
+          <div class="section-header">
+            <div>
+              <h3 class="section-title">Daftar Formulir Terhubung</h3>
+              <p class="section-subtitle">Pilih formulir di bawah ini. Data identitas Anda sudah otomatis terisi.</p>
             </div>
-            <h2 class="profile-name" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
-            <div class="profile-meta">
-              <span class="meta-item"><i class="fa-solid fa-id-card"></i> NIP: <strong class="font-mono" id="active-teacher-nip">198109092022211004</strong></span>
-              <span class="meta-item"><i class="fa-solid fa-chalkboard"></i> Kelas Binaan: <strong class="badge-class" id="active-teacher-class">XII TEI 2</strong></span>
-            </div>
+            <span class="badge-count" id="active-forms-count">4 Formulir Aktif</span>
           </div>
-          
-          <!-- Share Personal Portal Link Action -->
-          <div class="profile-share-box">
-            <button id="btn-copy-personal-portal-url" class="btn btn-secondary btn-sm" title="Salin Tautan Portal Khusus Guru Ini">
-              <i class="fa-solid fa-share-nodes"></i> Salin Link Portal Saya
-            </button>
-          </div>
-        </div>
 
-        <!-- Available Forms Section for Active Teacher -->
-        <div class="section-header">
-          <div>
-            <h3 class="section-title">Formulir Otomatis Tersedia</h3>
-            <p class="section-subtitle">Link di bawah ini telah disesuaikan secara khusus dengan identitas Anda.</p>
+          <!-- Dynamic Form Cards Container -->
+          <div class="form-cards-grid" id="portal-forms-grid">
+            <!-- Populated dynamically by app.js -->
           </div>
-          <span class="badge-count" id="active-forms-count">1 Formulir Aktif</span>
-        </div>
 
-        <!-- Dynamic Form Cards Container -->
-        <div class="form-cards-grid" id="portal-forms-grid">
-          <!-- Populated dynamically by app.js -->
         </div>
 
       </section>
