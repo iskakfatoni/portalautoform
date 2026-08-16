@@ -280,14 +280,30 @@ function initNavigation() {
 function checkUrlParamsForTeacher() {
   const params = new URLSearchParams(window.location.search);
   const nipParam = params.get('nip');
+  const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
 
+  // 1. Cek dari URL Query Parameter (?nip=...)
   if (nipParam && nipParam !== '-') {
     const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
-    const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
     const found = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanNip);
     if (found) {
+      localStorage.setItem('portal_logged_nip', found.nip);
       showPortalView(found);
-      showToast(`Selamat datang, ${found.name}!`);
+      showToast(`Selamat datang kembali, ${found.name}!`);
+      return;
+    }
+  }
+
+  // 2. Cek dari Sesi Tersimpan di Browser Guru (LocalStorage)
+  const savedNip = localStorage.getItem('portal_logged_nip');
+  if (savedNip && savedNip !== '-') {
+    const cleanSavedNip = savedNip.replace(/[\s\.\-]+/g, '');
+    const foundSaved = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanSavedNip);
+    if (foundSaved) {
+      const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanSavedNip)}`;
+      window.history.replaceState({ nip: foundSaved.nip }, '', newUrl);
+      showPortalView(foundSaved);
+      showToast(`Selamat datang kembali, ${foundSaved.name}!`);
       return;
     }
   }
@@ -534,16 +550,27 @@ function setupUserPortal() {
     // Pastikan master data tersedia (fallback ke INITIAL_TEACHERS jika currentTeachers kosong)
     const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
 
-    // Cari guru berdasarkan NIP (membersihkan format spasi/tanda baca)
-    const found = teachersList.find(t => {
+    // 1. Cari guru berdasarkan NIP (membersihkan format spasi/tanda baca)
+    let found = teachersList.find(t => {
       if (!t.nip || t.nip === '-') return false;
       const teacherCleanNip = String(t.nip).trim().replace(/[\s\.\-]+/g, '');
       return teacherCleanNip === cleanVal;
     });
 
+    // 2. Fallback cerdas: jika tidak ditemukan dengan NIP, cari berdasarkan nama guru (jika guru mengetik nama)
+    if (!found) {
+      const searchName = rawVal.trim().toLowerCase();
+      if (searchName.length >= 3) {
+        found = teachersList.find(t => t.name.toLowerCase().includes(searchName) && t.nip && t.nip !== '-');
+      }
+    }
+
     if (found) {
       if (landingError) landingError.classList.add('hidden');
       
+      // Simpan sesi NIP di LocalStorage agar tidak perlu ketik berulang kali
+      localStorage.setItem('portal_logged_nip', found.nip);
+
       // Update URL query tanpa reload browser
       const cleanTeacherNip = String(found.nip).trim().replace(/[\s\.\-]+/g, '');
       const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanTeacherNip)}`;
@@ -624,8 +651,10 @@ function setupUserPortal() {
   // 5. Tombol "Ganti NIP / Keluar" di Layar 2
   if (btnBackToLanding) {
     btnBackToLanding.addEventListener('click', () => {
+      localStorage.removeItem('portal_logged_nip');
       window.history.pushState({}, '', window.location.pathname);
       showLandingView();
+      showToast('Sesi NIP ditutup. Silakan masukkan NIP lain.');
     });
   }
 
