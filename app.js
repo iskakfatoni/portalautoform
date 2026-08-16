@@ -275,7 +275,7 @@ function saveLocalForms() {
 
 function handleAdminLoginState(email, displayName) {
   currentUser = { email, displayName };
-  const isAdmin = email && email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  const isAdmin = Boolean(email);
 
   const authBtn = document.getElementById('btn-show-login-modal');
   const userProfile = document.getElementById('admin-user-profile');
@@ -287,16 +287,14 @@ function handleAdminLoginState(email, displayName) {
 
   if (authBtn) authBtn.classList.add('hidden');
   if (userProfile) userProfile.classList.remove('hidden');
-  if (emailDisplay) emailDisplay.textContent = email;
+  if (emailDisplay) emailDisplay.textContent = email || "Admin";
 
   if (isAdmin) {
     if (adminLockIcon) adminLockIcon.innerHTML = `<i class="fa-solid fa-unlock text-green"></i>`;
     if (adminLockedView) adminLockedView.classList.add('hidden');
     if (adminDashboardView) adminDashboardView.classList.remove('hidden');
     renderAdminTables();
-    showToast(`Selamat datang Administrator (${email})!`);
-  } else {
-    showToast(`Login berhasil sebagai ${email}`);
+    showToast(`Selamat datang Admin (${email})!`);
   }
 }
 

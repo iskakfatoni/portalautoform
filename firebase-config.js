@@ -27,25 +27,24 @@ import {
   writeBatch
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Konfigurasi Proyek Firebase Anda
-// Anda bisa menempelkan (paste) konfigurasi asli dari Firebase Console di sini,
-// atau mengisinya langsung lewat menu "Pengaturan Firebase" di dalam aplikasi web.
+// Konfigurasi Proyek Firebase (form-autoform)
 export const DEFAULT_FIREBASE_CONFIG = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyBJUu8_4G_WK30h4W61XunUFvu7uutBibo",
+  authDomain: "form-autoform.firebaseapp.com",
+  projectId: "form-autoform",
+  storageBucket: "form-autoform.firebasestorage.app",
+  messagingSenderId: "792855598347",
+  appId: "1:792855598347:web:d6413636885289aa3a7e0e",
+  measurementId: "G-XP8VY0GRXW"
 };
 
-// Cek apakah ada konfigurasi tersimpan di localStorage
+// Cek apakah ada konfigurasi kustom di localStorage
 export function getActiveFirebaseConfig() {
   const customConfig = localStorage.getItem('portal_custom_firebase_config');
   if (customConfig) {
     try {
       const parsed = JSON.parse(customConfig);
-      if (parsed.projectId && parsed.apiKey && parsed.apiKey !== "YOUR_API_KEY") {
+      if (parsed.projectId && parsed.apiKey) {
         return parsed;
       }
     } catch (e) {
@@ -69,8 +68,10 @@ export function initFirebase() {
       auth = getAuth(app);
       db = getFirestore(app);
       googleProvider = new GoogleAuthProvider();
+      // Force prompt select account
+      googleProvider.setCustomParameters({ prompt: 'select_account' });
       isFirebaseActive = true;
-      console.log("Firebase initialized successfully with project:", config.projectId);
+      console.log("Firebase connected successfully to project:", config.projectId);
     } catch (error) {
       console.error("Gagal inisialisasi Firebase:", error);
       isFirebaseActive = false;
