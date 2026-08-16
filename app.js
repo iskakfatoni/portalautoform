@@ -963,43 +963,68 @@ function initImportExport() {
 }
 
 function exportTeachersToExcel() {
-  if (typeof XLSX === 'undefined') {
-    showToast('Library Excel sedang dimuat, silakan klik sekali lagi.');
-    return;
+  const xlsxLib = window.XLSX || (typeof XLSX !== 'undefined' ? XLSX : null);
+  const defaultForm = currentForms[0] || INITIAL_FORMS[0];
+
+  if (xlsxLib) {
+    try {
+      const excelData = currentTeachers.map((t, idx) => ({
+        "No": idx + 1,
+        "Nama Guru": t.name,
+        "NIP": t.nip || "-",
+        "Kelas Binaan": t.class || "-",
+        "Peran": t.role || "Guru",
+        "URL Jurnal Pribadi": t.journalFormUrl || "",
+        "Link Portal Guru": getPersonalPortalUrl(t),
+        "Link Form Walikelas": defaultForm ? generateFormUrlForTeacher(defaultForm, t) : ""
+      }));
+
+      const worksheet = xlsxLib.utils.json_to_sheet(excelData);
+      
+      // Lebar kolom rapi
+      worksheet["!cols"] = [
+        { wch: 6 },
+        { wch: 36 },
+        { wch: 22 },
+        { wch: 16 },
+        { wch: 16 },
+        { wch: 45 },
+        { wch: 55 },
+        { wch: 55 }
+      ];
+
+      const workbook = xlsxLib.utils.book_new();
+      xlsxLib.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
+      
+      xlsxLib.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
+      showToast("File Excel (.xlsx) berhasil diunduh!");
+      return;
+    } catch (err) {
+      console.warn("Gagal export via XLSX, beralih ke format CSV Excel:", err);
+    }
   }
 
-  const defaultForm = currentForms[0] || INITIAL_FORMS[0];
-  
-  const excelData = currentTeachers.map((t, idx) => ({
-    "No": idx + 1,
-    "Nama Guru": t.name,
-    "NIP": t.nip || "-",
-    "Kelas Binaan": t.class || "-",
-    "Peran": t.role || "Guru",
-    "URL Jurnal Pribadi": t.journalFormUrl || "",
-    "Link Portal Guru": getPersonalPortalUrl(t),
-    "Link Form Walikelas": defaultForm ? generateFormUrlForTeacher(defaultForm, t) : ""
-  }));
+  // Fallback Excel CSV (BOM UTF-8 untuk Excel) jika SheetJS terhalang koneksi
+  const headers = ["No", "Nama Guru", "NIP", "Kelas Binaan", "Peran", "URL Jurnal Pribadi", "Link Portal Guru", "Link Form Walikelas"];
+  const rows = currentTeachers.map((t, idx) => {
+    const portalUrl = getPersonalPortalUrl(t);
+    const formUrl = defaultForm ? generateFormUrlForTeacher(defaultForm, t) : "";
+    const journalUrl = t.journalFormUrl || "";
+    return [
+      idx + 1,
+      `"${t.name.replace(/"/g, '""')}"`,
+      `"${(t.nip || '-').replace(/"/g, '""')}"`,
+      `"${(t.class || '-').replace(/"/g, '""')}"`,
+      `"${(t.role || 'Guru').replace(/"/g, '""')}"`,
+      `"${journalUrl.replace(/"/g, '""')}"`,
+      `"${portalUrl}"`,
+      `"${formUrl}"`
+    ];
+  });
 
-  const worksheet = XLSX.utils.json_to_sheet(excelData);
-  
-  // Lebar kolom rapi
-  worksheet["!cols"] = [
-    { wch: 6 },
-    { wch: 36 },
-    { wch: 22 },
-    { wch: 16 },
-    { wch: 16 },
-    { wch: 45 },
-    { wch: 55 },
-    { wch: 55 }
-  ];
-
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
-  
-  XLSX.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
-  showToast("File Excel (.xlsx) berhasil diunduh!");
+  const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+  downloadFile(csvContent, "data_link_guru_portal_autoform.csv", "text/csv;charset=utf-8;");
+  showToast("File data guru berhasil diunduh (format CSV/Excel)!");
 }
 
 function exportTeachersToJSON() {
