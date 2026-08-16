@@ -282,6 +282,12 @@ function showLandingView() {
   const portalView = document.getElementById('view-teacher-portal');
   const errorMsg = document.getElementById('landing-nip-error');
   const inputNip = document.getElementById('landing-nip-input');
+  const mainHeader = document.getElementById('app-main-header');
+  const navTabs = document.getElementById('app-nav-tabs');
+
+  // Sembunyikan header dan nav bar pada landing page awal agar ultra bersih & minimalis
+  if (mainHeader) mainHeader.classList.add('hidden');
+  if (navTabs) navTabs.classList.add('hidden');
 
   if (landingView) landingView.classList.remove('hidden');
   if (portalView) portalView.classList.add('hidden');
@@ -297,6 +303,12 @@ function showPortalView(teacher) {
   
   const landingView = document.getElementById('view-landing-nip');
   const portalView = document.getElementById('view-teacher-portal');
+  const mainHeader = document.getElementById('app-main-header');
+  const navTabs = document.getElementById('app-nav-tabs');
+
+  // Tampilkan header dan nav tabs saat berada di dalam portal link
+  if (mainHeader) mainHeader.classList.remove('hidden');
+  if (navTabs) navTabs.classList.remove('hidden');
 
   if (landingView) landingView.classList.add('hidden');
   if (portalView) portalView.classList.remove('hidden');
@@ -504,24 +516,29 @@ function setupUserPortal() {
     });
   }
 
-  // 2. Quick Chips di Landing Page
-  document.querySelectorAll('.quick-chip-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const nip = btn.getAttribute('data-nip');
-      if (nip) {
-        if (landingNipInput) landingNipInput.value = nip;
-        if (formLandingNip) formLandingNip.dispatchEvent(new Event('submit'));
-      }
+  // 2. Tombol Theme Toggle di Landing Page
+  const btnLandingTheme = document.getElementById('btn-landing-theme-toggle');
+  if (btnLandingTheme) {
+    btnLandingTheme.addEventListener('click', () => {
+      const isDark = document.body.classList.contains('dark-mode');
+      document.body.classList.toggle('dark-mode', !isDark);
+      document.body.classList.toggle('light-mode', isDark);
+      localStorage.setItem('portal_theme', isDark ? 'light' : 'dark');
     });
-  });
+  }
 
   // 3. Tombol Admin Kecil di Layar 1
   if (btnLandingAdmin) {
     btnLandingAdmin.addEventListener('click', () => {
+      // Tampilkan main header & nav tabs untuk navigasi admin
+      const mainHeader = document.getElementById('app-main-header');
+      const navTabs = document.getElementById('app-nav-tabs');
+      if (mainHeader) mainHeader.classList.remove('hidden');
+      if (navTabs) navTabs.classList.remove('hidden');
+
       // Buka Modal Login Admin atau Tab Admin
       const modal = document.getElementById('modal-login');
       if (currentUser) {
-        // Jika sudah login admin, buka tab admin
         document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('[data-target="tab-admin"]').classList.add('active');
         document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-admin'));

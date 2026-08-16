@@ -32,7 +32,7 @@
   <div class="app-wrapper">
 
     <!-- Top Navigation Header -->
-    <header class="main-header">
+    <header class="main-header" id="app-main-header">
       <div class="brand-container">
         <a href="./" class="brand-link">
           <div class="brand-icon">
@@ -86,7 +86,7 @@
     </header>
 
     <!-- Main Navigation Bar -->
-    <nav class="nav-tabs-container">
+    <nav class="nav-tabs-container" id="app-nav-tabs">
       <button class="nav-tab-btn active" data-target="tab-user-portal">
         <i class="fa-solid fa-chalkboard-user"></i> Portal Guru (NIP)
       </button>
@@ -142,16 +142,11 @@
               </div>
             </form>
 
-            <!-- Quick Access Chip for Pak Iskak -->
-            <div class="landing-quick-chips">
-              <span class="chip-label">Akses Cepat Pengujian:</span>
-              <button type="button" class="quick-chip-btn" data-nip="198109092022211004">
-                <i class="fa-solid fa-user-check"></i> MUCHAMAD ISKAK FATONI, S.Pd. (198109092022211004)
-              </button>
-            </div>
-
-            <!-- Discrete Admin Gate Button -->
+            <!-- Discrete Admin Gate & Theme Controls -->
             <div class="landing-admin-footer">
+              <button type="button" id="btn-landing-theme-toggle" class="btn-admin-discrete" title="Ganti Tema Terang/Gelap">
+                <i class="fa-solid fa-circle-half-stroke"></i> <span>Tema</span>
+              </button>
               <button type="button" id="btn-landing-admin-gate" class="btn-admin-discrete" title="Masuk ke Panel Kontrol Admin">
                 <i class="fa-solid fa-lock"></i> <span>Panel Admin</span>
               </button>
