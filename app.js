@@ -238,25 +238,43 @@ document.addEventListener('DOMContentLoaded', async () => {
    ========================================================================== */
 
 function initNavigation() {
-  const tabBtns = document.querySelectorAll('.nav-tab-btn');
-  const tabPanes = document.querySelectorAll('.tab-pane');
-
-  tabBtns.forEach(btn => {
+  // Main Tab Navigation
+  document.querySelectorAll('.nav-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-target');
-      
-      tabBtns.forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
-      tabPanes.forEach(pane => {
-        if (pane.id === targetId) {
-          pane.classList.add('active');
-        } else {
-          pane.classList.remove('active');
-        }
+      document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === targetId);
       });
     });
   });
+
+  // Admin Subtabs Navigation
+  document.querySelectorAll('.admin-subtab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-subtarget');
+      document.querySelectorAll('.admin-subtab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.admin-subpane').forEach(pane => {
+        pane.classList.toggle('active', pane.id === targetId);
+      });
+    });
+  });
+
+  // Admin Search
+  const adminSearch = document.getElementById('admin-teacher-search');
+  if (adminSearch) {
+    adminSearch.addEventListener('input', () => {
+      renderTeachersTable(adminSearch.value.trim());
+    });
+  }
+
+  // Seed Button
+  const seedBtn = document.getElementById('btn-seed-teachers');
+  if (seedBtn) seedBtn.addEventListener('click', seedMasterTeachersToFirestore);
 }
 
 function checkUrlParamsForTeacher() {
@@ -1264,48 +1282,8 @@ function setupFormBuilder() {
 }
 
 /* ==========================================================================
-   8. UI Modals & Navigation
+   8. UI Modals
    ========================================================================== */
-
-function initNavigation() {
-  // Main Tab Navigation
-  document.querySelectorAll('.nav-tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-target');
-      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.querySelectorAll('.tab-pane').forEach(pane => {
-        pane.classList.toggle('active', pane.id === targetId);
-      });
-    });
-  });
-
-  // Admin Subtabs Navigation
-  document.querySelectorAll('.admin-subtab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-subtarget');
-      document.querySelectorAll('.admin-subtab-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-
-      document.querySelectorAll('.admin-subpane').forEach(pane => {
-        pane.classList.toggle('active', pane.id === targetId);
-      });
-    });
-  });
-
-  // Admin Search
-  const adminSearch = document.getElementById('admin-teacher-search');
-  if (adminSearch) {
-    adminSearch.addEventListener('input', () => {
-      renderTeachersTable(adminSearch.value.trim());
-    });
-  }
-
-  // Seed Button
-  const seedBtn = document.getElementById('btn-seed-teachers');
-  if (seedBtn) seedBtn.addEventListener('click', seedMasterTeachersToFirestore);
-}
 
 function initModals() {
   // 1. Login Modal
