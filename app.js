@@ -23,107 +23,175 @@ import {
 // Import SheetJS ESM Library untuk ekspor & impor Excel .xlsx asli
 import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.mjs";
 
-// Master Data Awal (94 Guru)
-const INITIAL_TEACHERS = [
-  { 
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.", 
-    nip: "198109092022211004", 
-    class: "XII TEI 2", 
-    role: "Walikelas",
-    journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
-  },
-  { name: "HERMAWANTO, S.Pd., M.Psi", nip: "-", class: "X TAV", role: "Walikelas" },
-  { name: "NURUL HIDAYATI, S.Pd., M.Psi", nip: "-", class: "X TEI 1", role: "Walikelas" },
-  { name: "Drs. MOEHAIMIN", nip: "-", class: "X TEI 2", role: "Walikelas" },
-  { name: "DHURROTUL FARIDAH, S.Pd", nip: "-", class: "X TPL 1", role: "Walikelas" },
-  { name: "SRI WINARTI, S.Pd", nip: "-", class: "X TPL 2", role: "Walikelas" },
-  { name: "MUNASRI, S.Pd.", nip: "-", class: "X TPM 1", role: "Walikelas" },
-  { name: "NUR HAYATI, S.Psi, M.Pd.", nip: "-", class: "X TPM 2", role: "Walikelas" },
-  { name: "DWI RETNO TUGAS ERNAWATI, S.Pd", nip: "-", class: "X TKR1", role: "Walikelas" },
-  { name: "KASIATIN, S.Pd", nip: "-", class: "X TKR2", role: "Walikelas" },
-  { name: "SUHARTO DWI SUHERNOWO, ST", nip: "-", class: "X TBKR", role: "Walikelas" },
-  { name: "ARSYL NOVA ARIRI, ST, M.Pd.", nip: "-", class: "X TSM 1", role: "Walikelas" },
-  { name: "LAILA FITRIYA, S.Pd.I", nip: "-", class: "X TSM 2", role: "Walikelas" },
-  { name: "EKA PRAMITASARI, S.Pd. M.Pd.", nip: "-", class: "X DKV 1", role: "Walikelas" },
-  { name: "MISBAHUR ROSYIDIN, S.Pd.", nip: "-", class: "X DKV 2", role: "Walikelas" },
-  { name: "Dra. DYAH CHUSNUL CHOTIMAH", nip: "-", class: "X DKV 3", role: "Walikelas" },
-  { name: "WAWAN SISWANTO, SS", nip: "-", class: "XI TAV", role: "Walikelas" },
-  { name: "R.A. RATNA KARTIKAWATI, S.Pd", nip: "-", class: "XI TEI 1", role: "Walikelas" },
-  { name: "HERI SUBYANTORO, ST, M.Pd.", nip: "-", class: "XI TEI 2", role: "Walikelas" },
-  { name: "NURUL HUDA, ST, M.Si.", nip: "-", class: "XI TPL 1", role: "Walikelas" },
-  { name: "NUR 'AFIIFAH, M.Pd.", nip: "-", class: "XI TPL 2", role: "Walikelas" },
-  { name: "TRIBUDI HARTONO, S.Pd", nip: "-", class: "XI TPM 1", role: "Walikelas" },
-  { name: "DEDY HENDRIANA, S.Pd. M.Pd.", nip: "-", class: "XI TPM 2", role: "Walikelas" },
-  { name: "AGUS HIDAYAT, S.Pd", nip: "-", class: "XI TKR1", role: "Walikelas" },
-  { name: "SAMSUL HADI, M.Pd.", nip: "-", class: "XI TKR2", role: "Walikelas" },
-  { name: "HISBULLOH HUDA, M.Pd.", nip: "-", class: "XI TBKR", role: "Walikelas" },
-  { name: "DWI SANTOSO, S.Pd", nip: "-", class: "XI TSM 1", role: "Walikelas" },
-  { name: "AGUS HARIYANTO, ST. M.Pd", nip: "-", class: "XI TSM 2", role: "Walikelas" },
-  { name: "ZAINUL ARIFIN, M.Pd.", nip: "-", class: "XI DKV 1", role: "Walikelas" },
-  { name: "BAMBANG SUJATMIKO, S.Pd", nip: "-", class: "XI DKV 2", role: "Walikelas" },
-  { name: "HARTONO, S.Pd", nip: "-", class: "XI DKV 3", role: "Walikelas" },
-  { name: "SIGIT EKO PRAMONO, S.Pd", nip: "-", class: "XII TAV", role: "Walikelas" },
-  { name: "AGUNG RAKHMANDA, S.Kom.", nip: "-", class: "XII TEI 1", role: "Walikelas" },
-  { name: "MOHAMAD ARIEF PRIYO UTOMO, S.Pd", nip: "-", class: "XII TPL 1", role: "Walikelas" },
-  { name: "RIRIN DIYANNITA SASANTI, M.Pd.", nip: "-", class: "XII TPL 2", role: "Walikelas" },
-  { name: "SULIADI, S.Pd", nip: "-", class: "XII TPM 1", role: "Walikelas" },
-  { name: "TUTIK QOMARIYAH, S.Si", nip: "-", class: "XII TPM 2", role: "Walikelas" },
-  { name: "IMAM SUFERI, ST.", nip: "-", class: "XII TKR1", role: "Walikelas" },
-  { name: "FIRMAN ARDIANSYAH, S.Pd.", nip: "-", class: "XII TKR2", role: "Walikelas" },
-  { name: "AZIZ CAHYA PRADANA, S.Pd.", nip: "-", class: "XII TBKR", role: "Walikelas" },
-  { name: "WAHYU ROFIUL AMIN, S.Pd.", nip: "-", class: "XII TSM 1", role: "Walikelas" },
-  { name: "ROHMA EKA INDRI AHADIAH, S.Pd, Gr", nip: "-", class: "XII TSM 2", role: "Walikelas" },
-  { name: "EFRIDA ISBANDRIYAH, S.T.", nip: "-", class: "XII DKV 1", role: "Walikelas" },
-  { name: "SOTYA BAYUNTARA, S.Pd.", nip: "-", class: "XII DKV 2", role: "Walikelas" },
-  { name: "SRIGATI, SE", nip: "-", class: "XII DKV 3", role: "Walikelas" },
-  { name: "HARI PURWANTO, ST", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "ESTI WIDHIARNI, S.T", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "EKO FAJAR KURNIAWAN, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "ETIK SULISTYOWATI, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "NOVAN EKO SETYAWAN, S.Kom.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "YAYUK NURNANINGSIH, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "KHOIRUL AMIN, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "REZA ZULKARNAIN ARIFIN, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "KHOIRUZEN, ST", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "HEPPY LUCKITO, SST", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "SRI PURWANINGSIH, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "DARIS UMAMI, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "AKHMAD ROFI SAFUAT, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "SIDHARTHA BUDI SUMEDHA, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "ASYITAH  ALMUFIDAH, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "SUDARMONO, ST", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "ROHMAN, S.T.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "ANDRI YUDHI PRASETYO, ST", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "HARIS ALI MUHYIDIN, S.T", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "MAMIEK ZUHRIYAH. S.Hum", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "UMI RU'YATIN, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "YEFI WULANDARI, SE", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "SARI NURHIDAYATI, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "SUWOYO, S.Kom", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "AAN SUSANTO, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "YUNITA DWI WIRANTI, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "NUR FAUZIYAH, S.Ag.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "SUYANTI, S.Kom.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "MIANTO, S.Kom.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "YUNIAR DWI LISTYANTO, ST", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "BENY WIJAYANTO, SS", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "NURUL JAMILAH, S.Hum.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "ENDANG MULYANI, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "AGUS IRIANTO, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "SAMUJI, S.Ag", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "IKA UMAYA MARDIANA, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "NUR KHOLIFAH, S.Pd.", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "AIDA QONITATILLAH, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "YULI ANDRIYANI,  S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "VITA EKA RAHAYU, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "AKHMAD VICKRI HIDAYATULLAH, S.Pd", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "HERI SUGIANTORO, S.Ag", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "AKBAR ILHAM BAGASKARA PRATAMA, S.T", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "DELIA NURUL AFIFAH", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "CAHYA ISKANDAR", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "EVY KUSHARDIANY", nip: "-", class: "-", role: "Guru Pengajar" },
-  { name: "HUDAN RHARA ANGGRIADI", nip: "-", class: "-", role: "Guru Pengajar" }
+/// Master Data Awal (Urutan Resmi Sesuai Database / Google Form Sekolah)
+const MASTER_TEACHER_NAMES_ORDER = [
+  "HERMAWANTO, S.Pd., M.Psi",
+  "NURUL HIDAYATI, S.Pd., M.Psi",
+  "Drs. MOEHAIMIN",
+  "NUR HAYATI, S.Psi, M.Pd.",
+  "ARSYL NOVA ARIRI, ST, M.Pd.",
+  "EKA PRAMITASARI, S.Pd. M.Pd.",
+  "DWI RETNO TUGAS ERNAWATI, S.Pd",
+  "DHURROTUL FARIDAH, S.Pd",
+  "MISBAHUR ROSYIDIN, S.Pd.",
+  "Dra. DYAH CHUSNUL CHOTIMAH",
+  "KASIATIN, S.Pd",
+  "MUNASRI, S.Pd.",
+  "NURUL HUDA, ST, M.Si.",
+  "SRI WINARTI, S.Pd",
+  "SUHARTO DWI SUHERNOWO, ST",
+  "DWI SANTOSO, S.Pd",
+  "AGUS HARIYANTO, ST. M.Pd",
+  "LAILA FITRIYA, S.Pd.I",
+  "WAWAN SISWANTO, SS",
+  "R.A. RATNA KARTIKAWATI, S.Pd",
+  "AGUS HIDAYAT, S.Pd",
+  "HERI SUBYANTORO, ST, M.Pd.",
+  "NUR 'AFIIFAH, M.Pd.",
+  "SAMSUL HADI, M.Pd.",
+  "TRIBUDI HARTONO, S.Pd",
+  "HISBULLOH HUDA, M.Pd.",
+  "DEDY HENDRIANA, S.Pd. M.Pd.",
+  "HARTONO, S.Pd",
+  "MOHAMAD ARIEF PRIYO UTOMO, S.Pd",
+  "ZAINUL ARIFIN, M.Pd.",
+  "BAMBANG SUJATMIKO, S.Pd",
+  "Dr. RIRIN DIYANNITA SASANTI, M.Pd.",
+  "SIGIT EKO PRAMONO, S.Pd",
+  "AGUNG RAKHMANDA, S.Kom.",
+  "SULIADI, S.Pd",
+  "TUTIK QOMARIYAH, S.Si",
+  "IMAM SUFERI, ST.",
+  "FIRMAN ARDIANSYAH, S.Pd.",
+  "AZIZ CAHYA PRADANA, S.Pd.",
+  "WAHYU ROFIUL AMIN, S.Pd.",
+  "EFRIDA ISBANDRIYAH, S.T.",
+  "ROHMA EKA INDRI AHADIAH, S.Pd, Gr",
+  "SOTYA BAYUNTARA, S.Pd.",
+  "SRIGATI, SE",
+  "HARI PURWANTO, ST",
+  "ESTI WIDHIARNI, S.T",
+  "MUCHAMAD ISKAK FATONI, S.Pd.",
+  "EKO FAJAR KURNIAWAN, S.Pd",
+  "ETIK SULISTYOWATI, S.Pd.",
+  "NOVAN EKO SETYAWAN, S.Kom.",
+  "YAYUK NURNANINGSIH, S.Pd",
+  "KHOIRUL AMIN, S.Pd",
+  "REZA ZULKARNAIN ARIFIN, S.Pd.",
+  "KHOIRUZEN, ST",
+  "HEPPY LUCKITO, SST",
+  "SRI PURWANINGSIH, S.Pd",
+  "DARIS UMAMI, S.Pd.",
+  "AKHMAD ROFI SAFUAT, S.Pd.",
+  "SIDHARTHA BUDI SUMEDHA, S.Pd",
+  "ASYITAH  ALMUFIDAH, S.Pd",
+  "SUDARMONO, ST",
+  "ROHMAN, S.T.",
+  "ANDRI YUDHI PRASETYO, ST",
+  "MIANTO, S.Kom.",
+  "HARIS ALI MUHYIDIN, S.T",
+  "MAMIEK ZUHRIYAH. S.Hum",
+  "UMI RU'YATIN, S.Pd",
+  "YEFI WULANDARI, SE",
+  "SARI NURHIDAYATI, S.Pd.",
+  "SUWOYO, S.Kom",
+  "AAN SUSANTO, S.Pd.",
+  "YUNITA DWI WIRANTI, S.Pd",
+  "NUR FAUZIYAH, S.Ag.",
+  "SUYANTI, S.Kom.",
+  "DELIA NURUL AFIFAH, S.Pd",
+  "CAHYA ISKANDAR, S.T",
+  "EVY KUSHARDIANY, S.Pd",
+  "HUDAN RHARA ANGGRIADI, S.Pd",
+  "YUNIAR DWI LISTYANTO, ST",
+  "BENY WIJAYANTO, SS",
+  "NURUL JAMILAH, S.Hum.",
+  "ENDANG MULYANI, S.Pd.",
+  "AGUS IRIANTO, S.Pd",
+  "SAMUJI, S.Ag",
+  "IKA UMAYA MARDIANA, S.Pd",
+  "NUR KHOLIFAH, S.Pd.",
+  "AIDA QONITATILLAH, S.Pd",
+  "YULI ANDRIYANI,  S.Pd",
+  "VITA EKA RAHAYU, S.Pd",
+  "AKHMAD VICKRI HIDAYATULLAH, S.Pd",
+  "HERI SUGIANTORO, S.Ag",
+  "AKBAR ILHAM BAGASKARA PRATAMA, S.T"
 ];
+
+// Master Data Awal (92 Guru Terurut Rapi)
+const INITIAL_TEACHERS = MASTER_TEACHER_NAMES_ORDER.map((name, idx) => {
+  if (name === "MUCHAMAD ISKAK FATONI, S.Pd.") {
+    return {
+      orderIndex: idx + 1,
+      name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+      nip: "198109092022211004",
+      class: "XII TEI 2",
+      role: "Walikelas",
+      journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
+    };
+  }
+
+  // Walikelas mapping bawaan
+  const walikelasMap = {
+    "HERMAWANTO, S.Pd., M.Psi": "X TAV",
+    "NURUL HIDAYATI, S.Pd., M.Psi": "X TEI 1",
+    "Drs. MOEHAIMIN": "X TEI 2",
+    "DHURROTUL FARIDAH, S.Pd": "X TPL 1",
+    "SRI WINARTI, S.Pd": "X TPL 2",
+    "MUNASRI, S.Pd.": "X TPM 1",
+    "NUR HAYATI, S.Psi, M.Pd.": "X TPM 2",
+    "DWI RETNO TUGAS ERNAWATI, S.Pd": "X TKR1",
+    "KASIATIN, S.Pd": "X TKR2",
+    "SUHARTO DWI SUHERNOWO, ST": "X TBKR",
+    "ARSYL NOVA ARIRI, ST, M.Pd.": "X TSM 1",
+    "LAILA FITRIYA, S.Pd.I": "X TSM 2",
+    "EKA PRAMITASARI, S.Pd. M.Pd.": "X DKV 1",
+    "MISBAHUR ROSYIDIN, S.Pd.": "X DKV 2",
+    "Dra. DYAH CHUSNUL CHOTIMAH": "X DKV 3",
+    "WAWAN SISWANTO, SS": "XI TAV",
+    "R.A. RATNA KARTIKAWATI, S.Pd": "XI TEI 1",
+    "HERI SUBYANTORO, ST, M.Pd.": "XI TEI 2",
+    "NURUL HUDA, ST, M.Si.": "XI TPL 1",
+    "NUR 'AFIIFAH, M.Pd.": "XI TPL 2",
+    "TRIBUDI HARTONO, S.Pd": "XI TPM 1",
+    "DEDY HENDRIANA, S.Pd. M.Pd.": "XI TPM 2",
+    "AGUS HIDAYAT, S.Pd": "XI TKR1",
+    "SAMSUL HADI, M.Pd.": "XI TKR2",
+    "HISBULLOH HUDA, M.Pd.": "XI TBKR",
+    "DWI SANTOSO, S.Pd": "XI TSM 1",
+    "AGUS HARIYANTO, ST. M.Pd": "XI TSM 2",
+    "ZAINUL ARIFIN, M.Pd.": "XI DKV 1",
+    "BAMBANG SUJATMIKO, S.Pd": "XI DKV 2",
+    "HARTONO, S.Pd": "XI DKV 3",
+    "SIGIT EKO PRAMONO, S.Pd": "XII TAV",
+    "AGUNG RAKHMANDA, S.Kom.": "XII TEI 1",
+    "MOHAMAD ARIEF PRIYO UTOMO, S.Pd": "XII TPL 1",
+    "Dr. RIRIN DIYANNITA SASANTI, M.Pd.": "XII TPL 2",
+    "SULIADI, S.Pd": "XII TPM 1",
+    "TUTIK QOMARIYAH, S.Si": "XII TPM 2",
+    "IMAM SUFERI, ST.": "XII TKR1",
+    "FIRMAN ARDIANSYAH, S.Pd.": "XII TKR2",
+    "AZIZ CAHYA PRADANA, S.Pd.": "XII TBKR",
+    "WAHYU ROFIUL AMIN, S.Pd.": "XII TSM 1",
+    "ROHMA EKA INDRI AHADIAH, S.Pd, Gr": "XII TSM 2",
+    "EFRIDA ISBANDRIYAH, S.T.": "XII DKV 1",
+    "SOTYA BAYUNTARA, S.Pd.": "XII DKV 2",
+    "SRIGATI, SE": "XII DKV 3"
+  };
+
+  const assignedClass = walikelasMap[name] || "-";
+  const role = assignedClass !== "-" ? "Walikelas" : "Guru Pengajar";
+
+  return {
+    orderIndex: idx + 1,
+    name,
+    nip: "-",
+    class: assignedClass,
+    role,
+    journalFormUrl: ""
+  };
+});
 
 // Master Data Kelas
 const ALL_CLASSES = [
@@ -697,10 +765,11 @@ function renderTeachersTable(filterQuery = '') {
   const tbody = document.getElementById('teachers-table-body');
   if (!tbody) return;
 
-  let filtered = currentTeachers;
+  let sorted = sortTeachersByMasterOrder(currentTeachers);
+  let filtered = sorted;
   if (filterQuery) {
     const q = filterQuery.toLowerCase();
-    filtered = currentTeachers.filter(t => t.name.toLowerCase().includes(q) || (t.nip && t.nip.includes(q)));
+    filtered = sorted.filter(t => t.name.toLowerCase().includes(q) || (t.nip && t.nip.includes(q)));
   }
 
   tbody.innerHTML = filtered.map((t, idx) => {
@@ -924,11 +993,23 @@ async function seedMasterTeachersToFirestore() {
    6. Impor & Ekspor Excel (.xlsx / .xls / JSON)
    ========================================================================== */
 
+function sortTeachersByMasterOrder(teachers) {
+  return [...teachers].sort((a, b) => {
+    const idxA = MASTER_TEACHER_NAMES_ORDER.indexOf(a.name);
+    const idxB = MASTER_TEACHER_NAMES_ORDER.indexOf(b.name);
+    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+    if (idxA !== -1) return -1;
+    if (idxB !== -1) return 1;
+    return a.name.localeCompare(b.name);
+  });
+}
+
 export function exportTeachersToExcel() {
   const defaultForm = currentForms[0] || INITIAL_FORMS[0];
+  const sortedTeachers = sortTeachersByMasterOrder(currentTeachers);
 
   try {
-    const excelData = currentTeachers.map((t, idx) => ({
+    const excelData = sortedTeachers.map((t, idx) => ({
       "No": idx + 1,
       "Nama Guru": t.name,
       "NIP": t.nip || "-",
@@ -957,7 +1038,7 @@ export function exportTeachersToExcel() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
     
     XLSX.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
-    showToast("File Excel (.xlsx) berhasil diunduh!");
+    showToast("File Excel (.xlsx) berhasil diunduh dengan urutan database!");
   } catch (err) {
     console.error("Gagal export Excel .xlsx:", err);
     showToast("Gagal export Excel: " + err.message);
