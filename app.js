@@ -1277,6 +1277,13 @@ function setupFormBuilder() {
   }
 }
 
+function populateGuruSelect(selectElem) {
+  if (!selectElem) return;
+  const list = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
+  selectElem.innerHTML = '<option value="">-- Pilih Guru --</option>' + 
+    list.map(t => `<option value="${t.name}">${t.name} (${t.nip !== '-' ? t.nip : t.class})</option>`).join('');
+}
+
 /* ==========================================================================
    8. UI Modals
    ========================================================================== */
