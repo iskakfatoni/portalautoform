@@ -31,13 +31,15 @@
     <!-- Top Navigation Header -->
     <header class="main-header">
       <div class="brand-container">
-        <div class="brand-icon">
-          <i class="fa-solid fa-bolt-lightning"></i>
-        </div>
-        <div class="brand-text">
-          <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
-          <span class="brand-subtitle">Multi-User Cloud Edition</span>
-        </div>
+        <a href="./" class="brand-link">
+          <div class="brand-icon">
+            <i class="fa-solid fa-bolt-lightning"></i>
+          </div>
+          <div class="brand-text">
+            <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
+            <span class="brand-subtitle">Multi-User Cloud Edition</span>
+          </div>
+        </a>
       </div>
 
       <div class="header-actions">
@@ -46,6 +48,11 @@
           <span class="status-dot" id="cloud-status-dot"></span>
           <span id="cloud-status-text">Memuat...</span>
         </div>
+
+        <!-- Quick Dual-Role Switch for Admin (Guru Saya <-> Admin) -->
+        <button id="btn-quick-my-profile" class="btn btn-sm btn-my-profile" title="Buka Profil Saya Sebagai Guru">
+          <i class="fa-solid fa-user-tie"></i> Profil Saya
+        </button>
 
         <!-- Theme Toggle -->
         <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema" aria-label="Ganti Tema">
@@ -64,7 +71,7 @@
               <i class="fa-solid fa-user-shield"></i>
             </div>
             <div class="admin-info">
-              <span class="admin-label">Admin Aktif</span>
+              <span class="admin-label">Admin & Guru</span>
               <span class="admin-email" id="admin-user-email">iskakfatoni@gmail.com</span>
             </div>
             <button id="btn-admin-logout" class="btn-logout" title="Keluar Admin">
@@ -137,19 +144,28 @@
           </div>
         </div>
 
-        <!-- Active Teacher Profile Banner -->
+        <!-- Active Teacher Profile Banner with Shareable Direct Link -->
         <div class="teacher-profile-banner" id="teacher-profile-banner">
           <div class="profile-avatar">
             <i class="fa-solid fa-user-graduate"></i>
           </div>
           <div class="profile-details">
-            <div class="profile-badge"><i class="fa-solid fa-circle-check"></i> Profil Aktif</div>
+            <div class="profile-badge-row">
+              <span class="profile-badge"><i class="fa-solid fa-circle-check"></i> Profil Aktif</span>
+              <span class="profile-role-badge" id="active-teacher-role">Walikelas</span>
+            </div>
             <h2 class="profile-name" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
             <div class="profile-meta">
               <span class="meta-item"><i class="fa-solid fa-id-card"></i> NIP: <strong class="font-mono" id="active-teacher-nip">198109092022211004</strong></span>
               <span class="meta-item"><i class="fa-solid fa-chalkboard"></i> Kelas Binaan: <strong class="badge-class" id="active-teacher-class">XII TEI 2</strong></span>
-              <span class="meta-item"><i class="fa-solid fa-shield"></i> Peran: <strong id="active-teacher-role">Walikelas</strong></span>
             </div>
+          </div>
+          
+          <!-- Share Personal Portal Link Action -->
+          <div class="profile-share-box">
+            <button id="btn-copy-personal-portal-url" class="btn btn-secondary btn-sm" title="Salin Tautan Portal Khusus Guru Ini">
+              <i class="fa-solid fa-share-nodes"></i> Salin Link Portal Saya
+            </button>
           </div>
         </div>
 
@@ -255,7 +271,7 @@
             <i class="fa-solid fa-lock"></i>
           </div>
           <h3>Area Khusus Administrator</h3>
-          <p>Halaman ini dikhususkan untuk <strong>iskakfatoni@gmail.com</strong> untuk mengelola master data guru, konfigurasi formulir, dan pengaturan cloud database Firebase.</p>
+          <p>Halaman ini dikhususkan untuk <strong>iskakfatoni@gmail.com</strong> untuk mengelola master data guru, konfigurasi formulir, dan impor/ekspor data.</p>
           <button id="btn-admin-login-trigger" class="btn btn-primary btn-lg">
             <i class="fa-brands fa-google"></i> Masuk dengan Google Admin
           </button>
@@ -299,6 +315,9 @@
             <button class="admin-subtab-btn" data-subtarget="subtab-forms">
               <i class="fa-solid fa-list-check"></i> Manajemen Formulir
             </button>
+            <button class="admin-subtab-btn" data-subtarget="subtab-import-export">
+              <i class="fa-solid fa-file-import"></i> Impor & Ekspor (CSV/Excel)
+            </button>
             <button class="admin-subtab-btn" data-subtarget="subtab-firebase-settings">
               <i class="fa-solid fa-gear"></i> Pengaturan Firebase
             </button>
@@ -312,6 +331,9 @@
                 <input type="text" id="admin-teacher-search" placeholder="Cari nama atau NIP guru...">
               </div>
               <div class="admin-btn-group">
+                <button id="btn-export-teachers-quick" class="btn btn-secondary btn-sm" title="Unduh CSV data guru beserta link masing-masing">
+                  <i class="fa-solid fa-download"></i> Ekspor CSV
+                </button>
                 <button id="btn-seed-teachers" class="btn btn-secondary btn-sm" title="Upload otomatis 94 data guru bawaan ke Firestore">
                   <i class="fa-solid fa-cloud-arrow-up"></i> 🚀 Seed 94 Master Guru
                 </button>
@@ -331,6 +353,7 @@
                     <th>NIP</th>
                     <th>Kelas Binaan</th>
                     <th>Peran</th>
+                    <th>Link Personal</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
@@ -371,11 +394,65 @@
             </div>
           </div>
 
-          <!-- Subtab 3: Pengaturan Firebase -->
+          <!-- Subtab 3: Impor & Ekspor Data (CSV / JSON) -->
+          <div id="subtab-import-export" class="admin-subpane">
+            <div class="io-grid">
+              
+              <!-- Ekspor Card -->
+              <div class="io-card">
+                <div class="io-header">
+                  <div class="io-icon io-icon-export"><i class="fa-solid fa-file-export"></i></div>
+                  <div>
+                    <h4>Ekspor Data & Link Guru</h4>
+                    <p>Unduh file CSV / Excel yang berisi daftar seluruh guru lengkap dengan link portal unik dan link auto-fill formulir mereka.</p>
+                  </div>
+                </div>
+
+                <div class="io-body">
+                  <p class="io-hint"><i class="fa-solid fa-circle-check"></i> File CSV ini siap dibagikan ke masing-masing guru via WhatsApp atau pesan pengumuman.</p>
+                  <div class="io-btn-row">
+                    <button id="btn-do-export-csv" class="btn btn-primary">
+                      <i class="fa-solid fa-file-csv"></i> Unduh File CSV (Excel)
+                    </button>
+                    <button id="btn-do-export-json" class="btn btn-secondary">
+                      <i class="fa-solid fa-code"></i> Unduh Format JSON
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Impor Card -->
+              <div class="io-card">
+                <div class="io-header">
+                  <div class="io-icon io-icon-import"><i class="fa-solid fa-file-import"></i></div>
+                  <div>
+                    <h4>Impor Data Guru Massal</h4>
+                    <p>Unggah file CSV untuk menambahkan atau memperbarui data NIP dan kelas binaan banyak guru sekaligus.</p>
+                  </div>
+                </div>
+
+                <div class="io-body">
+                  <div class="file-upload-box" id="drop-zone-csv">
+                    <i class="fa-solid fa-cloud-arrow-up file-icon"></i>
+                    <p>Pilih atau Tarik File CSV ke sini</p>
+                    <span class="file-format-hint">Format kolom: <code>Nama, NIP, Kelas, Peran</code></span>
+                    <input type="file" id="input-file-csv" accept=".csv,text/csv" class="file-input-hidden">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('input-file-csv').click()">
+                      <i class="fa-solid fa-folder-open"></i> Pilih File CSV
+                    </button>
+                  </div>
+                  <div id="import-preview-status" class="import-status-text"></div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Subtab 4: Pengaturan Firebase -->
           <div id="subtab-firebase-settings" class="admin-subpane">
             <div class="settings-card">
               <h4><i class="fa-solid fa-cloud"></i> Konfigurasi Kredensial Firebase</h4>
-              <p class="settings-desc">Anda dapat menempelkan (paste) konfigurasi proyek Firebase dari Firebase Console di sini. Data akan disimpan secara aman dan otomatis menyinkronkan data ke Cloud Firestore.</p>
+              <p class="settings-desc">Kredensial proyek Firebase aktif saat ini. Data tersinkron otomatis ke Cloud Firestore.</p>
 
               <form id="firebase-config-form">
                 <div class="form-grid-2">
@@ -385,15 +462,15 @@
                   </div>
                   <div class="input-group">
                     <label for="cfg-project-id">Project ID</label>
-                    <input type="text" id="cfg-project-id" class="form-control font-mono" placeholder="portal-autoform-xxx">
+                    <input type="text" id="cfg-project-id" class="form-control font-mono" placeholder="form-autoform">
                   </div>
                   <div class="input-group">
                     <label for="cfg-auth-domain">Auth Domain</label>
-                    <input type="text" id="cfg-auth-domain" class="form-control font-mono" placeholder="portal-autoform-xxx.firebaseapp.com">
+                    <input type="text" id="cfg-auth-domain" class="form-control font-mono" placeholder="form-autoform.firebaseapp.com">
                   </div>
                   <div class="input-group">
                     <label for="cfg-app-id">App ID</label>
-                    <input type="text" id="cfg-app-id" class="form-control font-mono" placeholder="1:123456:web:abcdef">
+                    <input type="text" id="cfg-app-id" class="form-control font-mono" placeholder="1:792855598347:web:...">
                   </div>
                 </div>
 
@@ -427,20 +504,20 @@
         <div class="guide-grid">
           <div class="guide-card">
             <div class="guide-step-num">1</div>
-            <h4>Untuk Guru / Walikelas</h4>
-            <p>Buka portal, ketik atau pilih NIP Anda. Profil Anda akan aktif dan seluruh formulir otomatis terisi nama, NIP, dan kelas. Anda cukup klik <strong>Buka Google Form</strong> untuk melengkapi pengisian.</p>
+            <h4>Link Personal Khusus Guru</h4>
+            <p>Setiap guru memiliki URL unik, misal: <code>?nip=198109092022211004</code>. Saat link dibuka, portal langsung menampilkan nama dan kelas yang bersangkutan tanpa perlu memilih lagi.</p>
           </div>
 
           <div class="guide-card">
             <div class="guide-step-num">2</div>
-            <h4>Untuk Administrator</h4>
-            <p>Masuk menggunakan akun <strong>iskakfatoni@gmail.com</strong>. Anda memiliki wewenang penuh mengedit kelas binaan guru, menambah formulir baru, dan memetakan entry ID Google Form.</p>
+            <h4>Impor & Ekspor Data Massal</h4>
+            <p>Admin dapat mengekspor daftar guru ke file CSV untuk dibagikan, atau mengimpor data CSV untuk memperbarui NIP dan kelas guru secara bersamaan.</p>
           </div>
 
           <div class="guide-card">
             <div class="guide-step-num">3</div>
-            <h4>Setup Firebase Cloud</h4>
-            <p>Buat project di Firebase Console, aktifkan <strong>Authentication</strong> (Google Auth) dan <strong>Cloud Firestore</strong>, lalu masukkan kredensialnya di tab Pengaturan Firebase.</p>
+            <h4>Manajemen Database Cloud</h4>
+            <p>Semua perubahan data guru dan formulir langsung tersinkron secara realtime ke database Cloud Firestore.</p>
           </div>
         </div>
       </section>

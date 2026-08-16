@@ -1,6 +1,6 @@
 /**
  * PORTAL:AutoForm - Multi-User Cloud Application
- * Integrasi Firebase Auth, Cloud Firestore, dan Auto-Fill Parameter Engine
+ * Integrasi Firebase Auth, Cloud Firestore, Personal URL Routing (?nip=...), dan Import/Export Engine
  */
 
 import {
@@ -157,6 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initNavigation();
   initModals();
   initLiveClock();
+  initImportExport();
   
   // Setup dropdown kelas di modal
   populateClassDropdowns();
@@ -172,10 +173,49 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Setup Form Builder
   setupFormBuilder();
+
+  // Check URL Query Parameter (?nip=... atau ?guru=...)
+  checkUrlParamsForTeacher();
 });
 
 /* ==========================================================================
-   1. Inisialisasi Firebase & State Management
+   1. URL Routing Khusus per Guru (?nip=... atau ?guru=...)
+   ========================================================================== */
+
+function checkUrlParamsForTeacher() {
+  const params = new URLSearchParams(window.location.search);
+  const nipParam = params.get('nip');
+  const guruParam = params.get('guru');
+
+  if (nipParam && nipParam !== '-') {
+    const found = currentTeachers.find(t => t.nip === nipParam);
+    if (found) {
+      setActiveTeacher(found, false);
+      showToast(`Link personal aktif untuk: ${found.name}`);
+      return;
+    }
+  }
+
+  if (guruParam) {
+    const found = currentTeachers.find(t => t.name.toLowerCase() === guruParam.toLowerCase());
+    if (found) {
+      setActiveTeacher(found, false);
+      showToast(`Link personal aktif untuk: ${found.name}`);
+      return;
+    }
+  }
+}
+
+function getPersonalPortalUrl(teacher) {
+  const base = window.location.origin + window.location.pathname;
+  if (teacher.nip && teacher.nip !== '-') {
+    return `${base}?nip=${encodeURIComponent(teacher.nip)}`;
+  }
+  return `${base}?guru=${encodeURIComponent(teacher.name)}`;
+}
+
+/* ==========================================================================
+   2. Inisialisasi Firebase & State Management
    ========================================================================== */
 
 function setupFirebaseConnection() {
@@ -207,8 +247,8 @@ function setupFirebaseConnection() {
 
     // Cek demo session di sessionStorage
     const demoAdmin = sessionStorage.getItem('portal_demo_admin');
-    if (demoAdmin === ADMIN_EMAIL) {
-      handleAdminLoginState(ADMIN_EMAIL, "Iskak Fatoni (Demo)");
+    if (demoAdmin) {
+      handleAdminLoginState(demoAdmin, "Administrator");
     } else {
       handleAdminLogoutState();
     }
@@ -243,6 +283,9 @@ async function fetchFirestoreData() {
       saveLocalForms();
     }
 
+    // Re-check URL parameter after fetching cloud data
+    checkUrlParamsForTeacher();
+
     renderUserPortal();
     renderAdminTables();
   } catch (error) {
@@ -270,7 +313,7 @@ function saveLocalForms() {
 }
 
 /* ==========================================================================
-   2. Auth & Admin Roles
+   3. Auth & Admin Roles
    ========================================================================== */
 
 function handleAdminLoginState(email, displayName) {
@@ -316,13 +359,42 @@ function handleAdminLogoutState() {
 }
 
 /* ==========================================================================
-   3. Portal Guru (Pencarian NIP & Render Formulir)
+   4. Portal Guru (Pencarian NIP & Render Formulir)
    ========================================================================== */
 
 function setupUserPortal() {
   const searchInput = document.getElementById('portal-nip-search');
   const guruSelect = document.getElementById('portal-guru-select');
   const suggestionsBox = document.getElementById('search-suggestions');
+  const btnCopyPortalUrl = document.getElementById('btn-copy-personal-portal-url');
+  const btnQuickMyProfile = document.getElementById('btn-quick-my-profile');
+
+  // Quick switch "Profil Saya" in header
+  if (btnQuickMyProfile) {
+    btnQuickMyProfile.addEventListener('click', () => {
+      const myProfile = currentTeachers.find(t => t.name.includes("MUCHAMAD ISKAK FATONI")) || {
+        name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+        nip: "198109092022211004",
+        class: "XII TEI 2",
+        role: "Walikelas"
+      };
+      setActiveTeacher(myProfile);
+      
+      // Switch to tab user portal
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('[data-target="tab-user-portal"]').classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === 'tab-user-portal'));
+    });
+  }
+
+  // Copy personal portal URL button
+  if (btnCopyPortalUrl) {
+    btnCopyPortalUrl.addEventListener('click', () => {
+      const link = getPersonalPortalUrl(activeTeacher);
+      copyToClipboard(link);
+      showToast(`Link personal untuk ${activeTeacher.name} disalin!`);
+    });
+  }
 
   // Populate select dropdown
   populateGuruSelect(guruSelect);
@@ -401,7 +473,7 @@ function setupUserPortal() {
   renderUserPortal();
 }
 
-function setActiveTeacher(teacher) {
+function setActiveTeacher(teacher, updateUrl = true) {
   activeTeacher = teacher;
   
   // Update banner
@@ -415,7 +487,6 @@ function setActiveTeacher(teacher) {
   if (select) select.value = teacher.name;
 
   renderUserPortal();
-  showToast(`Profil aktif: ${teacher.name}`);
 }
 
 function populateGuruSelect(selectElem) {
@@ -427,6 +498,15 @@ function populateGuruSelect(selectElem) {
     opt.textContent = `${t.name} (${t.nip !== '-' ? t.nip : t.class})`;
     selectElem.appendChild(opt);
   });
+}
+
+function generateFormUrlForTeacher(form, teacher) {
+  const params = new URLSearchParams();
+  params.set('usp', 'pp_url');
+  if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
+  if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
+  if (form.entryKelas && teacher.class && teacher.class !== '-') params.set(form.entryKelas, teacher.class);
+  return `${form.baseUrl}?${params.toString()}`;
 }
 
 function renderUserPortal() {
@@ -443,14 +523,7 @@ function renderUserPortal() {
   }
 
   container.innerHTML = activeForms.map(form => {
-    // Generate auto-fill URL
-    const params = new URLSearchParams();
-    params.set('usp', 'pp_url');
-    if (form.entryGuru && activeTeacher.name) params.set(form.entryGuru, activeTeacher.name);
-    if (form.entryNip && activeTeacher.nip && activeTeacher.nip !== '-') params.set(form.entryNip, activeTeacher.nip);
-    if (form.entryKelas && activeTeacher.class && activeTeacher.class !== '-') params.set(form.entryKelas, activeTeacher.class);
-
-    const generatedUrl = `${form.baseUrl}?${params.toString()}`;
+    const generatedUrl = generateFormUrlForTeacher(form, activeTeacher);
 
     return `
       <article class="form-card">
@@ -511,7 +584,7 @@ function renderUserPortal() {
 }
 
 /* ==========================================================================
-   4. Admin Panel & CRUD
+   5. Admin Panel & CRUD
    ========================================================================== */
 
 function renderAdminTables() {
@@ -534,25 +607,44 @@ function renderTeachersTable(filterQuery = '') {
     filtered = currentTeachers.filter(t => t.name.toLowerCase().includes(q) || (t.nip && t.nip.includes(q)));
   }
 
-  tbody.innerHTML = filtered.map((t, idx) => `
-    <tr>
-      <td>${idx + 1}</td>
-      <td><strong>${t.name}</strong></td>
-      <td class="font-mono">${t.nip || '-'}</td>
-      <td><span class="badge-class">${t.class || '-'}</span></td>
-      <td>${t.role || 'Guru'}</td>
-      <td>
-        <div class="action-btns-row">
-          <button class="btn-icon-action btn-edit-teacher" data-nip="${t.nip}" data-name="${t.name}" title="Edit Data">
-            <i class="fa-solid fa-pen"></i>
+  tbody.innerHTML = filtered.map((t, idx) => {
+    const personalLink = getPersonalPortalUrl(t);
+    return `
+      <tr>
+        <td>${idx + 1}</td>
+        <td><strong>${t.name}</strong></td>
+        <td class="font-mono">${t.nip || '-'}</td>
+        <td><span class="badge-class">${t.class || '-'}</span></td>
+        <td>${t.role || 'Guru'}</td>
+        <td>
+          <button class="btn btn-secondary btn-sm btn-copy-teacher-link" data-url="${personalLink}" title="Salin Link Personal Portal Guru">
+            <i class="fa-solid fa-link"></i> Salin Link
           </button>
-          <button class="btn-icon-action btn-del btn-del-teacher" data-name="${t.name}" title="Hapus Guru">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
+        </td>
+        <td>
+          <div class="action-btns-row">
+            <button class="btn-icon-action btn-edit-teacher" data-name="${t.name}" title="Edit Data">
+              <i class="fa-solid fa-pen"></i>
+            </button>
+            <button class="btn-icon-action btn-del btn-del-teacher" data-name="${t.name}" title="Hapus Guru">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  // Attach copy teacher personal link
+  tbody.querySelectorAll('.btn-copy-teacher-link').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.getAttribute('data-url');
+      if (url) {
+        copyToClipboard(url);
+        showToast('Link personal guru berhasil disalin!');
+      }
+    });
+  });
 
   // Attach Edit & Delete Teacher handlers
   tbody.querySelectorAll('.btn-edit-teacher').forEach(btn => {
@@ -628,7 +720,6 @@ async function saveTeacherHandler(teacherData) {
 
   saveLocalTeachers();
 
-  // Save to Firestore if connected
   if (db && isFirebaseActive) {
     try {
       const docId = teacherData.nip && teacherData.nip !== '-' ? teacherData.nip : teacherData.name.replace(/[^a-zA-Z0-9]/g, '_');
@@ -734,7 +825,170 @@ async function seedMasterTeachersToFirestore() {
 }
 
 /* ==========================================================================
-   5. Form Builder (Tab 2)
+   6. Impor & Ekspor (CSV / Excel / JSON)
+   ========================================================================== */
+
+function initImportExport() {
+  const btnExportCsv = document.getElementById('btn-do-export-csv');
+  const btnExportJson = document.getElementById('btn-do-export-json');
+  const btnExportQuick = document.getElementById('btn-export-teachers-quick');
+  const inputFileCsv = document.getElementById('input-file-csv');
+  const statusDiv = document.getElementById('import-preview-status');
+
+  if (btnExportCsv) btnExportCsv.addEventListener('click', exportTeachersToCSV);
+  if (btnExportQuick) btnExportQuick.addEventListener('click', exportTeachersToCSV);
+  if (btnExportJson) btnExportJson.addEventListener('click', exportTeachersToJSON);
+
+  if (inputFileCsv) {
+    inputFileCsv.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const text = event.target.result;
+        await parseAndImportCSV(text, statusDiv);
+      };
+      reader.readAsText(file);
+    });
+  }
+}
+
+function exportTeachersToCSV() {
+  const defaultForm = currentForms[0] || INITIAL_FORMS[0];
+  
+  // Headers
+  const headers = ["No", "Nama Guru", "NIP", "Kelas Binaan", "Peran", "Link Portal Guru", "Link AutoFill Form"];
+  
+  const rows = currentTeachers.map((t, idx) => {
+    const portalUrl = getPersonalPortalUrl(t);
+    const formUrl = defaultForm ? generateFormUrlForTeacher(defaultForm, t) : "";
+    return [
+      idx + 1,
+      `"${t.name.replace(/"/g, '""')}"`,
+      `"${(t.nip || '-').replace(/"/g, '""')}"`,
+      `"${(t.class || '-').replace(/"/g, '""')}"`,
+      `"${(t.role || 'Guru').replace(/"/g, '""')}"`,
+      `"${portalUrl}"`,
+      `"${formUrl}"`
+    ];
+  });
+
+  const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
+  downloadFile(csvContent, "daftar_link_guru_portal_autoform.csv", "text/csv;charset=utf-8;");
+  showToast("File CSV daftar link guru berhasil diunduh!");
+}
+
+function exportTeachersToJSON() {
+  const exportData = {
+    generatedAt: new Date().toISOString(),
+    totalTeachers: currentTeachers.length,
+    teachers: currentTeachers.map(t => ({
+      ...t,
+      personalPortalUrl: getPersonalPortalUrl(t)
+    }))
+  };
+  downloadFile(JSON.stringify(exportData, null, 2), "data_guru_portal_autoform.json", "application/json");
+  showToast("File JSON berhasil diunduh!");
+}
+
+function downloadFile(content, fileName, mimeType) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', fileName);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+async function parseAndImportCSV(csvText, statusDiv) {
+  if (statusDiv) statusDiv.textContent = "Memproses file CSV...";
+  
+  const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
+  if (lines.length <= 1) {
+    if (statusDiv) statusDiv.textContent = "Format file CSV kosong atau tidak valid.";
+    return;
+  }
+
+  const importedList = [];
+  // Skip header if it exists
+  const startIndex = lines[0].toLowerCase().includes("nama") ? 1 : 0;
+
+  for (let i = startIndex; i < lines.length; i++) {
+    // Parse CSV line (handle quotes and comma/semicolon)
+    const line = lines[i];
+    const delimiter = line.includes(";") ? ";" : ",";
+    const parts = line.split(delimiter).map(p => p.trim().replace(/^["']|["']$/g, ''));
+
+    if (parts.length >= 2) {
+      // Expecting: [No/Index,] Nama, NIP, Kelas, Peran
+      let name = "";
+      let nip = "-";
+      let cls = "-";
+      let role = "Walikelas";
+
+      if (isNaN(parts[0])) {
+        name = parts[0];
+        nip = parts[1] || "-";
+        cls = parts[2] || "-";
+        role = parts[3] || "Walikelas";
+      } else {
+        name = parts[1];
+        nip = parts[2] || "-";
+        cls = parts[3] || "-";
+        role = parts[4] || "Walikelas";
+      }
+
+      if (name) {
+        importedList.push({ name, nip, class: cls, role });
+      }
+    }
+  }
+
+  if (importedList.length === 0) {
+    if (statusDiv) statusDiv.textContent = "Gagal mengekstrak data dari CSV.";
+    return;
+  }
+
+  // Merge into currentTeachers
+  importedList.forEach(imported => {
+    const idx = currentTeachers.findIndex(t => t.name.toLowerCase() === imported.name.toLowerCase());
+    if (idx >= 0) {
+      currentTeachers[idx] = { ...currentTeachers[idx], ...imported };
+    } else {
+      currentTeachers.push(imported);
+    }
+  });
+
+  saveLocalTeachers();
+
+  // Sync to Firestore if active
+  if (db && isFirebaseActive) {
+    try {
+      const batch = writeBatch(db);
+      importedList.forEach(t => {
+        const docId = t.nip && t.nip !== '-' ? t.nip : t.name.replace(/[^a-zA-Z0-9]/g, '_');
+        batch.set(doc(db, "teachers", docId), t);
+      });
+      await batch.commit();
+      if (statusDiv) statusDiv.textContent = `✅ Berhasil mengimpor ${importedList.length} guru ke Cloud Firestore!`;
+    } catch (e) {
+      if (statusDiv) statusDiv.textContent = `Disimpan ke lokal. (Gagal sync cloud: ${e.message})`;
+    }
+  } else {
+    if (statusDiv) statusDiv.textContent = `✅ Berhasil mengimpor ${importedList.length} guru ke penyimpanan browser!`;
+  }
+
+  renderAdminTables();
+  populateGuruSelect(document.getElementById('portal-guru-select'));
+  showToast(`Impor ${importedList.length} guru berhasil!`);
+}
+
+/* ==========================================================================
+   7. Form Builder (Tab 2)
    ========================================================================== */
 
 function setupFormBuilder() {
@@ -776,13 +1030,7 @@ function setupFormBuilder() {
 
       if (!targetForm || !guruVal || !nipVal || !kelasVal) return;
 
-      const params = new URLSearchParams();
-      params.set('usp', 'pp_url');
-      if (targetForm.entryGuru) params.set(targetForm.entryGuru, guruVal);
-      if (targetForm.entryNip) params.set(targetForm.entryNip, nipVal);
-      if (targetForm.entryKelas) params.set(targetForm.entryKelas, kelasVal);
-
-      const fullUrl = `${targetForm.baseUrl}?${params.toString()}`;
+      const fullUrl = generateFormUrlForTeacher(targetForm, { name: guruVal, nip: nipVal, class: kelasVal });
 
       generatedText.value = fullUrl;
       btnTest.href = fullUrl;
@@ -801,7 +1049,7 @@ function setupFormBuilder() {
 }
 
 /* ==========================================================================
-   6. UI Modals & Navigation
+   8. UI Modals & Navigation
    ========================================================================== */
 
 function initNavigation() {
@@ -1012,7 +1260,7 @@ function openTeacherModal(teacher = null) {
   if (teacher) {
     title.innerHTML = `<i class="fa-solid fa-user-pen"></i> Edit Data Guru`;
     nameInp.value = teacher.name;
-    nameInp.readOnly = true; // Primary key identifier
+    nameInp.readOnly = true;
     nipInp.value = teacher.nip && teacher.nip !== '-' ? teacher.nip : '';
     classInp.value = teacher.class || '-';
     roleInp.value = teacher.role || 'Walikelas';
@@ -1071,7 +1319,7 @@ function populateClassDropdowns() {
 }
 
 /* ==========================================================================
-   7. Helper Utilities (Toast, Clipboard, Theme, Clock)
+   9. Helper Utilities (Toast, Clipboard, Theme, Clock)
    ========================================================================= */
 
 function showToast(message) {

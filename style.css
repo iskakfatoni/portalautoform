@@ -172,7 +172,14 @@ body {
 .brand-container {
   display: flex;
   align-items: center;
+}
+
+.brand-link {
+  display: flex;
+  align-items: center;
   gap: 14px;
+  text-decoration: none;
+  color: inherit;
 }
 
 .brand-icon {
@@ -214,6 +221,20 @@ body {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+/* Dual Role Switcher Button */
+.btn-my-profile {
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  color: var(--accent-primary);
+  font-weight: 700;
+}
+
+.btn-my-profile:hover {
+  background: var(--accent-primary);
+  color: #ffffff;
+  transform: translateY(-1px);
 }
 
 /* Cloud Status */
@@ -581,6 +602,7 @@ body.light-mode .dark-icon { display: block; }
   gap: 22px;
   margin-bottom: 28px;
   box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
 }
 
 .profile-avatar {
@@ -599,6 +621,14 @@ body.light-mode .dark-icon { display: block; }
 
 .profile-details {
   flex: 1;
+  min-width: 260px;
+}
+
+.profile-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
 }
 
 .profile-badge {
@@ -612,7 +642,15 @@ body.light-mode .dark-icon { display: block; }
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  margin-bottom: 6px;
+}
+
+.profile-role-badge {
+  padding: 2px 8px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
 }
 
 .profile-name {
@@ -635,6 +673,11 @@ body.light-mode .dark-icon { display: block; }
   background: rgba(99, 102, 241, 0.12);
   padding: 2px 8px;
   border-radius: 6px;
+}
+
+.profile-share-box {
+  display: flex;
+  align-items: center;
 }
 
 /* Form Cards */
@@ -873,7 +916,7 @@ body.light-mode .dark-icon { display: block; }
 }
 
 /* ==========================================================================
-   TAB 3: Panel Admin
+   TAB 3: Panel Admin & Import/Export
    ========================================================================== */
 
 .admin-locked-box {
@@ -962,6 +1005,7 @@ body.light-mode .dark-icon { display: block; }
   gap: 10px;
   border-bottom: 1px solid var(--border-color);
   margin-bottom: 24px;
+  flex-wrap: wrap;
 }
 
 .admin-subtab-btn {
@@ -1034,6 +1078,7 @@ body.light-mode .dark-icon { display: block; }
 .admin-btn-group {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 /* Tables */
@@ -1103,6 +1148,125 @@ body.light-mode .data-table td {
 .btn-icon-action.btn-del:hover {
   background: var(--danger);
   color: #fff;
+}
+
+/* IO Subtab (Import / Export) */
+.io-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 820px) {
+  .io-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.io-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.io-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.io-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.io-icon-export { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.io-icon-import { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+
+.io-header h4 {
+  font-size: 1.15rem;
+  margin-bottom: 4px;
+}
+
+.io-header p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.io-body {
+  margin-top: auto;
+}
+
+.io-hint {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.io-btn-row {
+  display: flex;
+  gap: 10px;
+}
+
+.file-upload-box {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 28px 16px;
+  text-align: center;
+  background: var(--bg-glass);
+  transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.file-upload-box:hover {
+  border-color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.file-upload-box .file-icon {
+  font-size: 2.2rem;
+  color: var(--accent-primary);
+}
+
+.file-format-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.file-format-hint code {
+  color: var(--accent-primary);
+  background: var(--bg-secondary);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.file-input-hidden {
+  display: none;
+}
+
+.import-status-text {
+  margin-top: 14px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
 }
 
 /* Settings Card */
