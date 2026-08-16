@@ -2,31 +2,31 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function: Setiap user yang berhasil login via Google Auth di project ini adalah Admin
-    function isAdmin() {
-      return request.auth != null;
+    // Helper function: Hanya iskakfatoni@gmail.com yang terverifikasi di Firebase Auth yang boleh write
+    function isAuthorizedAdmin() {
+      return request.auth != null && request.auth.token.email.lower() == 'iskakfatoni@gmail.com';
     }
 
     // Koleksi Guru (teachers)
-    // - Publik / Guru: Bisa membaca profil guru
-    // - Admin terautentikasi: Bisa menambah, mengedit, dan menghapus (CRUD)
-    match /teachers/{nip} {
+    // - Publik: Bisa membaca profil guru (agar portal formulir terbuka untuk semua guru)
+    // - Admin: Hanya iskakfatoni@gmail.com yang bisa menambah, mengedit, dan menghapus (CRUD)
+    match /teachers/{document=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthorizedAdmin();
     }
 
     // Koleksi Formulir (forms)
-    // - Publik / Guru: Bisa membaca formulir aktif
-    // - Admin terautentikasi: Bisa menambah, mengedit, dan menghapus (CRUD)
-    match /forms/{formId} {
+    // - Publik: Bisa membaca formulir aktif
+    // - Admin: Hanya iskakfatoni@gmail.com yang bisa menambah, mengedit, dan menghapus (CRUD)
+    match /forms/{document=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthorizedAdmin();
     }
 
     // Koleksi Pengaturan (settings)
     match /settings/{document=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthorizedAdmin();
     }
   }
 }

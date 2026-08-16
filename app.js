@@ -531,47 +531,61 @@ function saveLocalForms() {
 }
 
 /* ==========================================================================
-   3. Auth & Admin Roles
+   3. Auth & Strict Admin Security
    ========================================================================== */
 
-function handleAdminLoginState(email, displayName) {
+const AUTHORIZED_ADMIN_EMAILS = [
+  "iskakfatoni@gmail.com"
+];
+
+function isAuthorizedAdminEmail(email) {
+  if (!email) return false;
+  return AUTHORIZED_ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === String(email).trim().toLowerCase());
+}
+
+async function handleAdminLoginState(email, displayName) {
+  if (!email || !isAuthorizedAdminEmail(email)) {
+    console.warn("Percobaan akses akun non-admin:", email);
+    if (auth && isFirebaseActive) {
+      try { await signOut(auth); } catch (e) {}
+    }
+    handleAdminLogoutState();
+    if (email) {
+      alert(`⛔ AKSES DITOLAK!\n\nAkun Google "${email}" bukan Administrator terdaftar.\n\nHalaman Panel Admin hanya dapat diakses oleh akun resmi: iskakfatoni@gmail.com`);
+      showToast('Akses ditolak: Akun bukan Administrator.');
+    }
+    return;
+  }
+
   currentUser = { email, displayName };
-  const isAdmin = Boolean(email);
 
   const authBtn = document.getElementById('btn-show-login-modal');
   const userProfile = document.getElementById('admin-user-profile');
   const emailDisplay = document.getElementById('admin-user-email');
-  const adminLockIcon = document.getElementById('admin-lock-icon');
 
   const adminLockedView = document.getElementById('admin-locked-view');
   const adminDashboardView = document.getElementById('admin-dashboard-view');
 
   if (authBtn) authBtn.classList.add('hidden');
   if (userProfile) userProfile.classList.remove('hidden');
-  if (emailDisplay) emailDisplay.textContent = email || "Admin";
+  if (emailDisplay) emailDisplay.textContent = email;
 
-  if (isAdmin) {
-    if (adminLockIcon) adminLockIcon.innerHTML = `<i class="fa-solid fa-unlock text-green"></i>`;
-    if (adminLockedView) adminLockedView.classList.add('hidden');
-    if (adminDashboardView) adminDashboardView.classList.remove('hidden');
-    renderAdminTables();
-    showToast(`Selamat datang Admin (${email})!`);
-  }
+  if (adminLockedView) adminLockedView.classList.add('hidden');
+  if (adminDashboardView) adminDashboardView.classList.remove('hidden');
+  renderAdminTables();
+  showToast(`Selamat datang Admin (${email})!`);
 }
 
 function handleAdminLogoutState() {
   currentUser = null;
-  sessionStorage.removeItem('portal_demo_admin');
 
   const authBtn = document.getElementById('btn-show-login-modal');
   const userProfile = document.getElementById('admin-user-profile');
-  const adminLockIcon = document.getElementById('admin-lock-icon');
   const adminLockedView = document.getElementById('admin-locked-view');
   const adminDashboardView = document.getElementById('admin-dashboard-view');
 
   if (authBtn) authBtn.classList.remove('hidden');
   if (userProfile) userProfile.classList.add('hidden');
-  if (adminLockIcon) adminLockIcon.innerHTML = `<i class="fa-solid fa-lock"></i>`;
   if (adminLockedView) adminLockedView.classList.remove('hidden');
   if (adminDashboardView) adminDashboardView.classList.add('hidden');
 }
@@ -1349,16 +1363,16 @@ function initModals() {
       if (auth && isFirebaseActive && googleProvider) {
         try {
           const result = await signInWithPopup(auth, googleProvider);
-          handleAdminLoginState(result.user.email, result.user.displayName);
-          switchToAdminPanel();
+          await handleAdminLoginState(result.user.email, result.user.displayName);
+          if (isAuthorizedAdminEmail(result.user.email)) {
+            switchToAdminPanel();
+          }
         } catch (error) {
           console.error("Gagal Google Login:", error);
           showToast(`Login gagal: ${error.message}`);
         }
       } else {
-        sessionStorage.setItem('portal_demo_admin', ADMIN_EMAIL);
-        handleAdminLoginState(ADMIN_EMAIL, "Iskak Fatoni (Demo)");
-        switchToAdminPanel();
+        alert("Firebase Auth belum aktif atau kredensial API Key belum terhubung.");
       }
     });
   }
@@ -1382,29 +1396,17 @@ function initModals() {
         try {
           const result = await signInWithPopup(auth, googleProvider);
           modalLogin.classList.add('hidden');
-          handleAdminLoginState(result.user.email, result.user.displayName);
-          switchToAdminPanel();
+          await handleAdminLoginState(result.user.email, result.user.displayName);
+          if (isAuthorizedAdminEmail(result.user.email)) {
+            switchToAdminPanel();
+          }
         } catch (error) {
           console.error("Gagal Google Login:", error);
           showToast(`Login gagal: ${error.message}`);
         }
       } else {
-        // Fallback demo
-        sessionStorage.setItem('portal_demo_admin', ADMIN_EMAIL);
-        modalLogin.classList.add('hidden');
-        handleAdminLoginState(ADMIN_EMAIL, "Iskak Fatoni (Demo)");
-        switchToAdminPanel();
+        alert("Firebase Auth belum aktif atau kredensial API Key belum terhubung.");
       }
-    });
-  }
-
-  if (demoLoginForm) {
-    demoLoginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('admin-demo-email').value.trim();
-      sessionStorage.setItem('portal_demo_admin', email);
-      modalLogin.classList.add('hidden');
-      handleAdminLoginState(email, "Administrator");
     });
   }
 
