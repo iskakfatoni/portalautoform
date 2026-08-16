@@ -20,6 +20,9 @@ import {
   writeBatch
 } from './firebase-config.js';
 
+// Import SheetJS ESM Library untuk ekspor & impor Excel .xlsx asli
+import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.mjs";
+
 // Master Data Awal (94 Guru)
 const INITIAL_TEACHERS = [
   { 
@@ -922,71 +925,43 @@ async function seedMasterTeachersToFirestore() {
    ========================================================================== */
 
 export function exportTeachersToExcel() {
-  const xlsxLib = window.XLSX || (typeof XLSX !== 'undefined' ? XLSX : null);
   const defaultForm = currentForms[0] || INITIAL_FORMS[0];
 
-  if (xlsxLib) {
-    try {
-      const excelData = currentTeachers.map((t, idx) => ({
-        "No": idx + 1,
-        "Nama Guru": t.name,
-        "NIP": t.nip || "-",
-        "Kelas Binaan": t.class || "-",
-        "Peran": t.role || "Guru",
-        "URL Jurnal Pribadi": t.journalFormUrl || "",
-        "Link Portal Guru": getPersonalPortalUrl(t),
-        "Link Form Walikelas": defaultForm ? generateFormUrlForTeacher(defaultForm, t) : ""
-      }));
+  try {
+    const excelData = currentTeachers.map((t, idx) => ({
+      "No": idx + 1,
+      "Nama Guru": t.name,
+      "NIP": t.nip || "-",
+      "Kelas Binaan": t.class || "-",
+      "Peran": t.role || "Guru",
+      "URL Jurnal Pribadi": t.journalFormUrl || "",
+      "Link Portal Guru": getPersonalPortalUrl(t),
+      "Link Form Walikelas": defaultForm ? generateFormUrlForTeacher(defaultForm, t) : ""
+    }));
 
-      const worksheet = xlsxLib.utils.json_to_sheet(excelData);
-      
-      // Lebar kolom rapi
-      worksheet["!cols"] = [
-        { wch: 6 },
-        { wch: 36 },
-        { wch: 22 },
-        { wch: 16 },
-        { wch: 16 },
-        { wch: 45 },
-        { wch: 55 },
-        { wch: 55 }
-      ];
-
-      const workbook = xlsxLib.utils.book_new();
-      xlsxLib.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
-      
-      const wbout = xlsxLib.write(workbook, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      downloadBlob(blob, "data_link_guru_portal_autoform.xlsx");
-      showToast("File Excel (.xlsx) berhasil diunduh!");
-      return;
-    } catch (err) {
-      console.warn("Gagal export via XLSX array, beralih ke format CSV Excel:", err);
-    }
-  }
-
-  // Fallback Excel CSV (BOM UTF-8 untuk Excel) jika SheetJS terhalang koneksi
-  const headers = ["No", "Nama Guru", "NIP", "Kelas Binaan", "Peran", "URL Jurnal Pribadi", "Link Portal Guru", "Link Form Walikelas"];
-  const rows = currentTeachers.map((t, idx) => {
-    const portalUrl = getPersonalPortalUrl(t);
-    const formUrl = defaultForm ? generateFormUrlForTeacher(defaultForm, t) : "";
-    const journalUrl = t.journalFormUrl || "";
-    return [
-      idx + 1,
-      `"${t.name.replace(/"/g, '""')}"`,
-      `"${(t.nip || '-').replace(/"/g, '""')}"`,
-      `"${(t.class || '-').replace(/"/g, '""')}"`,
-      `"${(t.role || 'Guru').replace(/"/g, '""')}"`,
-      `"${journalUrl.replace(/"/g, '""')}"`,
-      `"${portalUrl}"`,
-      `"${formUrl}"`
+    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    
+    // Lebar kolom rapi di Excel
+    worksheet["!cols"] = [
+      { wch: 6 },
+      { wch: 36 },
+      { wch: 22 },
+      { wch: 16 },
+      { wch: 16 },
+      { wch: 45 },
+      { wch: 55 },
+      { wch: 55 }
     ];
-  });
 
-  const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-  const csvBlob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-  downloadBlob(csvBlob, "data_link_guru_portal_autoform.csv");
-  showToast("File data guru berhasil diunduh (format CSV/Excel)!");
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
+    
+    XLSX.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
+    showToast("File Excel (.xlsx) berhasil diunduh!");
+  } catch (err) {
+    console.error("Gagal export Excel .xlsx:", err);
+    showToast("Gagal export Excel: " + err.message);
+  }
 }
 
 export function exportTeachersToJSON() {
@@ -1042,21 +1017,15 @@ function initImportExport() {
       const file = e.target.files[0];
       if (!file) return;
 
-      const xlsxLib = window.XLSX || (typeof XLSX !== 'undefined' ? XLSX : null);
-      if (!xlsxLib) {
-        showToast('Library Excel belum selesai dimuat. Silakan coba sesaat lagi.');
-        return;
-      }
-
       if (statusDiv) statusDiv.textContent = `Membaca file ${file.name}...`;
 
       const reader = new FileReader();
       reader.onload = async (event) => {
         try {
           const data = new Uint8Array(event.target.result);
-          const workbook = xlsxLib.read(data, { type: 'array' });
+          const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = xlsxLib.utils.sheet_to_json(firstSheet, { header: 1 });
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
           await processImportedExcelRows(rows, statusDiv);
         } catch (err) {
           console.error("Gagal membaca file Excel:", err);
