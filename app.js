@@ -180,16 +180,16 @@ const INITIAL_FORMS = [
   },
   {
     id: "form_guru_wali",
-    name: "Laporan Guru Wali / Bimbingan",
+    name: "Laporan Bulanan Guru Wali",
     category: "Guru Wali",
     icon: "fa-solid fa-hands-holding-child",
-    description: "Catatan pendampingan, konseling, dan pembinaan berkala siswa bimbingan.",
-    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    description: "Pengumpulan rutin berkas administrasi dan laporan bulanan guru wali (Auto-fill: Nama & NIP).",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeVYQG1tPodad-cUyHW5Mzx3CmO3L8GOx8AzWXajJqYkqbkBg/viewform",
     entryGuru: "entry.1599393498",
     entryNip: "entry.65154558",
-    entryKelas: "entry.591543822",
+    entryKelas: "",
     isActive: true,
-    statusBadge: "Auto-Fill Siap"
+    statusBadge: "Aktif & Terhubung"
   }
 ];
 
