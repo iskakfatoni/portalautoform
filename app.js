@@ -20,9 +20,6 @@ import {
   writeBatch
 } from './firebase-config.js';
 
-// Import SheetJS ESM Library untuk ekspor & impor Excel .xlsx asli
-import * as XLSX from "https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.mjs";
-
 /// Master Data Awal (Urutan Resmi Sesuai Database / Google Form Sekolah)
 const MASTER_TEACHER_NAMES_ORDER = [
   "HERMAWANTO, S.Pd., M.Psi",
@@ -1005,6 +1002,12 @@ function sortTeachersByMasterOrder(teachers) {
 }
 
 export function exportTeachersToExcel() {
+  const xlsxLib = window.XLSX;
+  if (!xlsxLib) {
+    showToast("Library Excel sedang dimuat, silakan coba 1 detik lagi.");
+    return;
+  }
+
   const defaultForm = currentForms[0] || INITIAL_FORMS[0];
   const sortedTeachers = sortTeachersByMasterOrder(currentTeachers);
 
@@ -1020,7 +1023,7 @@ export function exportTeachersToExcel() {
       "Link Form Walikelas": defaultForm ? generateFormUrlForTeacher(defaultForm, t) : ""
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(excelData);
+    const worksheet = xlsxLib.utils.json_to_sheet(excelData);
     
     // Lebar kolom rapi di Excel
     worksheet["!cols"] = [
@@ -1034,10 +1037,10 @@ export function exportTeachersToExcel() {
       { wch: 55 }
     ];
 
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
+    const workbook = xlsxLib.utils.book_new();
+    xlsxLib.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
     
-    XLSX.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
+    xlsxLib.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
     showToast("File Excel (.xlsx) berhasil diunduh dengan urutan database!");
   } catch (err) {
     console.error("Gagal export Excel .xlsx:", err);
@@ -1098,15 +1101,21 @@ function initImportExport() {
       const file = e.target.files[0];
       if (!file) return;
 
+      const xlsxLib = window.XLSX;
+      if (!xlsxLib) {
+        showToast('Library Excel belum selesai dimuat. Silakan coba sesaat lagi.');
+        return;
+      }
+
       if (statusDiv) statusDiv.textContent = `Membaca file ${file.name}...`;
 
       const reader = new FileReader();
       reader.onload = async (event) => {
         try {
           const data = new Uint8Array(event.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
+          const workbook = xlsxLib.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          const rows = xlsxLib.utils.sheet_to_json(firstSheet, { header: 1 });
           await processImportedExcelRows(rows, statusDiv);
         } catch (err) {
           console.error("Gagal membaca file Excel:", err);
