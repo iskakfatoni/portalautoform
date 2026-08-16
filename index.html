@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PORTAL:AutoForm | Portal Form Otomatis & Cepat</title>
-  <meta name="description" content="Portal akses cepat Google Form dengan fitur auto-fill isian otomatis untuk pelaporan bulanan dan administrasi walikelas.">
-  
+  <title>PORTAL:AutoForm | Multi-User Google Form Auto-Filler</title>
+  <meta name="description" content="Portal administrasi dan pelaporan otomatis berbasis NIP Guru dan Manajemen Cloud Firebase.">
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
@@ -18,17 +18,17 @@
 </head>
 <body class="dark-mode">
 
-  <!-- Background Animated Gradients -->
+  <!-- Background Ambient Glow Effects -->
   <div class="bg-glow-container" aria-hidden="true">
     <div class="glow-sphere glow-1"></div>
     <div class="glow-sphere glow-2"></div>
     <div class="glow-sphere glow-3"></div>
   </div>
 
-  <!-- Main Container -->
+  <!-- App Wrapper -->
   <div class="app-wrapper">
-    
-    <!-- Navbar Header -->
+
+    <!-- Top Navigation Header -->
     <header class="main-header">
       <div class="brand-container">
         <div class="brand-icon">
@@ -36,182 +36,204 @@
         </div>
         <div class="brand-text">
           <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
-          <span class="brand-subtitle">Smart Google Form Auto-Filler</span>
+          <span class="brand-subtitle">Multi-User Cloud Edition</span>
         </div>
       </div>
 
       <div class="header-actions">
-        <div class="status-badge" id="live-time-badge">
-          <span class="status-dot"></span>
-          <span id="current-time">00:00:00</span>
+        <!-- Cloud Status Badge -->
+        <div class="status-badge" id="cloud-status-badge" title="Status Koneksi Database">
+          <span class="status-dot" id="cloud-status-dot"></span>
+          <span id="cloud-status-text">Memuat...</span>
         </div>
+
+        <!-- Theme Toggle -->
         <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema" aria-label="Ganti Tema">
           <i class="fa-solid fa-sun light-icon"></i>
           <i class="fa-solid fa-moon dark-icon"></i>
         </button>
+
+        <!-- Admin Auth Button -->
+        <div id="auth-container">
+          <button id="btn-show-login-modal" class="btn btn-sm btn-outline-admin">
+            <i class="fa-solid fa-shield-halved"></i> Login Admin
+          </button>
+
+          <div id="admin-user-profile" class="admin-user-profile hidden">
+            <div class="admin-avatar">
+              <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="admin-info">
+              <span class="admin-label">Admin Aktif</span>
+              <span class="admin-email" id="admin-user-email">iskakfatoni@gmail.com</span>
+            </div>
+            <button id="btn-admin-logout" class="btn-logout" title="Keluar Admin">
+              <i class="fa-solid fa-right-from-bracket"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-      <div class="hero-badge">
-        <i class="fa-solid fa-wand-magic-sparkles"></i> Efisiensi Pelaporan Walikelas
-      </div>
-      <h2 class="hero-title">Akses Cepat Form Tanpa Repot Mengetik Ulang</h2>
-      <p class="hero-desc">Data identitas seperti <strong>Nama Guru</strong>, <strong>NIP</strong>, dan <strong>Kelas</strong> otomatis terisi. Anda cukup fokus memilih bulan & mengunggah berkas.</p>
-    </section>
-
-    <!-- Navigation Tabs -->
+    <!-- Main Navigation Bar -->
     <nav class="nav-tabs-container">
-      <button class="nav-tab-btn active" data-target="tab-presets">
-        <i class="fa-solid fa-star"></i> Formulir Siap Pakai
+      <button class="nav-tab-btn active" data-target="tab-user-portal">
+        <i class="fa-solid fa-chalkboard-user"></i> Portal Guru (NIP)
       </button>
       <button class="nav-tab-btn" data-target="tab-builder">
-        <i class="fa-solid fa-sliders"></i> Buat Link Baru (Custom)
+        <i class="fa-solid fa-link"></i> Link Generator
+      </button>
+      <button class="nav-tab-btn" id="nav-btn-admin" data-target="tab-admin">
+        <i class="fa-solid fa-gauge-high"></i> Panel Admin <span id="admin-lock-icon"><i class="fa-solid fa-lock"></i></span>
       </button>
       <button class="nav-tab-btn" data-target="tab-guide">
         <i class="fa-solid fa-circle-question"></i> Panduan
       </button>
     </nav>
 
-    <!-- Main Content Area -->
+    <!-- Content Sections -->
     <main class="content-area">
 
-      <!-- TAB 1: Preset Formulir -->
-      <section id="tab-presets" class="tab-pane active">
+      <!-- ====================================================================
+           TAB 1: PORTAL GURU (Pencarian Berbasis NIP & Formulir Terpersonalisasi)
+           ==================================================================== -->
+      <section id="tab-user-portal" class="tab-pane active">
+        
+        <!-- NIP Selection Card -->
+        <div class="selector-card">
+          <div class="selector-header">
+            <div class="selector-icon">
+              <i class="fa-solid fa-id-badge"></i>
+            </div>
+            <div>
+              <h3 class="selector-title">Pilih Profil Guru / Masukkan NIP</h3>
+              <p class="selector-desc">Pilih nama Anda atau cari berdasarkan NIP untuk memuat formulir dengan isian otomatis.</p>
+            </div>
+          </div>
+
+          <div class="selector-form-grid">
+            <div class="search-field-box">
+              <label for="portal-nip-search"><i class="fa-solid fa-magnifying-glass"></i> Cari Nama Guru / NIP:</label>
+              <div class="input-with-icon">
+                <input type="text" id="portal-nip-search" class="form-control" placeholder="Ketik nama guru atau 18 digit NIP..." autocomplete="off">
+                <div id="search-suggestions" class="search-suggestions hidden"></div>
+              </div>
+            </div>
+
+            <div class="search-field-box">
+              <label for="portal-guru-select"><i class="fa-solid fa-list-check"></i> Atau Pilih Dari Daftar Guru:</label>
+              <select id="portal-guru-select" class="form-control">
+                <option value="">-- Pilih Guru --</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Quick Select Favorites / Preset Pills -->
+          <div class="quick-pills-row">
+            <span class="quick-label"><i class="fa-solid fa-fire"></i> Akses Cepat:</span>
+            <button class="quick-pill active" data-nip="198109092022211004" data-name="MUCHAMAD ISKAK FATONI, S.Pd." data-class="XII TEI 2">
+              <i class="fa-solid fa-star"></i> MUCHAMAD ISKAK FATONI, S.Pd. (XII TEI 2)
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Teacher Profile Banner -->
+        <div class="teacher-profile-banner" id="teacher-profile-banner">
+          <div class="profile-avatar">
+            <i class="fa-solid fa-user-graduate"></i>
+          </div>
+          <div class="profile-details">
+            <div class="profile-badge"><i class="fa-solid fa-circle-check"></i> Profil Aktif</div>
+            <h2 class="profile-name" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
+            <div class="profile-meta">
+              <span class="meta-item"><i class="fa-solid fa-id-card"></i> NIP: <strong class="font-mono" id="active-teacher-nip">198109092022211004</strong></span>
+              <span class="meta-item"><i class="fa-solid fa-chalkboard"></i> Kelas Binaan: <strong class="badge-class" id="active-teacher-class">XII TEI 2</strong></span>
+              <span class="meta-item"><i class="fa-solid fa-shield"></i> Peran: <strong id="active-teacher-role">Walikelas</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Available Forms Section for Active Teacher -->
         <div class="section-header">
           <div>
-            <h3 class="section-title">Formulir Anda</h3>
-            <p class="section-subtitle">Tautan formulir yang telah dikonfigurasi khusus</p>
+            <h3 class="section-title">Formulir Otomatis Tersedia</h3>
+            <p class="section-subtitle">Link di bawah ini telah disesuaikan secara khusus dengan identitas Anda.</p>
           </div>
-          <span class="badge-count">1 Form Aktif</span>
+          <span class="badge-count" id="active-forms-count">1 Formulir Aktif</span>
         </div>
 
-        <div class="form-cards-grid">
-          
-          <!-- Card Pengumpulan Bulanan Walikelas -->
-          <article class="form-card featured-card">
-            <div class="card-top">
-              <div class="card-icon-box">
-                <i class="fa-solid fa-folder-open"></i>
-              </div>
-              <div class="card-tags">
-                <span class="pill-badge pill-auto"><i class="fa-solid fa-check-double"></i> Auto-Fill Aktif</span>
-                <span class="pill-badge pill-role">Walikelas</span>
-              </div>
-            </div>
-
-            <div class="card-body">
-              <h4 class="card-title">Pengumpulan Bulanan Walikelas</h4>
-              <p class="card-desc">Laporan bulanan rutin administrasi walikelas ke sistem manajemen sekolah.</p>
-
-              <!-- Pre-filled Data Tags -->
-              <div class="data-preview-box">
-                <div class="data-preview-title">
-                  <i class="fa-solid fa-circle-info"></i> Otomatis Terisi:
-                </div>
-                <ul class="data-items-list">
-                  <li>
-                    <span class="label">Nama Guru</span>
-                    <span class="value">MUCHAMAD ISKAK FATONI, S.Pd.</span>
-                  </li>
-                  <li>
-                    <span class="label">NIP</span>
-                    <span class="value font-mono">198109092022211004</span>
-                  </li>
-                  <li>
-                    <span class="label">Kelas</span>
-                    <span class="value highlight-val">XII TEI 2</span>
-                  </li>
-                  <li>
-                    <span class="label">Input Manual</span>
-                    <span class="value manual-val"><i class="fa-solid fa-pen"></i> Bulan & Upload File</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Card Actions -->
-            <div class="card-footer">
-              <a href="https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform?usp=pp_url&entry.1599393498=MUCHAMAD+ISKAK+FATONI%2C+S.Pd.&entry.65154558=198109092022211004&entry.591543822=XII+TEI+2" 
-                 target="_blank" 
-                 rel="noopener noreferrer" 
-                 class="btn btn-primary"
-                 id="btn-open-preset-form">
-                <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Form
-              </a>
-              
-              <button class="btn btn-secondary copy-link-btn" 
-                      data-url="https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform?usp=pp_url&entry.1599393498=MUCHAMAD+ISKAK+FATONI%2C+S.Pd.&entry.65154558=198109092022211004&entry.591543822=XII+TEI+2" 
-                      title="Salin Tautan Form">
-                <i class="fa-solid fa-copy"></i> Salin Link
-              </button>
-            </div>
-          </article>
-
+        <!-- Dynamic Form Cards Container -->
+        <div class="form-cards-grid" id="portal-forms-grid">
+          <!-- Populated dynamically by app.js -->
         </div>
+
       </section>
 
-      <!-- TAB 2: Custom Link Generator -->
+      <!-- ====================================================================
+           TAB 2: CUSTOM LINK GENERATOR
+           ==================================================================== -->
       <section id="tab-builder" class="tab-pane">
         <div class="section-header">
           <div>
-            <h3 class="section-title">Generator Link Auto-Fill</h3>
-            <p class="section-subtitle">Buat link otomatis untuk guru atau kelas lain secara instan</p>
+            <h3 class="section-title">Generator Tautan Kustom</h3>
+            <p class="section-subtitle">Buat link auto-fill untuk kombinasi guru, NIP, dan kelas baru secara instan</p>
           </div>
         </div>
 
         <div class="builder-layout">
-          <!-- Input Form -->
           <div class="builder-card">
-            <h4 class="form-section-title"><i class="fa-solid fa-pen-to-square"></i> Konfigurasi Data</h4>
+            <h4 class="form-section-title"><i class="fa-solid fa-sliders"></i> Konfigurasi Parameter</h4>
             
             <form id="custom-link-form">
               <div class="input-group">
-                <label for="select-guru"><i class="fa-solid fa-user-tie"></i> Pilih Nama Guru</label>
-                <select id="select-guru" class="form-control" required>
-                  <option value="">-- Pilih Nama Guru --</option>
-                  <!-- Populated dynamically by app.js -->
+                <label for="builder-form-select"><i class="fa-solid fa-file-lines"></i> Pilih Formulir Target</label>
+                <select id="builder-form-select" class="form-control" required>
+                  <!-- Populated from forms database -->
                 </select>
               </div>
 
               <div class="input-group">
-                <label for="input-nip"><i class="fa-solid fa-id-card"></i> Nomor Induk Pegawai (NIP)</label>
-                <input type="text" id="input-nip" class="form-control" placeholder="Contoh: 198109092022211004" required>
+                <label for="builder-guru-select"><i class="fa-solid fa-user-tie"></i> Pilih Nama Guru</label>
+                <select id="builder-guru-select" class="form-control" required>
+                  <option value="">-- Pilih Guru --</option>
+                </select>
               </div>
 
               <div class="input-group">
-                <label for="select-kelas"><i class="fa-solid fa-chalkboard-user"></i> Pilih Kelas</label>
-                <select id="select-kelas" class="form-control" required>
+                <label for="builder-nip-input"><i class="fa-solid fa-id-card"></i> Nomor Induk Pegawai (NIP)</label>
+                <input type="text" id="builder-nip-input" class="form-control" placeholder="Contoh: 198109092022211004" required>
+              </div>
+
+              <div class="input-group">
+                <label for="builder-kelas-select"><i class="fa-solid fa-chalkboard-user"></i> Pilih Kelas</label>
+                <select id="builder-kelas-select" class="form-control" required>
                   <option value="">-- Pilih Kelas --</option>
-                  <!-- Populated dynamically by app.js -->
                 </select>
               </div>
 
               <button type="submit" class="btn btn-primary btn-block">
-                <i class="fa-solid fa-sparkles"></i> Hasilkan Link Auto-Fill
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Hasilkan Tautan Auto-Fill
               </button>
             </form>
           </div>
 
-          <!-- Result Preview -->
           <div class="builder-result-card" id="builder-result-container">
             <h4 class="form-section-title"><i class="fa-solid fa-link"></i> Hasil Tautan</h4>
             
             <div id="result-empty-state" class="empty-state">
               <i class="fa-solid fa-arrow-pointer"></i>
-              <p>Pilih data di formulir sebelah kiri dan klik <strong>Hasilkan Link</strong>.</p>
+              <p>Lengkapi formulir di samping dan klik tombol <strong>Hasilkan Tautan</strong>.</p>
             </div>
 
             <div id="result-content" class="result-content-hidden">
               <div class="generated-url-box">
                 <label class="url-label">Generated URL:</label>
-                <textarea id="generated-url-text" readonly class="generated-url-textarea" rows="3"></textarea>
+                <textarea id="generated-url-text" readonly class="generated-url-textarea" rows="4"></textarea>
               </div>
 
               <div class="result-action-btns">
                 <a id="btn-test-generated-url" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Test Buka Form
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Uji Buka Form
                 </a>
                 <button id="btn-copy-generated-url" class="btn btn-secondary">
                   <i class="fa-solid fa-copy"></i> Salin Link
@@ -222,32 +244,203 @@
         </div>
       </section>
 
-      <!-- TAB 3: Guide / Panduan -->
+      <!-- ====================================================================
+           TAB 3: PANEL ADMIN (Khusus iskakfatoni@gmail.com)
+           ==================================================================== -->
+      <section id="tab-admin" class="tab-pane">
+
+        <!-- If NOT Authenticated as Admin -->
+        <div id="admin-locked-view" class="admin-locked-box">
+          <div class="locked-icon">
+            <i class="fa-solid fa-lock"></i>
+          </div>
+          <h3>Area Khusus Administrator</h3>
+          <p>Halaman ini dikhususkan untuk <strong>iskakfatoni@gmail.com</strong> untuk mengelola master data guru, konfigurasi formulir, dan pengaturan cloud database Firebase.</p>
+          <button id="btn-admin-login-trigger" class="btn btn-primary btn-lg">
+            <i class="fa-brands fa-google"></i> Masuk dengan Google Admin
+          </button>
+        </div>
+
+        <!-- If Authenticated as Admin -->
+        <div id="admin-dashboard-view" class="admin-dashboard-view hidden">
+          
+          <!-- Admin Stat Bar -->
+          <div class="admin-stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+              <div class="stat-data">
+                <span class="stat-number" id="stat-total-teachers">0</span>
+                <span class="stat-title">Total Guru Terdaftar</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-purple"><i class="fa-solid fa-folder-tree"></i></div>
+              <div class="stat-data">
+                <span class="stat-number" id="stat-total-forms">0</span>
+                <span class="stat-title">Formulir Aktif</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-green"><i class="fa-solid fa-cloud-bolt"></i></div>
+              <div class="stat-data">
+                <span class="stat-number" id="stat-db-status">Online</span>
+                <span class="stat-title">Cloud Database</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Sub-Navigation -->
+          <div class="admin-subtabs">
+            <button class="admin-subtab-btn active" data-subtarget="subtab-teachers">
+              <i class="fa-solid fa-user-gear"></i> Manajemen Guru
+            </button>
+            <button class="admin-subtab-btn" data-subtarget="subtab-forms">
+              <i class="fa-solid fa-list-check"></i> Manajemen Formulir
+            </button>
+            <button class="admin-subtab-btn" data-subtarget="subtab-firebase-settings">
+              <i class="fa-solid fa-gear"></i> Pengaturan Firebase
+            </button>
+          </div>
+
+          <!-- Subtab 1: Manajemen Guru -->
+          <div id="subtab-teachers" class="admin-subpane active">
+            <div class="admin-action-bar">
+              <div class="search-box-admin">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="admin-teacher-search" placeholder="Cari nama atau NIP guru...">
+              </div>
+              <div class="admin-btn-group">
+                <button id="btn-seed-teachers" class="btn btn-secondary btn-sm" title="Upload otomatis 94 data guru bawaan ke Firestore">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> 🚀 Seed 94 Master Guru
+                </button>
+                <button id="btn-modal-add-teacher" class="btn btn-primary btn-sm">
+                  <i class="fa-solid fa-plus"></i> Tambah Guru Baru
+                </button>
+              </div>
+            </div>
+
+            <!-- Teachers Table -->
+            <div class="table-responsive">
+              <table class="data-table" id="teachers-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Guru</th>
+                    <th>NIP</th>
+                    <th>Kelas Binaan</th>
+                    <th>Peran</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="teachers-table-body">
+                  <!-- Populated by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Subtab 2: Manajemen Formulir -->
+          <div id="subtab-forms" class="admin-subpane">
+            <div class="admin-action-bar">
+              <h4>Daftar Google Form Terdaftar</h4>
+              <button id="btn-modal-add-form" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Tambah Formulir Baru
+              </button>
+            </div>
+
+            <!-- Forms Table -->
+            <div class="table-responsive">
+              <table class="data-table" id="forms-table">
+                <thead>
+                  <tr>
+                    <th>Nama Formulir</th>
+                    <th>Kategori</th>
+                    <th>Entry Guru</th>
+                    <th>Entry NIP</th>
+                    <th>Entry Kelas</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="forms-table-body">
+                  <!-- Populated by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Subtab 3: Pengaturan Firebase -->
+          <div id="subtab-firebase-settings" class="admin-subpane">
+            <div class="settings-card">
+              <h4><i class="fa-solid fa-cloud"></i> Konfigurasi Kredensial Firebase</h4>
+              <p class="settings-desc">Anda dapat menempelkan (paste) konfigurasi proyek Firebase dari Firebase Console di sini. Data akan disimpan secara aman dan otomatis menyinkronkan data ke Cloud Firestore.</p>
+
+              <form id="firebase-config-form">
+                <div class="form-grid-2">
+                  <div class="input-group">
+                    <label for="cfg-api-key">API Key</label>
+                    <input type="text" id="cfg-api-key" class="form-control font-mono" placeholder="AIzaSy...">
+                  </div>
+                  <div class="input-group">
+                    <label for="cfg-project-id">Project ID</label>
+                    <input type="text" id="cfg-project-id" class="form-control font-mono" placeholder="portal-autoform-xxx">
+                  </div>
+                  <div class="input-group">
+                    <label for="cfg-auth-domain">Auth Domain</label>
+                    <input type="text" id="cfg-auth-domain" class="form-control font-mono" placeholder="portal-autoform-xxx.firebaseapp.com">
+                  </div>
+                  <div class="input-group">
+                    <label for="cfg-app-id">App ID</label>
+                    <input type="text" id="cfg-app-id" class="form-control font-mono" placeholder="1:123456:web:abcdef">
+                  </div>
+                </div>
+
+                <div class="settings-actions">
+                  <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan & Hubungkan Firebase
+                  </button>
+                  <button type="button" id="btn-reset-firebase-config" class="btn btn-secondary">
+                    <i class="fa-solid fa-rotate-left"></i> Reset ke Default
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           TAB 4: PANDUAN & PETUNJUK
+           ==================================================================== -->
       <section id="tab-guide" class="tab-pane">
         <div class="section-header">
           <div>
-            <h3 class="section-title">Panduan Penggunaan</h3>
-            <p class="section-subtitle">Tips memaksimalkan penggunaan PORTAL:AutoForm</p>
+            <h3 class="section-title">Panduan Penggunaan Sistem</h3>
+            <p class="section-subtitle">Petunjuk lengkap bagi Guru dan Administrator</p>
           </div>
         </div>
 
         <div class="guide-grid">
           <div class="guide-card">
             <div class="guide-step-num">1</div>
-            <h4>Simpan di Bookmark</h4>
-            <p>Klik tombol <strong>Buka Google Form</strong> atau buka halaman portal ini, lalu tekan tombol <code>Ctrl + D</code> (Windows) untuk menyimpannya di bar bookmark browser.</p>
+            <h4>Untuk Guru / Walikelas</h4>
+            <p>Buka portal, ketik atau pilih NIP Anda. Profil Anda akan aktif dan seluruh formulir otomatis terisi nama, NIP, dan kelas. Anda cukup klik <strong>Buka Google Form</strong> untuk melengkapi pengisian.</p>
           </div>
 
           <div class="guide-card">
             <div class="guide-step-num">2</div>
-            <h4>Buka Setiap Periode Pelaporan</h4>
-            <p>Saat jadwal pelaporan tiba, cukup buka link bookmark tersebut. Nama, NIP, dan Kelas otomatis sudah terisi dengan tepat tanpa risiko typo.</p>
+            <h4>Untuk Administrator</h4>
+            <p>Masuk menggunakan akun <strong>iskakfatoni@gmail.com</strong>. Anda memiliki wewenang penuh mengedit kelas binaan guru, menambah formulir baru, dan memetakan entry ID Google Form.</p>
           </div>
 
           <div class="guide-card">
             <div class="guide-step-num">3</div>
-            <h4>Isi Sisa Pertanyaan</h4>
-            <p>Pilih nama <strong>Bulan</strong> dan klik tombol <strong>Upload File</strong> untuk menyertakan laporan Anda, kemudian tekan <strong>Kirim</strong>.</p>
+            <h4>Setup Firebase Cloud</h4>
+            <p>Buat project di Firebase Console, aktifkan <strong>Authentication</strong> (Google Auth) dan <strong>Cloud Firestore</strong>, lalu masukkan kredensialnya di tab Pengaturan Firebase.</p>
           </div>
         </div>
       </section>
@@ -256,18 +449,150 @@
 
     <!-- Footer -->
     <footer class="main-footer">
-      <p><strong>PORTAL:AutoForm</strong> &bull; Dibuat untuk Efisiensi & Produktivitas Administrasi.</p>
-      <p class="footer-sub">Hosting gratis & aman via GitHub Pages.</p>
+      <p><strong>PORTAL:AutoForm</strong> &bull; Sistem Auto-Fill Google Form Berbasis Cloud & Multi-User.</p>
+      <p class="footer-sub">Hosting di GitHub Pages &bull; Cloud Database via Google Firebase.</p>
     </footer>
 
   </div>
 
-  <!-- Toast Notification Popup -->
-  <div id="toast" class="toast" role="alert" aria-live="assertive">
-    <i class="fa-solid fa-circle-check toast-icon"></i>
-    <span id="toast-message">Tautan berhasil disalin ke clipboard!</span>
+  <!-- ====================================================================
+       MODALS
+       ==================================================================== -->
+
+  <!-- Modal 1: Login Admin -->
+  <div id="modal-login-admin" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-shield-halved"></i> Login Administrator</h3>
+        <button class="btn-close-modal" id="btn-close-login-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Khusus admin <strong>iskakfatoni@gmail.com</strong> untuk mengelola master data dan form.</p>
+        
+        <button id="btn-google-sign-in" class="btn btn-google btn-block">
+          <i class="fa-brands fa-google"></i> Masuk dengan Google
+        </button>
+
+        <div class="auth-separator"><span>atau login demo lokal</span></div>
+
+        <form id="demo-login-form">
+          <div class="input-group">
+            <label for="admin-demo-email">Email Admin</label>
+            <input type="email" id="admin-demo-email" class="form-control" value="iskakfatoni@gmail.com" required>
+          </div>
+          <button type="submit" class="btn btn-secondary btn-block">
+            <i class="fa-solid fa-key"></i> Masuk Mode Akses Cepat
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 
-  <script src="app.js"></script>
+  <!-- Modal 2: Tambah / Edit Guru -->
+  <div id="modal-teacher-form" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modal-teacher-title"><i class="fa-solid fa-user-plus"></i> Tambah Data Guru</h3>
+        <button class="btn-close-modal" id="btn-close-teacher-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-manage-teacher">
+          <div class="input-group">
+            <label for="edit-teacher-name">Nama Lengkap Guru (beserta gelar)</label>
+            <input type="text" id="edit-teacher-name" class="form-control" placeholder="Contoh: MUCHAMAD ISKAK FATONI, S.Pd." required>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-teacher-nip">NIP</label>
+            <input type="text" id="edit-teacher-nip" class="form-control font-mono" placeholder="Contoh: 198109092022211004" required>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-teacher-class">Kelas Binaan</label>
+            <select id="edit-teacher-class" class="form-control" required>
+              <!-- Populated by class list -->
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-teacher-role">Peran</label>
+            <select id="edit-teacher-role" class="form-control">
+              <option value="Walikelas">Walikelas</option>
+              <option value="Guru Pengajar">Guru Pengajar</option>
+              <option value="Guru BP/BK">Guru BP/BK</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-save-teacher">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Data Guru
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 3: Tambah / Edit Formulir -->
+  <div id="modal-form-manage" class="modal-overlay hidden">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-form-title"><i class="fa-solid fa-file-circle-plus"></i> Tambah Formulir Baru</h3>
+        <button class="btn-close-modal" id="btn-close-form-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-manage-form">
+          <input type="hidden" id="edit-form-id">
+
+          <div class="form-grid-2">
+            <div class="input-group">
+              <label for="edit-form-name">Nama / Judul Formulir</label>
+              <input type="text" id="edit-form-name" class="form-control" placeholder="Contoh: PENGUMPULAN BULANAN WALIKELAS" required>
+            </div>
+            <div class="input-group">
+              <label for="edit-form-category">Kategori</label>
+              <input type="text" id="edit-form-category" class="form-control" placeholder="Contoh: Walikelas / Kurikulum" required>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-form-url">URL Base Google Form (dengan akhiran /viewform)</label>
+            <input type="url" id="edit-form-url" class="form-control font-mono" placeholder="https://docs.google.com/forms/d/e/.../viewform" required>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-form-desc">Deskripsi Singkat</label>
+            <input type="text" id="edit-form-desc" class="form-control" placeholder="Laporan administrasi rutin bulanan...">
+          </div>
+
+          <h4 class="form-subheading"><i class="fa-solid fa-code"></i> Mapping Entry ID Google Form</h4>
+          <div class="form-grid-3">
+            <div class="input-group">
+              <label for="edit-entry-guru">Entry ID Nama Guru</label>
+              <input type="text" id="edit-entry-guru" class="form-control font-mono" placeholder="entry.1599393498" required>
+            </div>
+            <div class="input-group">
+              <label for="edit-entry-nip">Entry ID NIP</label>
+              <input type="text" id="edit-entry-nip" class="form-control font-mono" placeholder="entry.65154558" required>
+            </div>
+            <div class="input-group">
+              <label for="edit-entry-kelas">Entry ID Kelas</label>
+              <input type="text" id="edit-entry-kelas" class="form-control font-mono" placeholder="entry.591543822" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="fa-solid fa-floppy-disk"></i> Simpan Formulir
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive">
+    <i class="fa-solid fa-circle-check toast-icon"></i>
+    <span id="toast-message">Notifikasi</span>
+  </div>
+
+  <script type="module" src="app.js"></script>
 </body>
 </html>
