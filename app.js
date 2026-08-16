@@ -678,61 +678,36 @@ function renderUserPortal() {
     const formIcon = form.icon || "fa-solid fa-file-signature";
     
     let statusBadge = form.statusBadge || "Auto-Fill Siap";
-    let customDesc = form.description || 'Laporan administrasi berkala.';
 
     if (form.id === "form_jurnal_mengajar") {
       if (activeTeacher.journalFormUrl) {
-        statusBadge = "Jurnal Pribadi Aktif";
-        customDesc = `Formulir jurnal mengajar harian khusus milik <strong>${activeTeacher.name}</strong>.`;
+        statusBadge = "Jurnal Pribadi";
       } else {
         statusBadge = "Belum Ada Link";
-        customDesc = "Link jurnal khusus guru ini belum ditambahkan oleh Admin.";
       }
     }
 
     return `
       <article class="form-card">
-        <div class="card-top">
+        <div class="card-header-clean">
           <div class="card-icon-box">
             <i class="${formIcon}"></i>
           </div>
-          <div class="card-tags">
-            <span class="pill-badge pill-auto"><i class="fa-solid fa-check-double"></i> ${statusBadge}</span>
-            <span class="pill-badge pill-role">${form.category || 'Formulir'}</span>
-          </div>
-        </div>
-
-        <div class="card-body">
-          <h4 class="card-title">${form.name}</h4>
-          <p class="card-desc">${customDesc}</p>
-
-          <div class="data-preview-box">
-            <div class="data-preview-title">
-              <i class="fa-solid fa-circle-info"></i> Data Terhubung:
+          <div class="card-title-group">
+            <h4 class="card-title">${form.name}</h4>
+            <div class="card-tags">
+              <span class="pill-badge pill-role">${form.category || 'Formulir'}</span>
+              <span class="pill-badge pill-auto"><i class="fa-solid fa-bolt"></i> ${statusBadge}</span>
             </div>
-            <ul class="data-items-list">
-              <li>
-                <span class="label">Nama Guru</span>
-                <span class="value">${activeTeacher.name}</span>
-              </li>
-              <li>
-                <span class="label">NIP</span>
-                <span class="value font-mono">${activeTeacher.nip || '-'}</span>
-              </li>
-              <li>
-                <span class="label">Kelas</span>
-                <span class="value highlight-val">${activeTeacher.class || '-'}</span>
-              </li>
-            </ul>
           </div>
         </div>
 
-        <div class="card-footer">
-          <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+        <div class="card-footer-clean">
+          <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-form">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Form
           </a>
           <button class="btn btn-secondary btn-copy-card" data-url="${generatedUrl}" title="Salin Tautan Form">
-            <i class="fa-solid fa-copy"></i> Salin Link
+            <i class="fa-solid fa-copy"></i>
           </button>
         </div>
       </article>
