@@ -713,21 +713,21 @@ function renderUserPortal() {
   container.innerHTML = activeForms.map((form, idx) => {
     const generatedUrl = generateFormUrlForTeacher(form, activeTeacher);
     const formIcon = form.icon || "fa-solid fa-file-signature";
+    const themeIndex = (idx % 5) + 1;
 
     return `
-      <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="form-direct-btn" title="Buka ${form.name}">
-        <div class="form-btn-left">
-          <div class="form-btn-icon">
+      <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="form-direct-card card-theme-${themeIndex}" title="Buka ${form.name}">
+        <div class="form-card-left">
+          <div class="form-card-icon-box">
             <i class="${formIcon}"></i>
           </div>
-          <div class="form-btn-title-box">
-            <span class="form-btn-number">${idx + 1}.</span>
-            <span class="form-btn-title">${form.name}</span>
+          <div class="form-card-title-box">
+            <span class="form-card-number">${idx + 1}.</span>
+            <span class="form-card-title">${form.name}</span>
           </div>
         </div>
-        <div class="form-btn-right">
-          <span class="form-btn-action-label">Buka Form</span>
-          <i class="fa-solid fa-arrow-up-right-from-square form-btn-arrow"></i>
+        <div class="form-card-right">
+          <span class="form-card-action-btn">Buka Form <i class="fa-solid fa-arrow-up-right-from-square"></i></span>
         </div>
       </a>
     `;
