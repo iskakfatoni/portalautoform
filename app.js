@@ -918,60 +918,88 @@ async function seedMasterTeachersToFirestore() {
 }
 
 /* ==========================================================================
-   6. Impor & Ekspor (CSV / Excel / JSON)
+   6. Impor & Ekspor Excel (.xlsx / .xls / JSON)
    ========================================================================== */
 
 function initImportExport() {
-  const btnExportCsv = document.getElementById('btn-do-export-csv');
+  const btnExportExcel = document.getElementById('btn-do-export-excel');
   const btnExportJson = document.getElementById('btn-do-export-json');
   const btnExportQuick = document.getElementById('btn-export-teachers-quick');
-  const inputFileCsv = document.getElementById('input-file-csv');
+  const inputFileExcel = document.getElementById('input-file-excel');
   const statusDiv = document.getElementById('import-preview-status');
 
-  if (btnExportCsv) btnExportCsv.addEventListener('click', exportTeachersToCSV);
-  if (btnExportQuick) btnExportQuick.addEventListener('click', exportTeachersToCSV);
+  if (btnExportExcel) btnExportExcel.addEventListener('click', exportTeachersToExcel);
+  if (btnExportQuick) btnExportQuick.addEventListener('click', exportTeachersToExcel);
   if (btnExportJson) btnExportJson.addEventListener('click', exportTeachersToJSON);
 
-  if (inputFileCsv) {
-    inputFileCsv.addEventListener('change', (e) => {
+  if (inputFileExcel) {
+    inputFileExcel.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
 
+      if (typeof XLSX === 'undefined') {
+        showToast('Library Excel belum selesai dimuat. Silakan coba sesaat lagi.');
+        return;
+      }
+
+      if (statusDiv) statusDiv.textContent = `Membaca file ${file.name}...`;
+
       const reader = new FileReader();
       reader.onload = async (event) => {
-        const text = event.target.result;
-        await parseAndImportCSV(text, statusDiv);
+        try {
+          const data = new Uint8Array(event.target.result);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+          await processImportedExcelRows(rows, statusDiv);
+        } catch (err) {
+          console.error("Gagal membaca file Excel:", err);
+          if (statusDiv) statusDiv.textContent = `❌ Gagal membaca file Excel: ${err.message}`;
+        }
       };
-      reader.readAsText(file);
+      reader.readAsArrayBuffer(file);
     });
   }
 }
 
-function exportTeachersToCSV() {
+function exportTeachersToExcel() {
+  if (typeof XLSX === 'undefined') {
+    showToast('Library Excel sedang dimuat, silakan klik sekali lagi.');
+    return;
+  }
+
   const defaultForm = currentForms[0] || INITIAL_FORMS[0];
   
-  // Headers
-  const headers = ["No", "Nama Guru", "NIP", "Kelas Binaan", "Peran", "URL Jurnal Pribadi", "Link Portal Guru", "Link AutoFill Form"];
-  
-  const rows = currentTeachers.map((t, idx) => {
-    const portalUrl = getPersonalPortalUrl(t);
-    const formUrl = defaultForm ? generateFormUrlForTeacher(defaultForm, t) : "";
-    const journalUrl = t.journalFormUrl || "";
-    return [
-      idx + 1,
-      `"${t.name.replace(/"/g, '""')}"`,
-      `"${(t.nip || '-').replace(/"/g, '""')}"`,
-      `"${(t.class || '-').replace(/"/g, '""')}"`,
-      `"${(t.role || 'Guru').replace(/"/g, '""')}"`,
-      `"${journalUrl.replace(/"/g, '""')}"`,
-      `"${portalUrl}"`,
-      `"${formUrl}"`
-    ];
-  });
+  const excelData = currentTeachers.map((t, idx) => ({
+    "No": idx + 1,
+    "Nama Guru": t.name,
+    "NIP": t.nip || "-",
+    "Kelas Binaan": t.class || "-",
+    "Peran": t.role || "Guru",
+    "URL Jurnal Pribadi": t.journalFormUrl || "",
+    "Link Portal Guru": getPersonalPortalUrl(t),
+    "Link Form Walikelas": defaultForm ? generateFormUrlForTeacher(defaultForm, t) : ""
+  }));
 
-  const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-  downloadFile(csvContent, "daftar_link_guru_portal_autoform.csv", "text/csv;charset=utf-8;");
-  showToast("File CSV daftar link guru berhasil diunduh!");
+  const worksheet = XLSX.utils.json_to_sheet(excelData);
+  
+  // Lebar kolom rapi
+  worksheet["!cols"] = [
+    { wch: 6 },
+    { wch: 36 },
+    { wch: 22 },
+    { wch: 16 },
+    { wch: 16 },
+    { wch: 45 },
+    { wch: 55 },
+    { wch: 55 }
+  ];
+
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
+  
+  XLSX.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
+  showToast("File Excel (.xlsx) berhasil diunduh!");
 }
 
 function exportTeachersToJSON() {
@@ -999,56 +1027,57 @@ function downloadFile(content, fileName, mimeType) {
   URL.revokeObjectURL(url);
 }
 
-async function parseAndImportCSV(csvText, statusDiv) {
-  if (statusDiv) statusDiv.textContent = "Memproses file CSV...";
-  
-  const lines = csvText.split(/\r?\n/).filter(line => line.trim() !== "");
-  if (lines.length <= 1) {
-    if (statusDiv) statusDiv.textContent = "Format file CSV kosong atau tidak valid.";
+async function processImportedExcelRows(rows, statusDiv) {
+  if (!rows || rows.length <= 1) {
+    if (statusDiv) statusDiv.textContent = "❌ File Excel kosong atau tidak memiliki baris data.";
     return;
   }
 
+  const headerRow = rows[0].map(h => String(h || '').trim().toLowerCase());
+  
+  // Cari index kolom secara dinamis berdasarkan nama header
+  let nameIdx = headerRow.findIndex(h => h.includes("nama"));
+  let nipIdx = headerRow.findIndex(h => h.includes("nip"));
+  let classIdx = headerRow.findIndex(h => h.includes("kelas"));
+  let roleIdx = headerRow.findIndex(h => h.includes("peran") || h.includes("role"));
+  let journalIdx = headerRow.findIndex(h => h.includes("jurnal") || h.includes("journal"));
+
+  // Fallback index default jika header tidak bernama
+  if (nameIdx === -1) nameIdx = 1;
+  if (nipIdx === -1) nipIdx = 2;
+  if (classIdx === -1) classIdx = 3;
+  if (roleIdx === -1) roleIdx = 4;
+  if (journalIdx === -1) journalIdx = 5;
+
   const importedList = [];
-  const startIndex = lines[0].toLowerCase().includes("nama") ? 1 : 0;
 
-  for (let i = startIndex; i < lines.length; i++) {
-    const line = lines[i];
-    const delimiter = line.includes(";") ? ";" : ",";
-    const parts = line.split(delimiter).map(p => p.trim().replace(/^["']|["']$/g, ''));
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row || row.length === 0) continue;
 
-    if (parts.length >= 2) {
-      let name = "";
-      let nip = "-";
-      let cls = "-";
-      let role = "Walikelas";
-      let journalFormUrl = "";
+    const name = String(row[nameIdx] || '').trim();
+    if (!name) continue;
 
-      if (isNaN(parts[0])) {
-        name = parts[0];
-        nip = parts[1] || "-";
-        cls = parts[2] || "-";
-        role = parts[3] || "Walikelas";
-        journalFormUrl = parts[4] || "";
-      } else {
-        name = parts[1];
-        nip = parts[2] || "-";
-        cls = parts[3] || "-";
-        role = parts[4] || "Walikelas";
-        journalFormUrl = parts[5] || "";
-      }
+    const nip = String(row[nipIdx] || '-').trim();
+    const cls = String(row[classIdx] || '-').trim();
+    const role = String(row[roleIdx] || 'Walikelas').trim();
+    const journalFormUrl = String(row[journalIdx] || '').trim();
 
-      if (name) {
-        importedList.push({ name, nip, class: cls, role, journalFormUrl });
-      }
-    }
+    importedList.push({
+      name,
+      nip: nip || '-',
+      class: cls || '-',
+      role: role || 'Walikelas',
+      journalFormUrl: journalFormUrl || ''
+    });
   }
 
   if (importedList.length === 0) {
-    if (statusDiv) statusDiv.textContent = "Gagal mengekstrak data dari CSV.";
+    if (statusDiv) statusDiv.textContent = "❌ Tidak ada data guru valid yang ditemukan di file Excel.";
     return;
   }
 
-  // Merge into currentTeachers
+  // Gabungkan ke currentTeachers
   importedList.forEach(imported => {
     const idx = currentTeachers.findIndex(t => t.name.toLowerCase() === imported.name.toLowerCase());
     if (idx >= 0) {
@@ -1060,7 +1089,7 @@ async function parseAndImportCSV(csvText, statusDiv) {
 
   saveLocalTeachers();
 
-  // Sync to Firestore if active
+  // Sinkronisasi ke Cloud Firestore
   if (db && isFirebaseActive) {
     try {
       const batch = writeBatch(db);
@@ -1069,17 +1098,17 @@ async function parseAndImportCSV(csvText, statusDiv) {
         batch.set(doc(db, "teachers", docId), t);
       });
       await batch.commit();
-      if (statusDiv) statusDiv.textContent = `✅ Berhasil mengimpor ${importedList.length} guru ke Cloud Firestore!`;
+      if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--success);">✅ Berhasil mengimpor <strong>${importedList.length} guru</strong> ke Cloud Firestore!</span>`;
     } catch (e) {
-      if (statusDiv) statusDiv.textContent = `Disimpan ke lokal. (Gagal sync cloud: ${e.message})`;
+      if (statusDiv) statusDiv.textContent = `Disimpan lokal (Gagal sync cloud: ${e.message})`;
     }
   } else {
-    if (statusDiv) statusDiv.textContent = `✅ Berhasil mengimpor ${importedList.length} guru ke penyimpanan browser!`;
+    if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--success);">✅ Berhasil mengimpor <strong>${importedList.length} guru</strong> ke penyimpanan browser!</span>`;
   }
 
   renderAdminTables();
   populateGuruSelect(document.getElementById('portal-guru-select'));
-  showToast(`Impor ${importedList.length} guru berhasil!`);
+  showToast(`Impor ${importedList.length} data guru dari Excel berhasil!`);
 }
 
 /* ==========================================================================

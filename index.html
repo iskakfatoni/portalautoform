@@ -14,6 +14,9 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   
+  <!-- SheetJS (Excel .xlsx / .xls Library) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-mode">
@@ -331,8 +334,8 @@
                 <input type="text" id="admin-teacher-search" placeholder="Cari nama atau NIP guru...">
               </div>
               <div class="admin-btn-group">
-                <button id="btn-export-teachers-quick" class="btn btn-secondary btn-sm" title="Unduh CSV data guru beserta link masing-masing">
-                  <i class="fa-solid fa-download"></i> Ekspor CSV
+                <button id="btn-export-teachers-quick" class="btn btn-secondary btn-sm" title="Unduh file Excel data guru beserta link masing-masing">
+                  <i class="fa-solid fa-file-excel text-green"></i> Ekspor Excel (.xlsx)
                 </button>
                 <button id="btn-seed-teachers" class="btn btn-secondary btn-sm" title="Upload otomatis 94 data guru bawaan ke Firestore">
                   <i class="fa-solid fa-cloud-arrow-up"></i> 🚀 Seed 94 Master Guru
@@ -394,25 +397,25 @@
             </div>
           </div>
 
-          <!-- Subtab 3: Impor & Ekspor Data (CSV / JSON) -->
+          <!-- Subtab 3: Impor & Ekspor Data (Excel .xlsx / JSON) -->
           <div id="subtab-import-export" class="admin-subpane">
             <div class="io-grid">
               
               <!-- Ekspor Card -->
               <div class="io-card">
                 <div class="io-header">
-                  <div class="io-icon io-icon-export"><i class="fa-solid fa-file-export"></i></div>
+                  <div class="io-icon io-icon-export"><i class="fa-solid fa-file-excel"></i></div>
                   <div>
-                    <h4>Ekspor Data & Link Guru</h4>
-                    <p>Unduh file CSV / Excel yang berisi daftar seluruh guru lengkap dengan link portal unik dan link auto-fill formulir mereka.</p>
+                    <h4>Ekspor Data & Link Guru ke Excel</h4>
+                    <p>Unduh file Microsoft Excel asli (<code>.xlsx</code>) yang berisi daftar seluruh guru lengkap dengan link portal personal, link auto-fill, dan link jurnal mereka.</p>
                   </div>
                 </div>
 
                 <div class="io-body">
-                  <p class="io-hint"><i class="fa-solid fa-circle-check"></i> File CSV ini siap dibagikan ke masing-masing guru via WhatsApp atau pesan pengumuman.</p>
+                  <p class="io-hint"><i class="fa-solid fa-circle-check"></i> File Excel ini dapat dibuka langsung di Microsoft Excel atau Google Sheets dan siap dibagikan ke masing-masing guru.</p>
                   <div class="io-btn-row">
-                    <button id="btn-do-export-csv" class="btn btn-primary">
-                      <i class="fa-solid fa-file-csv"></i> Unduh File CSV (Excel)
+                    <button id="btn-do-export-excel" class="btn btn-primary">
+                      <i class="fa-solid fa-file-excel"></i> Unduh File Excel (.xlsx)
                     </button>
                     <button id="btn-do-export-json" class="btn btn-secondary">
                       <i class="fa-solid fa-code"></i> Unduh Format JSON
@@ -424,21 +427,21 @@
               <!-- Impor Card -->
               <div class="io-card">
                 <div class="io-header">
-                  <div class="io-icon io-icon-import"><i class="fa-solid fa-file-import"></i></div>
+                  <div class="io-icon io-icon-import"><i class="fa-solid fa-file-arrow-up"></i></div>
                   <div>
-                    <h4>Impor Data Guru Massal</h4>
-                    <p>Unggah file CSV untuk menambahkan atau memperbarui data NIP dan kelas binaan banyak guru sekaligus.</p>
+                    <h4>Impor Data Guru dari Excel</h4>
+                    <p>Unggah file Excel (<code>.xlsx</code> / <code>.xls</code>) atau CSV untuk menambahkan atau memperbarui data NIP, kelas binaan, dan link jurnal banyak guru sekaligus.</p>
                   </div>
                 </div>
 
                 <div class="io-body">
-                  <div class="file-upload-box" id="drop-zone-csv">
-                    <i class="fa-solid fa-cloud-arrow-up file-icon"></i>
-                    <p>Pilih atau Tarik File CSV ke sini</p>
-                    <span class="file-format-hint">Format kolom: <code>Nama, NIP, Kelas, Peran</code></span>
-                    <input type="file" id="input-file-csv" accept=".csv,text/csv" class="file-input-hidden">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('input-file-csv').click()">
-                      <i class="fa-solid fa-folder-open"></i> Pilih File CSV
+                  <div class="file-upload-box" id="drop-zone-excel">
+                    <i class="fa-solid fa-file-excel file-icon text-green"></i>
+                    <p>Pilih atau Tarik File Excel (.xlsx / .xls) ke sini</p>
+                    <span class="file-format-hint">Format kolom: <code>Nama Guru, NIP, Kelas Binaan, Peran, URL Jurnal Pribadi</code></span>
+                    <input type="file" id="input-file-excel" accept=".xlsx,.xls,.csv" class="file-input-hidden">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('input-file-excel').click()">
+                      <i class="fa-solid fa-folder-open"></i> Pilih File Excel (.xlsx / .xls)
                     </button>
                   </div>
                   <div id="import-preview-status" class="import-status-text"></div>
