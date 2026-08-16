@@ -319,8 +319,8 @@ function showLandingView() {
   const inputNip = document.getElementById('landing-nip-input');
   const mainHeader = document.getElementById('app-main-header');
 
-  // Sembunyikan header pada landing page awal agar ultra bersih & minimalis
-  if (mainHeader) mainHeader.classList.add('hidden');
+  // Pastikan header ringkas di atas selalu tampil
+  if (mainHeader) mainHeader.classList.remove('hidden');
 
   if (landingView) landingView.classList.remove('hidden');
   if (portalView) portalView.classList.add('hidden');

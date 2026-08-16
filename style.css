@@ -162,11 +162,15 @@ body {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  margin-bottom: 28px;
-  flex-wrap: wrap;
-  gap: 16px;
+  padding: 0.5rem 1.15rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+  gap: 12px;
 }
 
 .brand-container {
@@ -177,28 +181,28 @@ body {
 .brand-link {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   text-decoration: none;
   color: inherit;
 }
 
 .brand-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-md);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: var(--accent-gradient);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 0.95rem;
   box-shadow: var(--shadow-glow);
 }
 
 .brand-title {
-  font-size: 1.35rem;
+  font-size: 1.05rem;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
   line-height: 1.2;
 }
 
@@ -208,19 +212,10 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.brand-subtitle {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
 /* Dual Role Switcher Button */
@@ -271,9 +266,9 @@ body {
 }
 
 .icon-btn {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   border: 1px solid var(--border-color);
   background: var(--bg-glass);
   color: var(--text-primary);
@@ -281,7 +276,7 @@ body {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-size: 1.1rem;
+  font-size: 0.85rem;
   transition: all var(--transition-fast);
 }
 
@@ -300,23 +295,23 @@ body.light-mode .dark-icon { display: block; }
 .admin-user-profile {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 4px 12px;
+  gap: 6px;
+  padding: 3px 8px;
   background: rgba(99, 102, 241, 0.12);
   border: 1px solid rgba(99, 102, 241, 0.3);
   border-radius: var(--radius-full);
 }
 
 .admin-avatar {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   background: var(--accent-primary);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.8rem;
+  font-size: 0.65rem;
 }
 
 .admin-info {
@@ -324,16 +319,8 @@ body.light-mode .dark-icon { display: block; }
   flex-direction: column;
 }
 
-.admin-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  color: var(--accent-primary);
-  line-height: 1;
-}
-
 .admin-email {
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -343,8 +330,8 @@ body.light-mode .dark-icon { display: block; }
   border: none;
   color: var(--danger);
   cursor: pointer;
-  font-size: 0.9rem;
-  padding: 4px;
+  font-size: 0.8rem;
+  padding: 2px 4px;
   transition: opacity var(--transition-fast);
 }
 
@@ -356,6 +343,13 @@ body.light-mode .dark-icon { display: block; }
   border: 1px solid var(--accent-primary);
   color: var(--accent-primary);
   background: rgba(99, 102, 241, 0.08);
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 
 .btn-outline-admin:hover {
@@ -1948,19 +1942,15 @@ body.light-mode .data-table td {
     padding: 0;
   }
 
-  /* Header */
+  /* Header Mobile */
   .main-header {
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
+    padding: 0.45rem 0.85rem;
+    margin-bottom: 0.85rem;
     border-radius: var(--radius-md);
   }
 
   .brand-title {
-    font-size: 1.15rem;
-  }
-
-  .brand-subtitle {
-    display: none;
+    font-size: 0.95rem;
   }
 
   .btn-my-profile {
