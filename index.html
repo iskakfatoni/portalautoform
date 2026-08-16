@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PORTAL:AutoForm | Portal Form Otomatis & Cepat</title>
+  <meta name="description" content="Portal akses cepat Google Form dengan fitur auto-fill isian otomatis untuk pelaporan bulanan dan administrasi walikelas.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-mode">
+
+  <!-- Background Animated Gradients -->
+  <div class="bg-glow-container" aria-hidden="true">
+    <div class="glow-sphere glow-1"></div>
+    <div class="glow-sphere glow-2"></div>
+    <div class="glow-sphere glow-3"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="app-wrapper">
+    
+    <!-- Navbar Header -->
+    <header class="main-header">
+      <div class="brand-container">
+        <div class="brand-icon">
+          <i class="fa-solid fa-bolt-lightning"></i>
+        </div>
+        <div class="brand-text">
+          <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
+          <span class="brand-subtitle">Smart Google Form Auto-Filler</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="status-badge" id="live-time-badge">
+          <span class="status-dot"></span>
+          <span id="current-time">00:00:00</span>
+        </div>
+        <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema" aria-label="Ganti Tema">
+          <i class="fa-solid fa-sun light-icon"></i>
+          <i class="fa-solid fa-moon dark-icon"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="hero-badge">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Efisiensi Pelaporan Walikelas
+      </div>
+      <h2 class="hero-title">Akses Cepat Form Tanpa Repot Mengetik Ulang</h2>
+      <p class="hero-desc">Data identitas seperti <strong>Nama Guru</strong>, <strong>NIP</strong>, dan <strong>Kelas</strong> otomatis terisi. Anda cukup fokus memilih bulan & mengunggah berkas.</p>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs-container">
+      <button class="nav-tab-btn active" data-target="tab-presets">
+        <i class="fa-solid fa-star"></i> Formulir Siap Pakai
+      </button>
+      <button class="nav-tab-btn" data-target="tab-builder">
+        <i class="fa-solid fa-sliders"></i> Buat Link Baru (Custom)
+      </button>
+      <button class="nav-tab-btn" data-target="tab-guide">
+        <i class="fa-solid fa-circle-question"></i> Panduan
+      </button>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+
+      <!-- TAB 1: Preset Formulir -->
+      <section id="tab-presets" class="tab-pane active">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Formulir Anda</h3>
+            <p class="section-subtitle">Tautan formulir yang telah dikonfigurasi khusus</p>
+          </div>
+          <span class="badge-count">1 Form Aktif</span>
+        </div>
+
+        <div class="form-cards-grid">
+          
+          <!-- Card Pengumpulan Bulanan Walikelas -->
+          <article class="form-card featured-card">
+            <div class="card-top">
+              <div class="card-icon-box">
+                <i class="fa-solid fa-folder-open"></i>
+              </div>
+              <div class="card-tags">
+                <span class="pill-badge pill-auto"><i class="fa-solid fa-check-double"></i> Auto-Fill Aktif</span>
+                <span class="pill-badge pill-role">Walikelas</span>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <h4 class="card-title">Pengumpulan Bulanan Walikelas</h4>
+              <p class="card-desc">Laporan bulanan rutin administrasi walikelas ke sistem manajemen sekolah.</p>
+
+              <!-- Pre-filled Data Tags -->
+              <div class="data-preview-box">
+                <div class="data-preview-title">
+                  <i class="fa-solid fa-circle-info"></i> Otomatis Terisi:
+                </div>
+                <ul class="data-items-list">
+                  <li>
+                    <span class="label">Nama Guru</span>
+                    <span class="value">MUCHAMAD ISKAK FATONI, S.Pd.</span>
+                  </li>
+                  <li>
+                    <span class="label">NIP</span>
+                    <span class="value font-mono">198109092022211004</span>
+                  </li>
+                  <li>
+                    <span class="label">Kelas</span>
+                    <span class="value highlight-val">XII TEI 2</span>
+                  </li>
+                  <li>
+                    <span class="label">Input Manual</span>
+                    <span class="value manual-val"><i class="fa-solid fa-pen"></i> Bulan & Upload File</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-footer">
+              <a href="https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform?usp=pp_url&entry.1599393498=MUCHAMAD+ISKAK+FATONI%2C+S.Pd.&entry.65154558=198109092022211004&entry.591543822=XII+TEI+2" 
+                 target="_blank" 
+                 rel="noopener noreferrer" 
+                 class="btn btn-primary"
+                 id="btn-open-preset-form">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Form
+              </a>
+              
+              <button class="btn btn-secondary copy-link-btn" 
+                      data-url="https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform?usp=pp_url&entry.1599393498=MUCHAMAD+ISKAK+FATONI%2C+S.Pd.&entry.65154558=198109092022211004&entry.591543822=XII+TEI+2" 
+                      title="Salin Tautan Form">
+                <i class="fa-solid fa-copy"></i> Salin Link
+              </button>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- TAB 2: Custom Link Generator -->
+      <section id="tab-builder" class="tab-pane">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Generator Link Auto-Fill</h3>
+            <p class="section-subtitle">Buat link otomatis untuk guru atau kelas lain secara instan</p>
+          </div>
+        </div>
+
+        <div class="builder-layout">
+          <!-- Input Form -->
+          <div class="builder-card">
+            <h4 class="form-section-title"><i class="fa-solid fa-pen-to-square"></i> Konfigurasi Data</h4>
+            
+            <form id="custom-link-form">
+              <div class="input-group">
+                <label for="select-guru"><i class="fa-solid fa-user-tie"></i> Pilih Nama Guru</label>
+                <select id="select-guru" class="form-control" required>
+                  <option value="">-- Pilih Nama Guru --</option>
+                  <!-- Populated dynamically by app.js -->
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label for="input-nip"><i class="fa-solid fa-id-card"></i> Nomor Induk Pegawai (NIP)</label>
+                <input type="text" id="input-nip" class="form-control" placeholder="Contoh: 198109092022211004" required>
+              </div>
+
+              <div class="input-group">
+                <label for="select-kelas"><i class="fa-solid fa-chalkboard-user"></i> Pilih Kelas</label>
+                <select id="select-kelas" class="form-control" required>
+                  <option value="">-- Pilih Kelas --</option>
+                  <!-- Populated dynamically by app.js -->
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">
+                <i class="fa-solid fa-sparkles"></i> Hasilkan Link Auto-Fill
+              </button>
+            </form>
+          </div>
+
+          <!-- Result Preview -->
+          <div class="builder-result-card" id="builder-result-container">
+            <h4 class="form-section-title"><i class="fa-solid fa-link"></i> Hasil Tautan</h4>
+            
+            <div id="result-empty-state" class="empty-state">
+              <i class="fa-solid fa-arrow-pointer"></i>
+              <p>Pilih data di formulir sebelah kiri dan klik <strong>Hasilkan Link</strong>.</p>
+            </div>
+
+            <div id="result-content" class="result-content-hidden">
+              <div class="generated-url-box">
+                <label class="url-label">Generated URL:</label>
+                <textarea id="generated-url-text" readonly class="generated-url-textarea" rows="3"></textarea>
+              </div>
+
+              <div class="result-action-btns">
+                <a id="btn-test-generated-url" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Test Buka Form
+                </a>
+                <button id="btn-copy-generated-url" class="btn btn-secondary">
+                  <i class="fa-solid fa-copy"></i> Salin Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 3: Guide / Panduan -->
+      <section id="tab-guide" class="tab-pane">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Panduan Penggunaan</h3>
+            <p class="section-subtitle">Tips memaksimalkan penggunaan PORTAL:AutoForm</p>
+          </div>
+        </div>
+
+        <div class="guide-grid">
+          <div class="guide-card">
+            <div class="guide-step-num">1</div>
+            <h4>Simpan di Bookmark</h4>
+            <p>Klik tombol <strong>Buka Google Form</strong> atau buka halaman portal ini, lalu tekan tombol <code>Ctrl + D</code> (Windows) untuk menyimpannya di bar bookmark browser.</p>
+          </div>
+
+          <div class="guide-card">
+            <div class="guide-step-num">2</div>
+            <h4>Buka Setiap Periode Pelaporan</h4>
+            <p>Saat jadwal pelaporan tiba, cukup buka link bookmark tersebut. Nama, NIP, dan Kelas otomatis sudah terisi dengan tepat tanpa risiko typo.</p>
+          </div>
+
+          <div class="guide-card">
+            <div class="guide-step-num">3</div>
+            <h4>Isi Sisa Pertanyaan</h4>
+            <p>Pilih nama <strong>Bulan</strong> dan klik tombol <strong>Upload File</strong> untuk menyertakan laporan Anda, kemudian tekan <strong>Kirim</strong>.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+      <p><strong>PORTAL:AutoForm</strong> &bull; Dibuat untuk Efisiensi & Produktivitas Administrasi.</p>
+      <p class="footer-sub">Hosting gratis & aman via GitHub Pages.</p>
+    </footer>
+
+  </div>
+
+  <!-- Toast Notification Popup -->
+  <div id="toast" class="toast" role="alert" aria-live="assertive">
+    <i class="fa-solid fa-circle-check toast-icon"></i>
+    <span id="toast-message">Tautan berhasil disalin ke clipboard!</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
