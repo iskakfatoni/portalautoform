@@ -131,11 +131,11 @@ const INITIAL_FORMS = [
     name: "Laporan Bulanan Walikelas",
     category: "Walikelas",
     icon: "fa-solid fa-folder-open",
-    description: "Pengumpulan rutin berkas administrasi dan laporan bulanan walikelas.",
+    description: "Pengumpulan rutin berkas administrasi dan laporan bulanan walikelas (Auto-fill: Nama Guru & NIP).",
     baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
     entryGuru: "entry.1599393498",
     entryNip: "entry.65154558",
-    entryKelas: "entry.591543822",
+    entryKelas: "",
     isActive: true,
     statusBadge: "Aktif & Terhubung"
   },
