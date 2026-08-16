@@ -220,17 +220,17 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Load dataset lokal tersimpan (jika ada)
   loadLocalState();
 
-  // Inisialisasi Firebase & Auth Listener
-  setupFirebaseConnection();
-
-  // Setup Portal Guru
+  // Setup Portal Guru (Attach MASUK button and NIP listeners immediately!)
   setupUserPortal();
 
   // Setup Form Builder
   setupFormBuilder();
 
-  // Check URL Query Parameter (?nip=... atau ?guru=...)
+  // Check URL Query Parameter (?nip=...)
   checkUrlParamsForTeacher();
+
+  // Inisialisasi Firebase & Auth Listener
+  setupFirebaseConnection();
 });
 
 /* ==========================================================================
@@ -282,8 +282,9 @@ function checkUrlParamsForTeacher() {
   const nipParam = params.get('nip');
 
   if (nipParam && nipParam !== '-') {
-    const cleanNip = nipParam.replace(/\s+/g, '');
-    const found = currentTeachers.find(t => t.nip && t.nip.replace(/\s+/g, '') === cleanNip);
+    const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
+    const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
+    const found = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanNip);
     if (found) {
       showPortalView(found);
       showToast(`Selamat datang, ${found.name}!`);
@@ -301,11 +302,9 @@ function showLandingView() {
   const errorMsg = document.getElementById('landing-nip-error');
   const inputNip = document.getElementById('landing-nip-input');
   const mainHeader = document.getElementById('app-main-header');
-  const navTabs = document.getElementById('app-nav-tabs');
 
-  // Sembunyikan header dan nav bar pada landing page awal agar ultra bersih & minimalis
+  // Sembunyikan header pada landing page awal agar ultra bersih & minimalis
   if (mainHeader) mainHeader.classList.add('hidden');
-  if (navTabs) navTabs.classList.add('hidden');
 
   if (landingView) landingView.classList.remove('hidden');
   if (portalView) portalView.classList.add('hidden');
@@ -322,11 +321,9 @@ function showPortalView(teacher) {
   const landingView = document.getElementById('view-landing-nip');
   const portalView = document.getElementById('view-teacher-portal');
   const mainHeader = document.getElementById('app-main-header');
-  const navTabs = document.getElementById('app-nav-tabs');
 
-  // Tampilkan header dan nav tabs saat berada di dalam portal link
+  // Tampilkan header saat berada di dalam portal link
   if (mainHeader) mainHeader.classList.remove('hidden');
-  if (navTabs) navTabs.classList.remove('hidden');
 
   if (landingView) landingView.classList.add('hidden');
   if (portalView) portalView.classList.remove('hidden');
@@ -348,7 +345,7 @@ function showPortalView(teacher) {
 function getPersonalPortalUrl(teacher) {
   const base = window.location.origin + window.location.pathname;
   if (teacher.nip && teacher.nip !== '-') {
-    return `${base}?nip=${encodeURIComponent(teacher.nip.replace(/\s+/g, ''))}`;
+    return `${base}?nip=${encodeURIComponent(teacher.nip.replace(/[\s\.\-]+/g, ''))}`;
   }
   return `${base}?nip=${encodeURIComponent(teacher.name)}`;
 }
@@ -364,8 +361,8 @@ function setupFirebaseConnection() {
   const statDbStatus = document.getElementById('stat-db-status');
 
   if (active && auth) {
-    cloudBadgeDot.classList.add('online');
-    cloudBadgeText.textContent = "Firebase Online";
+    if (cloudBadgeDot) cloudBadgeDot.classList.add('online');
+    if (cloudBadgeText) cloudBadgeText.textContent = "Firebase Online";
     if (statDbStatus) statDbStatus.textContent = "Firebase Cloud";
 
     // Listener Auth Firebase
@@ -380,8 +377,8 @@ function setupFirebaseConnection() {
     // Ambil data Firestore
     fetchFirestoreData();
   } else {
-    cloudBadgeDot.classList.remove('online');
-    cloudBadgeText.textContent = "Mode Demo Lokal";
+    if (cloudBadgeDot) cloudBadgeDot.classList.remove('online');
+    if (cloudBadgeText) cloudBadgeText.textContent = "Mode Demo Lokal";
     if (statDbStatus) statDbStatus.textContent = "Lokal (Offline)";
 
     // Cek demo session di sessionStorage
@@ -392,7 +389,6 @@ function setupFirebaseConnection() {
       handleAdminLogoutState();
     }
 
-    checkUrlParamsForTeacher();
     renderAdminTables();
   }
 }
@@ -588,7 +584,7 @@ function setupUserPortal() {
       const mainHeader = document.getElementById('app-main-header');
       if (mainHeader) mainHeader.classList.remove('hidden');
     } else {
-      const modal = document.getElementById('modal-login');
+      const modal = document.getElementById('modal-login-admin');
       if (modal) modal.classList.remove('hidden');
     }
   };
