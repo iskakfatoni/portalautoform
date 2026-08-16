@@ -1389,29 +1389,35 @@ body.light-mode .data-table td {
 }
 
 .landing-nip-form {
-  margin-bottom: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
 }
 
-.landing-input-group {
+.landing-input-box {
   display: flex;
   align-items: center;
   background: var(--bg-secondary);
   border: 2px solid var(--border-color);
   border-radius: var(--radius-md);
-  padding: 0.35rem 0.35rem 0.35rem 1rem;
+  padding: 0.65rem 1.25rem;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
-  position: relative;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.landing-input-group:focus-within {
+.landing-input-box:focus-within {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 4px var(--accent-glow);
 }
 
-.input-left-icon {
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  margin-right: 0.75rem;
+.input-box-icon {
+  color: var(--accent-primary);
+  font-size: 1.25rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
 }
 
 .landing-nip-input {
@@ -1419,11 +1425,12 @@ body.light-mode .data-table td {
   background: transparent;
   border: none;
   outline: none;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   color: var(--text-primary);
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   width: 100%;
+  min-width: 0;
 }
 
 .landing-nip-input::placeholder {
@@ -1434,18 +1441,27 @@ body.light-mode .data-table td {
 }
 
 .btn-landing-go {
-  padding: 0.85rem 1.6rem;
-  font-size: 0.95rem;
+  width: 100%;
+  padding: 0.95rem 1.75rem;
+  font-size: 1.05rem;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  border-radius: 10px;
-  white-space: nowrap;
+  justify-content: center;
+  gap: 0.75rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px var(--accent-glow);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-landing-go:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--accent-glow);
 }
 
 .landing-error-msg {
-  margin-top: 0.75rem;
+  margin-top: 0.25rem;
   padding: 0.75rem 1rem;
   background: var(--danger-bg);
   border: 1px solid var(--danger);
@@ -1895,28 +1911,26 @@ body.light-mode .data-table td {
   }
 
   /* Form Input Stack on Mobile */
-  .landing-input-group {
-    flex-direction: column;
-    padding: 0.6rem;
-    gap: 0.6rem;
-    background: var(--bg-card);
+  .landing-input-box {
+    padding: 0.6rem 1rem;
   }
 
   .landing-nip-input {
     width: 100%;
     font-size: 16px; /* Mencegah auto-zoom di browser iOS / Safari */
-    padding: 0.5rem 0.25rem;
+    padding: 0.25rem 0;
     text-align: center;
   }
 
-  .input-left-icon {
-    display: none; /* Hide icon inside stacked input on mobile for cleanliness */
+  .input-box-icon {
+    font-size: 1.1rem;
+    margin-right: 0.5rem;
   }
 
   .btn-landing-go {
     width: 100%;
     justify-content: center;
-    padding: 0.85rem 1.25rem;
+    padding: 0.9rem 1.25rem;
     font-size: 1rem;
     border-radius: var(--radius-sm);
   }
