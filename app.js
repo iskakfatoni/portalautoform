@@ -124,18 +124,72 @@ const ALL_CLASSES = [
   "-"
 ];
 
-// Master Data Formulir Awal
+// Master Data 5 Jenis Formulir
 const INITIAL_FORMS = [
   {
     id: "pengumpulan_bulanan_walikelas",
-    name: "PENGUMPULAN BULANAN WALIKELAS",
+    name: "Laporan Bulanan Walikelas",
     category: "Walikelas",
-    description: "Laporan bulanan rutin administrasi walikelas ke sistem sekolah.",
+    icon: "fa-solid fa-folder-open",
+    description: "Pengumpulan rutin berkas administrasi dan laporan bulanan walikelas.",
     baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
     entryGuru: "entry.1599393498",
     entryNip: "entry.65154558",
     entryKelas: "entry.591543822",
-    isActive: true
+    isActive: true,
+    statusBadge: "Aktif & Terhubung"
+  },
+  {
+    id: "form_absensi_guru",
+    name: "Form Absensi Harian Guru",
+    category: "Presensi",
+    icon: "fa-solid fa-clipboard-user",
+    description: "Presensi dan absensi kehadiran harian guru (1 form global dengan auto-fill identitas).",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    entryGuru: "entry.1599393498",
+    entryNip: "entry.65154558",
+    entryKelas: "entry.591543822",
+    isActive: true,
+    statusBadge: "Auto-Fill Siap"
+  },
+  {
+    id: "form_jurnal_mengajar",
+    name: "Form Jurnal Mengajar",
+    category: "Akademik",
+    icon: "fa-solid fa-book-open-reader",
+    description: "Jurnal agenda kegiatan mengajar harian, materi pembelajaran, dan catatan kelas.",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    entryGuru: "entry.1599393498",
+    entryNip: "entry.65154558",
+    entryKelas: "entry.591543822",
+    isActive: true,
+    statusBadge: "Spesifik Guru"
+  },
+  {
+    id: "form_absensi_piket",
+    name: "Form Absensi & Laporan Piket",
+    category: "Piket",
+    icon: "fa-solid fa-shield-halved",
+    description: "Laporan catatan ketertiban dan presensi tugas piket guru harian.",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    entryGuru: "entry.1599393498",
+    entryNip: "entry.65154558",
+    entryKelas: "entry.591543822",
+    isActive: true,
+    statusBadge: "Auto-Fill Siap"
+  },
+  {
+    id: "form_guru_wali",
+    name: "Laporan Guru Wali / Bimbingan",
+    category: "Guru Wali",
+    icon: "fa-solid fa-hands-holding-child",
+    description: "Catatan pendampingan, konseling, dan pembinaan berkala siswa bimbingan.",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    entryGuru: "entry.1599393498",
+    entryNip: "entry.65154558",
+    entryKelas: "entry.591543822",
+    isActive: true,
+    statusBadge: "Auto-Fill Siap"
   }
 ];
 
@@ -524,15 +578,17 @@ function renderUserPortal() {
 
   container.innerHTML = activeForms.map(form => {
     const generatedUrl = generateFormUrlForTeacher(form, activeTeacher);
+    const formIcon = form.icon || "fa-solid fa-file-signature";
+    const statusBadge = form.statusBadge || "Auto-Fill Siap";
 
     return `
       <article class="form-card">
         <div class="card-top">
           <div class="card-icon-box">
-            <i class="fa-solid fa-file-signature"></i>
+            <i class="${formIcon}"></i>
           </div>
           <div class="card-tags">
-            <span class="pill-badge pill-auto"><i class="fa-solid fa-check-double"></i> Auto-Fill Siap</span>
+            <span class="pill-badge pill-auto"><i class="fa-solid fa-check-double"></i> ${statusBadge}</span>
             <span class="pill-badge pill-role">${form.category || 'Formulir'}</span>
           </div>
         </div>
