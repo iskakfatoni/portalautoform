@@ -225,13 +225,40 @@
       <section id="tab-admin" class="tab-pane">
 
         <!-- If NOT Authenticated as Admin -->
-        <div id="admin-locked-view" class="admin-locked-box">
-          <div class="locked-icon">
-            <i class="fa-solid fa-lock"></i>
+        <div id="admin-locked-view" class="admin-locked-box" style="max-width: 440px; margin: 2rem auto; padding: 2.25rem 2rem;">
+          <div class="locked-icon" style="width: 56px; height: 56px; margin: 0 auto 1.25rem; font-size: 1.5rem;">
+            <i class="fa-solid fa-shield-halved"></i>
           </div>
-          <h3>Area Khusus Administrator</h3>
-          <p>Halaman ini dikhususkan untuk <strong>iskakfatoni@gmail.com</strong> untuk mengelola master data guru, konfigurasi formulir, dan impor/ekspor data.</p>
-          <button id="btn-admin-login-trigger" class="btn btn-primary btn-lg">
+          <h3 style="margin-bottom: 0.5rem; font-size: 1.35rem;">Login Administrator</h3>
+          <p style="margin-bottom: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">Masukkan Email dan Password akun Firebase Anda untuk membuka Panel Kontrol.</p>
+          
+          <form id="admin-email-password-form" class="admin-auth-form" autocomplete="on">
+            <div class="input-group" style="text-align: left; margin-bottom: 14px;">
+              <label for="admin-login-email" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                <i class="fa-solid fa-envelope"></i> Email Admin
+              </label>
+              <input type="email" id="admin-login-email" class="form-control font-mono" value="iskakfatoni@gmail.com" placeholder="iskakfatoni@gmail.com" required style="width: 100%; box-sizing: border-box;">
+            </div>
+            
+            <div class="input-group" style="text-align: left; margin-bottom: 18px;">
+              <label for="admin-login-password" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                <i class="fa-solid fa-lock"></i> Password
+              </label>
+              <input type="password" id="admin-login-password" class="form-control" placeholder="Masukkan Password Firebase..." required style="width: 100%; box-sizing: border-box;">
+            </div>
+
+            <button type="submit" id="btn-submit-email-password" class="btn btn-primary btn-block btn-lg" style="width: 100%; justify-content: center; padding: 0.85rem; font-weight: 700; margin-bottom: 14px;">
+              <i class="fa-solid fa-right-to-bracket"></i> MASUK SEBAGAI ADMIN
+            </button>
+          </form>
+
+          <div class="auth-separator" style="display: flex; align-items: center; text-align: center; margin: 14px 0; color: var(--text-muted); font-size: 0.78rem;">
+            <span style="flex: 1; border-bottom: 1px solid var(--border-color);"></span>
+            <span style="padding: 0 10px;">atau masuk dengan Google</span>
+            <span style="flex: 1; border-bottom: 1px solid var(--border-color);"></span>
+          </div>
+
+          <button id="btn-admin-login-trigger" class="btn btn-secondary btn-block" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.88rem;">
             <i class="fa-brands fa-google"></i> Masuk dengan Google Admin
           </button>
         </div>
@@ -516,9 +543,35 @@
         <button class="btn-close-modal" id="btn-close-login-modal">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">Khusus admin <strong>iskakfatoni@gmail.com</strong> untuk mengelola master data dan form.</p>
+        <p class="modal-desc" style="margin-bottom: 1.25rem;">Khusus admin <strong>iskakfatoni@gmail.com</strong> untuk mengelola master data dan form.</p>
         
-        <button id="btn-google-sign-in" class="btn btn-google btn-block">
+        <form id="modal-email-password-form" class="admin-auth-form" autocomplete="on">
+          <div class="input-group" style="text-align: left; margin-bottom: 12px;">
+            <label for="modal-login-email" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px;">
+              <i class="fa-solid fa-envelope"></i> Email Admin
+            </label>
+            <input type="email" id="modal-login-email" class="form-control font-mono" value="iskakfatoni@gmail.com" placeholder="iskakfatoni@gmail.com" required style="width: 100%; box-sizing: border-box;">
+          </div>
+          
+          <div class="input-group" style="text-align: left; margin-bottom: 16px;">
+            <label for="modal-login-password" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px;">
+              <i class="fa-solid fa-lock"></i> Password
+            </label>
+            <input type="password" id="modal-login-password" class="form-control" placeholder="Masukkan Password Firebase..." required style="width: 100%; box-sizing: border-box;">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg" style="width: 100%; justify-content: center; padding: 0.85rem; font-weight: 700; margin-bottom: 12px;">
+            <i class="fa-solid fa-right-to-bracket"></i> MASUK SEBAGAI ADMIN
+          </button>
+        </form>
+
+        <div class="auth-separator" style="display: flex; align-items: center; text-align: center; margin: 12px 0; color: var(--text-muted); font-size: 0.78rem;">
+          <span style="flex: 1; border-bottom: 1px solid var(--border-color);"></span>
+          <span style="padding: 0 10px;">atau masuk dengan Google</span>
+          <span style="flex: 1; border-bottom: 1px solid var(--border-color);"></span>
+        </div>
+
+        <button id="btn-google-sign-in" class="btn btn-secondary btn-block" style="width: 100%; justify-content: center; padding: 0.8rem; font-size: 0.88rem;">
           <i class="fa-brands fa-google"></i> Masuk dengan Google
         </button>
       </div>

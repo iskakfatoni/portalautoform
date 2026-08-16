@@ -10,6 +10,7 @@ import {
   googleProvider,
   isFirebaseActive,
   signInWithPopup,
+  signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   collection,
@@ -1348,16 +1349,78 @@ function populateGuruSelect(selectElem) {
    ========================================================================== */
 
 function initModals() {
-  // 1. Login Modal
+  // 1. Login Modal & Forms
   const modalLogin = document.getElementById('modal-login-admin');
   const btnOpenLogin = document.getElementById('btn-show-login-modal');
   const btnCloseLogin = document.getElementById('btn-close-login-modal');
   const btnTriggerLogin = document.getElementById('btn-admin-login-trigger');
   const btnGoogleSignIn = document.getElementById('btn-google-sign-in');
-  const demoLoginForm = document.getElementById('demo-login-form');
   const btnLogout = document.getElementById('btn-admin-logout');
 
   if (btnOpenLogin) btnOpenLogin.addEventListener('click', () => modalLogin.classList.remove('hidden'));
+  if (btnCloseLogin) btnCloseLogin.addEventListener('click', () => modalLogin.classList.add('hidden'));
+
+  // Handler Login Email & Password Firebase
+  const handleEmailPasswordSubmit = async (email, password, modalToClose = null) => {
+    if (!email || !password) {
+      alert("Silakan masukkan email dan password admin.");
+      return;
+    }
+
+    if (!isAuthorizedAdminEmail(email)) {
+      alert(`⛔ AKSES DITOLAK!\n\nEmail "${email}" bukan akun Administrator resmi (iskakfatoni@gmail.com).`);
+      return;
+    }
+
+    if (!auth || !isFirebaseActive) {
+      alert("Firebase Auth belum aktif atau sedang offline.");
+      return;
+    }
+
+    try {
+      showToast("⏳ Sedang memverifikasi akun Admin...");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      if (modalToClose) modalToClose.classList.add('hidden');
+      await handleAdminLoginState(userCredential.user.email, userCredential.user.displayName || "Admin");
+      switchToAdminPanel();
+    } catch (error) {
+      console.error("Gagal Login Email/Password:", error);
+      let msg = error.message;
+      if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+        msg = "Password salah atau kredensial tidak valid. Silakan periksa kembali password akun Firebase Anda.";
+      } else if (error.code === 'auth/user-not-found') {
+        msg = "Pengguna belum terdaftar di Firebase Auth. Silakan tambahkan email ini di menu Authentication > Users di Firebase Console.";
+      } else if (error.code === 'auth/too-many-requests') {
+        msg = "Terlalu banyak percobaan gagal. Silakan coba lagi beberapa saat lagi.";
+      }
+      alert(`⚠️ Gagal Masuk Admin:\n\n${msg}`);
+      showToast(`Login gagal: ${error.code || 'Password salah'}`);
+    }
+  };
+
+  // Form Email/Password di Layar Utama Admin
+  const adminEmailPwdForm = document.getElementById('admin-email-password-form');
+  if (adminEmailPwdForm) {
+    adminEmailPwdForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('admin-login-email').value.trim();
+      const password = document.getElementById('admin-login-password').value;
+      await handleEmailPasswordSubmit(email, password);
+    });
+  }
+
+  // Form Email/Password di Modal Popup
+  const modalEmailPwdForm = document.getElementById('modal-email-password-form');
+  if (modalEmailPwdForm) {
+    modalEmailPwdForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('modal-login-email').value.trim();
+      const password = document.getElementById('modal-login-password').value;
+      await handleEmailPasswordSubmit(email, password, modalLogin);
+    });
+  }
+
+  // Google Login Alternatif
   if (btnTriggerLogin) {
     btnTriggerLogin.addEventListener('click', async () => {
       if (auth && isFirebaseActive && googleProvider) {
@@ -1374,19 +1437,6 @@ function initModals() {
       } else {
         alert("Firebase Auth belum aktif atau kredensial API Key belum terhubung.");
       }
-    });
-  }
-  if (btnCloseLogin) btnCloseLogin.addEventListener('click', () => modalLogin.classList.add('hidden'));
-
-  if (btnLogout) {
-    btnLogout.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      if (auth && isFirebaseActive) {
-        await signOut(auth);
-      }
-      handleAdminLogoutState();
-      switchToPortalView();
-      showToast('Anda telah keluar dari akun Admin.');
     });
   }
 
@@ -1407,6 +1457,18 @@ function initModals() {
       } else {
         alert("Firebase Auth belum aktif atau kredensial API Key belum terhubung.");
       }
+    });
+  }
+
+  if (btnLogout) {
+    btnLogout.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (auth && isFirebaseActive) {
+        await signOut(auth);
+      }
+      handleAdminLogoutState();
+      switchToPortalView();
+      showToast('Anda telah keluar dari akun Admin.');
     });
   }
 
