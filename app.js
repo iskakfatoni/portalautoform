@@ -485,33 +485,69 @@ function setupUserPortal() {
   const formLandingNip = document.getElementById('form-landing-nip');
   const landingNipInput = document.getElementById('landing-nip-input');
   const landingError = document.getElementById('landing-nip-error');
+  const btnLandingGo = document.getElementById('btn-landing-go');
   const btnBackToLanding = document.getElementById('btn-back-to-landing-nip');
   const btnLandingAdmin = document.getElementById('btn-landing-admin-gate');
   const btnCopyPortalUrl = document.getElementById('btn-copy-personal-portal-url');
-  const btnQuickMyProfile = document.getElementById('btn-quick-my-profile');
 
-  // 1. Submit NIP di Landing Page (Layar 1)
+  // Core NIP Verification Logic
+  const processLandingNipSubmit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!landingNipInput) return;
+
+    const rawVal = landingNipInput.value || '';
+    const cleanVal = rawVal.trim().replace(/[\s\.\-]+/g, '');
+
+    if (!cleanVal) {
+      if (landingError) {
+        landingError.classList.remove('hidden');
+        landingError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Silakan ketik NIP Anda terlebih dahulu.`;
+      }
+      landingNipInput.focus();
+      return;
+    }
+
+    // Pastikan master data tersedia (fallback ke INITIAL_TEACHERS jika currentTeachers kosong)
+    const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
+
+    // Cari guru berdasarkan NIP (membersihkan format spasi/tanda baca)
+    const found = teachersList.find(t => {
+      if (!t.nip || t.nip === '-') return false;
+      const teacherCleanNip = String(t.nip).trim().replace(/[\s\.\-]+/g, '');
+      return teacherCleanNip === cleanVal;
+    });
+
+    if (found) {
+      if (landingError) landingError.classList.add('hidden');
+      
+      // Update URL query tanpa reload browser
+      const cleanTeacherNip = String(found.nip).trim().replace(/[\s\.\-]+/g, '');
+      const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanTeacherNip)}`;
+      window.history.pushState({ nip: found.nip }, '', newUrl);
+      
+      // Buka Layar 2 (Dashboard Link Formulir)
+      showPortalView(found);
+      showToast(`Selamat datang, ${found.name}!`);
+    } else {
+      if (landingError) {
+        landingError.classList.remove('hidden');
+        landingError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> NIP <strong>${rawVal}</strong> tidak ditemukan di database guru. Pastikan 18 digit NIP sudah benar.`;
+      }
+      landingNipInput.focus();
+    }
+  };
+
+  // Event Listeners untuk Form Submit, Klik Tombol MASUK, dan Tekan Enter
   if (formLandingNip) {
-    formLandingNip.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const inputVal = landingNipInput.value.trim().replace(/\s+/g, '');
-      if (!inputVal) return;
-
-      // Cari guru berdasarkan NIP
-      const found = currentTeachers.find(t => t.nip && t.nip.replace(/\s+/g, '') === inputVal);
-
-      if (found) {
-        if (landingError) landingError.classList.add('hidden');
-        // Update URL tanpa reload
-        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(found.nip.replace(/\s+/g, ''))}`;
-        window.history.pushState({ nip: found.nip }, '', newUrl);
-        showPortalView(found);
-        showToast(`Selamat datang, ${found.name}!`);
-      } else {
-        if (landingError) {
-          landingError.classList.remove('hidden');
-          landingError.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> NIP <strong>${landingNipInput.value}</strong> tidak ditemukan di database guru. Pastikan 18 digit NIP sudah benar.`;
-        }
+    formLandingNip.addEventListener('submit', processLandingNipSubmit);
+  }
+  if (btnLandingGo) {
+    btnLandingGo.addEventListener('click', processLandingNipSubmit);
+  }
+  if (landingNipInput) {
+    landingNipInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        processLandingNipSubmit(e);
       }
     });
   }
