@@ -1951,21 +1951,21 @@ body.light-mode .data-table td {
   }
 
   /* ========================================================================
-     2. LAYAR 2: LINK FORMULIR GURU MOBILE
+     2. LAYAR 2: LINK FORMULIR GURU MOBILE (SUPER SIMPLE & COMPACT)
      ======================================================================== */
   .teacher-profile-banner {
     flex-direction: column;
     align-items: stretch;
-    padding: 1.25rem;
-    gap: 1rem;
+    padding: 1rem 1.15rem;
+    gap: 0.75rem;
     border-radius: var(--radius-md);
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
 
   .profile-avatar {
-    width: 52px;
-    height: 52px;
-    font-size: 1.5rem;
+    width: 44px;
+    height: 44px;
+    font-size: 1.25rem;
     margin: 0 auto;
   }
 
@@ -1975,91 +1975,144 @@ body.light-mode .data-table td {
 
   .profile-badge-row {
     justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
 
   .profile-name {
-    font-size: 1.25rem;
-    line-height: 1.3;
-    margin: 0.4rem 0 0.6rem;
+    font-size: 1.15rem;
+    line-height: 1.25;
+    margin: 0.25rem 0 0.4rem;
   }
 
   .profile-meta {
     justify-content: center;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8rem;
   }
 
   .profile-share-box {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.5rem;
     width: 100%;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
   }
 
   .profile-share-box .btn {
     width: 100%;
     justify-content: center;
-    padding: 0.75rem 1rem;
-    font-size: 0.88rem;
+    padding: 0.55rem 0.5rem;
+    font-size: 0.78rem;
   }
 
   /* Section Header */
   .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
   }
 
   .section-title {
-    font-size: 1.2rem;
-  }
-
-  .section-subtitle {
-    font-size: 0.82rem;
-  }
-
-  /* Forms Grid - Single Column on Mobile */
-  .form-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .form-card {
-    padding: 1.25rem;
-    border-radius: var(--radius-md);
-  }
-
-  .form-card-header {
-    gap: 0.75rem;
-  }
-
-  .form-card-icon {
-    width: 44px;
-    height: 44px;
-    font-size: 1.25rem;
-  }
-
-  .form-card-title {
     font-size: 1.05rem;
   }
 
-  .form-card-desc {
-    font-size: 0.84rem;
-    margin: 0.6rem 0 1rem;
+  .section-subtitle {
+    display: none; /* Sembunyikan subtitle agar layar tidak penuh */
   }
 
-  .btn-open-form {
-    width: 100%;
-    justify-content: center;
-    padding: 0.85rem 1rem;
-    font-size: 0.95rem;
+  .badge-count {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.6rem;
+  }
+
+  /* Forms Grid - Ultra-Simple Mobile Tiles */
+  .form-cards-grid {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .form-card {
+    padding: 0.9rem 1rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+
+  .card-icon-box {
+    width: 38px;
+    height: 38px;
+    font-size: 1.1rem;
+    border-radius: 10px;
+  }
+
+  .card-tags .pill-badge {
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+  }
+
+  .card-body {
+    margin: 0;
+  }
+
+  .card-title {
+    font-size: 1rem;
     font-weight: 700;
+    margin-bottom: 0.2rem;
+    color: var(--text-primary);
+  }
+
+  .card-desc {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    margin-bottom: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Sembunyikan preview data teks yang berulang di HP agar ringkas */
+  .data-preview-box {
+    display: none;
+  }
+
+  /* Card Footer Actions */
+  .card-footer {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 0.4rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    margin-top: 0.2rem;
+  }
+
+  .card-footer .btn {
+    padding: 0.65rem 0.85rem;
+    font-size: 0.85rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .card-footer .btn-primary {
+    flex: 1;
+    justify-content: center;
+    font-weight: 700;
+  }
+
+  .card-footer .btn-secondary {
+    padding: 0.65rem 0.75rem;
   }
 
   /* Modal Mobile */
@@ -2082,7 +2135,11 @@ body.light-mode .data-table td {
   }
 
   .profile-name {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
+  }
+
+  .card-title {
+    font-size: 0.95rem;
   }
 }
 
