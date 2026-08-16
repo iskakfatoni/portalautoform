@@ -264,6 +264,34 @@ function initNavigation() {
     });
   });
 
+  // Tombol Admin di Header
+  const btnAdminHeader = document.getElementById('btn-show-login-modal');
+  if (btnAdminHeader) {
+    btnAdminHeader.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchToAdminPanel();
+    });
+  }
+
+  // Profil Admin di Header
+  const adminProfile = document.getElementById('admin-user-profile');
+  if (adminProfile) {
+    adminProfile.addEventListener('click', (e) => {
+      if (e.target.closest('#btn-admin-logout')) return;
+      e.preventDefault();
+      switchToAdminPanel();
+    });
+  }
+
+  // Tombol Kembali ke Portal Guru di dalam Admin Dashboard
+  const btnBackPortal = document.getElementById('btn-admin-back-to-portal');
+  if (btnBackPortal) {
+    btnBackPortal.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchToPortalView();
+    });
+  }
+
   // Admin Search
   const adminSearch = document.getElementById('admin-teacher-search');
   if (adminSearch) {
@@ -275,6 +303,37 @@ function initNavigation() {
   // Seed Button
   const seedBtn = document.getElementById('btn-seed-teachers');
   if (seedBtn) seedBtn.addEventListener('click', seedMasterTeachersToFirestore);
+}
+
+export function switchToAdminPanel() {
+  document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+  const adminTab = document.getElementById('tab-admin');
+  if (adminTab) {
+    adminTab.classList.add('active');
+  }
+
+  const adminLockedView = document.getElementById('admin-locked-view');
+  const adminDashboardView = document.getElementById('admin-dashboard-view');
+
+  if (currentUser && currentUser.email) {
+    if (adminLockedView) adminLockedView.classList.add('hidden');
+    if (adminDashboardView) adminDashboardView.classList.remove('hidden');
+    renderAdminTables();
+  } else {
+    if (adminLockedView) adminLockedView.classList.remove('hidden');
+    if (adminDashboardView) adminDashboardView.classList.add('hidden');
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+export function switchToPortalView() {
+  document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+  const portalTab = document.getElementById('tab-user-portal');
+  if (portalTab) {
+    portalTab.classList.add('active');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function checkUrlParamsForTeacher() {
@@ -1285,15 +1344,34 @@ function initModals() {
   const btnLogout = document.getElementById('btn-admin-logout');
 
   if (btnOpenLogin) btnOpenLogin.addEventListener('click', () => modalLogin.classList.remove('hidden'));
-  if (btnTriggerLogin) btnTriggerLogin.addEventListener('click', () => modalLogin.classList.remove('hidden'));
+  if (btnTriggerLogin) {
+    btnTriggerLogin.addEventListener('click', async () => {
+      if (auth && isFirebaseActive && googleProvider) {
+        try {
+          const result = await signInWithPopup(auth, googleProvider);
+          handleAdminLoginState(result.user.email, result.user.displayName);
+          switchToAdminPanel();
+        } catch (error) {
+          console.error("Gagal Google Login:", error);
+          showToast(`Login gagal: ${error.message}`);
+        }
+      } else {
+        sessionStorage.setItem('portal_demo_admin', ADMIN_EMAIL);
+        handleAdminLoginState(ADMIN_EMAIL, "Iskak Fatoni (Demo)");
+        switchToAdminPanel();
+      }
+    });
+  }
   if (btnCloseLogin) btnCloseLogin.addEventListener('click', () => modalLogin.classList.add('hidden'));
 
   if (btnLogout) {
-    btnLogout.addEventListener('click', async () => {
+    btnLogout.addEventListener('click', async (e) => {
+      e.stopPropagation();
       if (auth && isFirebaseActive) {
         await signOut(auth);
       }
       handleAdminLogoutState();
+      switchToPortalView();
       showToast('Anda telah keluar dari akun Admin.');
     });
   }
@@ -1305,6 +1383,7 @@ function initModals() {
           const result = await signInWithPopup(auth, googleProvider);
           modalLogin.classList.add('hidden');
           handleAdminLoginState(result.user.email, result.user.displayName);
+          switchToAdminPanel();
         } catch (error) {
           console.error("Gagal Google Login:", error);
           showToast(`Login gagal: ${error.message}`);
@@ -1314,6 +1393,7 @@ function initModals() {
         sessionStorage.setItem('portal_demo_admin', ADMIN_EMAIL);
         modalLogin.classList.add('hidden');
         handleAdminLoginState(ADMIN_EMAIL, "Iskak Fatoni (Demo)");
+        switchToAdminPanel();
       }
     });
   }
