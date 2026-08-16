@@ -124,24 +124,11 @@ const ALL_CLASSES = [
   "-"
 ];
 
-// Master Data 5 Jenis Formulir
+// Master Data 5 Jenis Formulir (Urutan Resmi)
 const INITIAL_FORMS = [
   {
-    id: "pengumpulan_bulanan_walikelas",
-    name: "Laporan Bulanan Walikelas",
-    category: "Walikelas",
-    icon: "fa-solid fa-folder-open",
-    description: "Pengumpulan rutin berkas administrasi dan laporan bulanan walikelas (Auto-fill: Nama Guru & NIP).",
-    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
-    entryGuru: "entry.1599393498",
-    entryNip: "entry.65154558",
-    entryKelas: "",
-    isActive: true,
-    statusBadge: "Aktif & Terhubung"
-  },
-  {
     id: "form_absensi_guru",
-    name: "Form Absen Mengajar",
+    name: "FORM ABSENSI MENGAJAR",
     category: "Presensi",
     icon: "fa-solid fa-clipboard-user",
     description: "Presensi dan laporan kegiatan mengajar harian (Auto-fill: Nama Guru & NIP).",
@@ -154,7 +141,7 @@ const INITIAL_FORMS = [
   },
   {
     id: "form_jurnal_mengajar",
-    name: "Form Jurnal Mengajar",
+    name: "FORM JURNAL MENGAJAR",
     category: "Akademik",
     icon: "fa-solid fa-book-open-reader",
     description: "Jurnal agenda kegiatan mengajar harian, materi pembelajaran, dan catatan kelas.",
@@ -166,8 +153,21 @@ const INITIAL_FORMS = [
     statusBadge: "Spesifik Guru"
   },
   {
+    id: "pengumpulan_bulanan_walikelas",
+    name: "FORM WALI KELAS",
+    category: "Walikelas",
+    icon: "fa-solid fa-folder-open",
+    description: "Pengumpulan rutin berkas administrasi dan laporan bulanan walikelas (Auto-fill: Nama Guru & NIP).",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    entryGuru: "entry.1599393498",
+    entryNip: "entry.65154558",
+    entryKelas: "",
+    isActive: true,
+    statusBadge: "Aktif & Terhubung"
+  },
+  {
     id: "form_absensi_piket",
-    name: "Form Absensi & Laporan Piket",
+    name: "ABSENSI PIKET",
     category: "Piket",
     icon: "fa-solid fa-shield-halved",
     description: "Laporan catatan ketertiban dan presensi tugas piket guru harian.",
@@ -180,7 +180,7 @@ const INITIAL_FORMS = [
   },
   {
     id: "form_guru_wali",
-    name: "Laporan Bulanan Guru Wali",
+    name: "FORM GURU WALI",
     category: "Guru Wali",
     icon: "fa-solid fa-hands-holding-child",
     description: "Pengumpulan rutin berkas administrasi dan laporan bulanan guru wali (Auto-fill: Nama & NIP).",
@@ -433,7 +433,17 @@ function loadLocalState() {
   }
   const savedForms = localStorage.getItem('portal_forms_data');
   if (savedForms) {
-    try { currentForms = JSON.parse(savedForms); } catch (e) {}
+    try {
+      const parsed = JSON.parse(savedForms);
+      currentForms = INITIAL_FORMS.map(initForm => {
+        const found = parsed.find(p => p.id === initForm.id);
+        return found ? { ...initForm, ...found, name: initForm.name } : initForm;
+      });
+    } catch (e) {
+      currentForms = [...INITIAL_FORMS];
+    }
+  } else {
+    currentForms = [...INITIAL_FORMS];
   }
 }
 
