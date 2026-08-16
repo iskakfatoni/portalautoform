@@ -706,21 +706,10 @@ function renderUserPortal() {
           <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-form">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Form
           </a>
-          <button class="btn btn-secondary btn-copy-card" data-url="${generatedUrl}" title="Salin Tautan Form">
-            <i class="fa-solid fa-copy"></i>
-          </button>
         </div>
       </article>
     `;
   }).join('');
-
-  // Attach copy events to card buttons
-  container.querySelectorAll('.btn-copy-card').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const url = btn.getAttribute('data-url');
-      if (url) copyToClipboard(url);
-    });
-  });
 }
 
 /* ==========================================================================
