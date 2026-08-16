@@ -1522,6 +1522,7 @@ function initModals() {
 
 async function syncLocalToFirestore() {
   if (!db) {
+    alert('Firebase belum terhubung. Pastikan internet aktif dan kredensial Firebase benar.');
     showToast('⚠️ Firebase belum terhubung atau sedang offline!');
     return;
   }
@@ -1536,14 +1537,14 @@ async function syncLocalToFirestore() {
 
     for (const teacher of currentTeachers) {
       const docId = teacher.nip && teacher.nip !== '-' 
-        ? teacher.nip.replace(/[\s\.\-]+/g, '') 
+        ? String(teacher.nip).replace(/[\s\.\-]+/g, '') 
         : teacher.name.replace(/[^a-zA-Z0-9]/g, '_');
       
       const teacherRef = doc(teachersCol, docId);
       batch.set(teacherRef, teacher, { merge: true });
       count++;
 
-      if (count % 400 === 0) {
+      if (count % 200 === 0) {
         await batch.commit();
         batch = writeBatch(db);
       }
@@ -1559,11 +1560,19 @@ async function syncLocalToFirestore() {
     }
     await formsBatch.commit();
 
+    alert('✅ BERHASIL!\n\nSeluruh 92 Data Guru & 5 Formulir telah sukses di-upload dan tersimpan di Cloud Firestore Firebase!');
     showToast('✅ Berhasil! 92 Guru & 5 Formulir tersimpan di Cloud Firestore!');
     renderAdminTables();
   } catch (err) {
     console.error('Gagal upload ke Firestore:', err);
-    showToast('⚠️ Gagal upload: ' + err.message);
+    let hint = '';
+    if (err.code === 'permission-denied' || String(err.message).includes('insufficient permissions')) {
+      hint = '\n\n👉 SOLUSI: Buka Firebase Console (console.firebase.google.com) > Firestore Database > Tab Rules > Ganti rules menjadi: allow read, write: if true; lalu klik Publish.';
+    } else if (err.code === 'unavailable' || err.code === 'not-found') {
+      hint = '\n\n👉 SOLUSI: Pastikan Anda sudah membuat Database Cloud Firestore di Firebase Console project form-autoform.';
+    }
+    alert(`⚠️ Gagal upload ke Cloud Firestore:\n\nPesan: ${err.message}${hint}`);
+    showToast(`⚠️ Gagal upload: ${err.code || err.message}`);
   }
 }
 
