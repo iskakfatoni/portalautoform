@@ -1430,6 +1430,61 @@ function initModals() {
       setTimeout(() => window.location.reload(), 1000);
     });
   }
+
+  // 5. Button Sync All to Firestore
+  const btnSyncFirestore = document.getElementById('btn-sync-all-to-firestore');
+  if (btnSyncFirestore) {
+    btnSyncFirestore.addEventListener('click', async () => {
+      await syncLocalToFirestore();
+    });
+  }
+}
+
+async function syncLocalToFirestore() {
+  if (!db) {
+    showToast('⚠️ Firebase belum terhubung atau sedang offline!');
+    return;
+  }
+
+  try {
+    showToast('⏳ Memulai upload 92 guru & 5 formulir ke Firestore...');
+
+    // 1. Upload Teachers
+    const teachersCol = collection(db, "teachers");
+    let batch = writeBatch(db);
+    let count = 0;
+
+    for (const teacher of currentTeachers) {
+      const docId = teacher.nip && teacher.nip !== '-' 
+        ? teacher.nip.replace(/[\s\.\-]+/g, '') 
+        : teacher.name.replace(/[^a-zA-Z0-9]/g, '_');
+      
+      const teacherRef = doc(teachersCol, docId);
+      batch.set(teacherRef, teacher, { merge: true });
+      count++;
+
+      if (count % 400 === 0) {
+        await batch.commit();
+        batch = writeBatch(db);
+      }
+    }
+    await batch.commit();
+
+    // 2. Upload Forms
+    const formsCol = collection(db, "forms");
+    const formsBatch = writeBatch(db);
+    for (const form of currentForms) {
+      const formRef = doc(formsCol, form.id);
+      formsBatch.set(formRef, form, { merge: true });
+    }
+    await formsBatch.commit();
+
+    showToast('✅ Berhasil! 92 Guru & 5 Formulir tersimpan di Cloud Firestore!');
+    renderAdminTables();
+  } catch (err) {
+    console.error('Gagal upload ke Firestore:', err);
+    showToast('⚠️ Gagal upload: ' + err.message);
+  }
 }
 
 function openTeacherModal(teacher = null) {
