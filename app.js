@@ -701,52 +701,35 @@ function generateFormUrlForTeacher(form, teacher) {
 
 function renderUserPortal() {
   const container = document.getElementById('portal-forms-grid');
-  const countBadge = document.getElementById('active-forms-count');
   if (!container) return;
 
   const activeForms = currentForms.filter(f => f.isActive !== false);
-  if (countBadge) countBadge.textContent = `${activeForms.length} Formulir Aktif`;
 
   if (activeForms.length === 0) {
     container.innerHTML = `<div class="empty-state"><p>Belum ada formulir aktif yang tersedia.</p></div>`;
     return;
   }
 
-  container.innerHTML = activeForms.map(form => {
+  container.innerHTML = activeForms.map((form, idx) => {
     const generatedUrl = generateFormUrlForTeacher(form, activeTeacher);
     const formIcon = form.icon || "fa-solid fa-file-signature";
-    
-    let statusBadge = form.statusBadge || "Auto-Fill Siap";
-
-    if (form.id === "form_jurnal_mengajar") {
-      if (activeTeacher.journalFormUrl) {
-        statusBadge = "Jurnal Pribadi";
-      } else {
-        statusBadge = "Belum Ada Link";
-      }
-    }
 
     return `
-      <article class="form-card">
-        <div class="card-header-clean">
-          <div class="card-icon-box">
+      <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="form-direct-btn" title="Buka ${form.name}">
+        <div class="form-btn-left">
+          <div class="form-btn-icon">
             <i class="${formIcon}"></i>
           </div>
-          <div class="card-title-group">
-            <h4 class="card-title">${form.name}</h4>
-            <div class="card-tags">
-              <span class="pill-badge pill-role">${form.category || 'Formulir'}</span>
-              <span class="pill-badge pill-auto"><i class="fa-solid fa-bolt"></i> ${statusBadge}</span>
-            </div>
+          <div class="form-btn-title-box">
+            <span class="form-btn-number">${idx + 1}.</span>
+            <span class="form-btn-title">${form.name}</span>
           </div>
         </div>
-
-        <div class="card-footer-clean">
-          <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-open-form">
-            <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Google Form
-          </a>
+        <div class="form-btn-right">
+          <span class="form-btn-action-label">Buka Form</span>
+          <i class="fa-solid fa-arrow-up-right-from-square form-btn-arrow"></i>
         </div>
-      </article>
+      </a>
     `;
   }).join('');
 }

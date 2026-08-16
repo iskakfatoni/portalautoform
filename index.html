@@ -121,45 +121,29 @@
         <!-- LAYAR 2: LAYAR LINK FORMULIR GURU (Muncul Saat NIP Benar) -->
         <div id="view-teacher-portal" class="portal-view hidden">
           
-          <!-- Active Teacher Profile Banner with Shareable Direct Link -->
-          <div class="teacher-profile-banner" id="teacher-profile-banner">
-            <div class="profile-avatar">
-              <i class="fa-solid fa-user-graduate"></i>
-            </div>
-            <div class="profile-details">
-              <div class="profile-badge-row">
-                <span class="profile-badge"><i class="fa-solid fa-circle-check"></i> Profil Teridentifikasi</span>
-                <span class="profile-role-badge" id="active-teacher-role">Walikelas</span>
+          <!-- Compact Active Teacher Profile Bar -->
+          <div class="teacher-compact-bar" id="teacher-profile-banner">
+            <div class="teacher-info-group">
+              <div class="teacher-avatar-mini">
+                <i class="fa-solid fa-user-graduate"></i>
               </div>
-              <h2 class="profile-name" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
-              <div class="profile-meta">
-                <span class="meta-item"><i class="fa-solid fa-id-card"></i> NIP: <strong class="font-mono" id="active-teacher-nip">198109092022211004</strong></span>
-                <span class="meta-item"><i class="fa-solid fa-chalkboard"></i> Kelas Binaan: <strong class="badge-class" id="active-teacher-class">XII TEI 2</strong></span>
+              <div class="teacher-text-mini">
+                <h2 class="teacher-title-mini" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
+                <div class="teacher-meta-mini">
+                  <span>NIP: <strong class="font-mono" id="active-teacher-nip">198109092022211004</strong></span>
+                  <span class="meta-sep">&bull;</span>
+                  <span>Kelas: <strong id="active-teacher-class">XII TEI 2</strong></span>
+                </div>
               </div>
             </div>
             
-            <!-- Share & Switch Action Buttons -->
-            <div class="profile-share-box">
-              <button id="btn-copy-personal-portal-url" class="btn btn-secondary btn-sm" title="Salin Tautan Portal Khusus Guru Ini">
-                <i class="fa-solid fa-share-nodes"></i> Salin Link Portal Saya
-              </button>
-              <button id="btn-back-to-landing-nip" class="btn btn-outline-danger btn-sm" title="Kembali ke Layar Masukkan NIP">
-                <i class="fa-solid fa-arrow-left"></i> Ganti NIP / Keluar
-              </button>
-            </div>
+            <button id="btn-back-to-landing-nip" class="btn btn-sm btn-outline-danger btn-switch-nip" title="Ganti NIP / Keluar">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Ganti NIP</span>
+            </button>
           </div>
 
-          <!-- Available Forms Section for Active Teacher -->
-          <div class="section-header">
-            <div>
-              <h3 class="section-title">Daftar Formulir Terhubung</h3>
-              <p class="section-subtitle">Pilih formulir di bawah ini. Data identitas Anda sudah otomatis terisi.</p>
-            </div>
-            <span class="badge-count" id="active-forms-count">4 Formulir Aktif</span>
-          </div>
-
-          <!-- Dynamic Form Cards Container -->
-          <div class="form-cards-grid" id="portal-forms-grid">
+          <!-- Dynamic Direct Form Link Buttons -->
+          <div class="form-links-list" id="portal-forms-grid">
             <!-- Populated dynamically by app.js -->
           </div>
 

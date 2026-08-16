@@ -741,144 +741,144 @@ body.light-mode .dark-icon { display: block; }
   color: var(--accent-primary);
 }
 
-/* Active Teacher Profile Banner */
-.teacher-profile-banner {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: var(--radius-lg);
-  padding: 24px 28px;
+/* Compact Active Teacher Profile Bar */
+.teacher-compact-bar {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 1.25rem;
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 22px;
-  margin-bottom: 28px;
+  margin-bottom: 1.25rem;
   box-shadow: var(--shadow-sm);
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.profile-avatar {
-  width: 64px;
-  height: 64px;
+.teacher-info-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.teacher-avatar-mini {
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: var(--accent-gradient);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.8rem;
+  font-size: 1rem;
   flex-shrink: 0;
   box-shadow: var(--shadow-glow);
 }
 
-.profile-details {
-  flex: 1;
-  min-width: 260px;
+.teacher-text-mini {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.profile-badge-row {
+.teacher-title-mini {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.teacher-meta-mini {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 6px;
-}
-
-.profile-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 2px 10px;
-  background: var(--success-bg);
-  color: var(--success);
-  border-radius: var(--radius-full);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.profile-role-badge {
-  padding: 2px 8px;
-  background: var(--bg-glass);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-full);
-  font-size: 0.72rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
 }
 
-.profile-name {
-  font-size: 1.45rem;
-  font-weight: 800;
-  letter-spacing: -0.4px;
-  margin-bottom: 6px;
+.meta-sep {
+  color: var(--text-muted);
 }
 
-.profile-meta {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 0.88rem;
-  color: var(--text-secondary);
+.btn-switch-nip {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
 }
 
-.profile-meta .badge-class {
-  color: var(--accent-primary);
-  background: rgba(99, 102, 241, 0.12);
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.profile-share-box {
-  display: flex;
-  align-items: center;
-}
-
-/* Form Cards - Clean, Focused, Action-Oriented */
-.form-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-  gap: 1.25rem;
-}
-
-.form-card {
-  background: var(--bg-card);
-  backdrop-filter: blur(14px);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  padding: 1.25rem 1.4rem;
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-smooth);
+/* Direct Form Link Action List */
+.form-links-list {
   display: flex;
   flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.form-direct-btn {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  gap: 1.1rem;
+  padding: 1.1rem 1.4rem;
+  background: var(--bg-card);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  color: var(--text-primary);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+  cursor: pointer;
   position: relative;
   overflow: hidden;
 }
 
-.form-card::before {
+.form-direct-btn::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 3.5px;
+  bottom: 0;
+  width: 4px;
   background: var(--accent-gradient);
+  opacity: 0.7;
+  transition: width 0.2s ease, opacity 0.2s ease;
 }
 
-.form-card:hover {
-  transform: translateY(-3px);
+.form-direct-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent-primary);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.12) 0%, rgba(168, 85, 247, 0.08) 100%);
   box-shadow: var(--shadow-md), 0 0 24px rgba(99, 102, 241, 0.2);
-  border-color: rgba(99, 102, 241, 0.4);
 }
 
-.card-header-clean {
+.form-direct-btn:hover::before {
+  width: 6px;
+  opacity: 1;
+}
+
+.form-direct-btn:active {
+  transform: translateY(0);
+}
+
+.form-btn-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 14px;
+  min-width: 0;
 }
 
-.card-icon-box {
+.form-btn-icon {
   width: 44px;
   height: 44px;
-  border-radius: var(--radius-md);
+  border-radius: 12px;
   background: rgba(99, 102, 241, 0.15);
   color: var(--accent-primary);
   display: flex;
@@ -886,67 +886,56 @@ body.light-mode .dark-icon { display: block; }
   justify-content: center;
   font-size: 1.25rem;
   flex-shrink: 0;
+  transition: transform var(--transition-fast);
 }
 
-.card-title-group {
-  flex: 1;
-  min-width: 0;
+.form-direct-btn:hover .form-btn-icon {
+  transform: scale(1.08);
 }
 
-.card-title {
-  font-size: 1.12rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 0.35rem;
-  line-height: 1.3;
-}
-
-.card-tags {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-}
-
-.pill-badge {
-  padding: 3px 9px;
-  border-radius: var(--radius-full);
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.pill-auto {
-  background: var(--success-bg);
-  color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.pill-role {
-  background: var(--bg-glass);
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-}
-
-.card-footer-clean {
-  display: flex;
-  gap: 8px;
-}
-
-.card-footer-clean .btn-open-form {
-  flex: 1;
-  padding: 0.75rem 1.15rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  justify-content: center;
+.form-btn-title-box {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  border-radius: var(--radius-sm);
+  gap: 6px;
 }
 
-.card-footer-clean .btn-copy-card {
-  padding: 0.75rem 1rem;
-  border-radius: var(--radius-sm);
+.form-btn-number {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--accent-primary);
+}
+
+.form-btn-title {
+  font-size: 1.08rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  color: var(--text-primary);
+}
+
+.form-btn-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.form-btn-action-label {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background: rgba(99, 102, 241, 0.1);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+.form-btn-arrow {
+  color: var(--accent-primary);
+  font-size: 1rem;
+  transition: transform var(--transition-fast);
+}
+
+.form-direct-btn:hover .form-btn-arrow {
+  transform: translate(2px, -2px);
 }
 
 /* Buttons */
@@ -1859,168 +1848,69 @@ body.light-mode .data-table td {
   }
 
   /* ========================================================================
-     2. LAYAR 2: LINK FORMULIR GURU MOBILE (SUPER SIMPLE & COMPACT)
+     2. LAYAR 2: LINK FORMULIR GURU MOBILE (DIRECT CLICK BUTTONS)
      ======================================================================== */
-  .teacher-profile-banner {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 1rem 1.15rem;
-    gap: 0.75rem;
+  .teacher-compact-bar {
+    padding: 0.5rem 0.85rem;
+    gap: 8px;
+    margin-bottom: 0.85rem;
+  }
+
+  .teacher-avatar-mini {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+
+  .teacher-title-mini {
+    font-size: 0.92rem;
+  }
+
+  .teacher-meta-mini {
+    font-size: 0.72rem;
+    gap: 6px;
+  }
+
+  .btn-switch-nip {
+    padding: 4px 8px;
+    font-size: 0.72rem;
+  }
+
+  .form-links-list {
+    gap: 0.6rem;
+  }
+
+  .form-direct-btn {
+    padding: 0.85rem 1rem;
     border-radius: var(--radius-md);
-    margin-bottom: 1rem;
   }
 
-  .profile-avatar {
-    width: 44px;
-    height: 44px;
-    font-size: 1.25rem;
-    margin: 0 auto;
+  .form-btn-left {
+    gap: 10px;
   }
 
-  .profile-details {
-    text-align: center;
-  }
-
-  .profile-badge-row {
-    justify-content: center;
-    gap: 0.35rem;
-  }
-
-  .profile-name {
-    font-size: 1.15rem;
-    line-height: 1.25;
-    margin: 0.25rem 0 0.4rem;
-  }
-
-  .profile-meta {
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    font-size: 0.8rem;
-  }
-
-  .profile-share-box {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
-    width: 100%;
-    margin-top: 0.25rem;
-  }
-
-  .profile-share-box .btn {
-    width: 100%;
-    justify-content: center;
-    padding: 0.55rem 0.5rem;
-    font-size: 0.78rem;
-  }
-
-  /* Section Header */
-  .section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-  }
-
-  .section-title {
+  .form-btn-icon {
+    width: 36px;
+    height: 36px;
     font-size: 1.05rem;
-  }
-
-  .section-subtitle {
-    display: none; /* Sembunyikan subtitle agar layar tidak penuh */
-  }
-
-  .badge-count {
-    font-size: 0.75rem;
-    padding: 0.25rem 0.6rem;
-  }
-
-  /* Forms Grid - Ultra-Simple Mobile Tiles */
-  .form-cards-grid {
-    grid-template-columns: 1fr;
-    gap: 0.65rem;
-  }
-
-  .form-card {
-    padding: 0.9rem 1rem;
-    border-radius: var(--radius-md);
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    box-shadow: var(--shadow-sm);
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-  }
-
-  .card-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 0;
-  }
-
-  .card-icon-box {
-    width: 38px;
-    height: 38px;
-    font-size: 1.1rem;
     border-radius: 10px;
   }
 
-  .card-tags .pill-badge {
-    font-size: 0.7rem;
-    padding: 0.2rem 0.5rem;
+  .form-btn-number {
+    font-size: 0.95rem;
   }
 
-  .card-body {
-    margin: 0;
+  .form-btn-title {
+    font-size: 0.9rem;
+    line-height: 1.25;
   }
 
-  .card-title {
-    font-size: 1rem;
-    font-weight: 700;
-    margin-bottom: 0.2rem;
-    color: var(--text-primary);
+  .form-btn-action-label {
+    display: none; /* Di HP cukup ikon panah ↗ agar tidak sempit */
   }
 
-  .card-desc {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    line-height: 1.35;
-    margin-bottom: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* Sembunyikan preview data teks yang berulang di HP agar ringkas */
-  .data-preview-box {
-    display: none;
-  }
-
-  /* Card Footer Actions */
-  .card-footer {
-    display: flex;
-    gap: 0.5rem;
-    padding-top: 0.4rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    margin-top: 0.2rem;
-  }
-
-  .card-footer .btn {
-    padding: 0.65rem 0.85rem;
-    font-size: 0.85rem;
-    border-radius: var(--radius-sm);
-  }
-
-  .card-footer .btn-primary {
-    flex: 1;
-    justify-content: center;
-    font-weight: 700;
-  }
-
-  .card-footer .btn-secondary {
-    padding: 0.65rem 0.75rem;
+  .form-btn-arrow {
+    font-size: 0.95rem;
   }
 
   /* Modal Mobile */
