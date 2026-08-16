@@ -141,16 +141,16 @@ const INITIAL_FORMS = [
   },
   {
     id: "form_absensi_guru",
-    name: "Form Absensi Harian Guru",
+    name: "Form Absen Mengajar",
     category: "Presensi",
     icon: "fa-solid fa-clipboard-user",
-    description: "Presensi dan absensi kehadiran harian guru (1 form global dengan auto-fill identitas).",
-    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
-    entryGuru: "entry.1599393498",
+    description: "Presensi dan laporan kegiatan mengajar harian (Auto-fill: Nama Guru & NIP).",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfrm87oC00zamhQQBP4LS5BcwxSHa97M9plvLpYUHQ7dR-ybQ/viewform",
+    entryGuru: "entry.691754896",
     entryNip: "entry.65154558",
-    entryKelas: "entry.591543822",
+    entryKelas: "entry.666017338",
     isActive: true,
-    statusBadge: "Auto-Fill Siap"
+    statusBadge: "Aktif & Terhubung"
   },
   {
     id: "form_jurnal_mengajar",
@@ -559,7 +559,18 @@ function generateFormUrlForTeacher(form, teacher) {
   params.set('usp', 'pp_url');
   if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
   if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
-  if (form.entryKelas && teacher.class && teacher.class !== '-') params.set(form.entryKelas, teacher.class);
+  if (form.entryKelas && teacher.class && teacher.class !== '-') {
+    let classVal = teacher.class;
+    // Format khusus Absen Mengajar jika menggunakan spasi ganda (misal "XII  TEI 2")
+    if (form.id === "form_absensi_guru" && classVal.includes("XII ")) {
+      classVal = classVal.replace("XII ", "XII  ");
+    } else if (form.id === "form_absensi_guru" && classVal.includes("XI ")) {
+      classVal = classVal.replace("XI ", "XI  ");
+    } else if (form.id === "form_absensi_guru" && classVal.includes("X ")) {
+      classVal = classVal.replace("X ", "X  ");
+    }
+    params.set(form.entryKelas, classVal);
+  }
   return `${form.baseUrl}?${params.toString()}`;
 }
 
