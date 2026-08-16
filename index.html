@@ -339,7 +339,7 @@
                 <input type="text" id="admin-teacher-search" placeholder="Cari nama atau NIP guru...">
               </div>
               <div class="admin-btn-group">
-                <button id="btn-export-teachers-quick" class="btn btn-secondary btn-sm" title="Unduh file Excel data guru beserta link masing-masing">
+                <button id="btn-export-teachers-quick" onclick="window.exportTeachersToExcel()" class="btn btn-secondary btn-sm" title="Unduh file Excel data guru beserta link masing-masing">
                   <i class="fa-solid fa-file-excel text-green"></i> Ekspor Excel (.xlsx)
                 </button>
                 <button id="btn-seed-teachers" class="btn btn-secondary btn-sm" title="Upload otomatis 94 data guru bawaan ke Firestore">
@@ -419,10 +419,10 @@
                 <div class="io-body">
                   <p class="io-hint"><i class="fa-solid fa-circle-check"></i> File Excel ini dapat dibuka langsung di Microsoft Excel atau Google Sheets dan siap dibagikan ke masing-masing guru.</p>
                   <div class="io-btn-row">
-                    <button id="btn-do-export-excel" class="btn btn-primary">
+                    <button id="btn-do-export-excel" onclick="window.exportTeachersToExcel()" class="btn btn-primary">
                       <i class="fa-solid fa-file-excel"></i> Unduh File Excel (.xlsx)
                     </button>
-                    <button id="btn-do-export-json" class="btn btn-secondary">
+                    <button id="btn-do-export-json" onclick="window.exportTeachersToJSON()" class="btn btn-secondary">
                       <i class="fa-solid fa-code"></i> Unduh Format JSON
                     </button>
                   </div>

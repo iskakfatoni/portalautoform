@@ -921,48 +921,7 @@ async function seedMasterTeachersToFirestore() {
    6. Impor & Ekspor Excel (.xlsx / .xls / JSON)
    ========================================================================== */
 
-function initImportExport() {
-  const btnExportExcel = document.getElementById('btn-do-export-excel');
-  const btnExportJson = document.getElementById('btn-do-export-json');
-  const btnExportQuick = document.getElementById('btn-export-teachers-quick');
-  const inputFileExcel = document.getElementById('input-file-excel');
-  const statusDiv = document.getElementById('import-preview-status');
-
-  if (btnExportExcel) btnExportExcel.addEventListener('click', exportTeachersToExcel);
-  if (btnExportQuick) btnExportQuick.addEventListener('click', exportTeachersToExcel);
-  if (btnExportJson) btnExportJson.addEventListener('click', exportTeachersToJSON);
-
-  if (inputFileExcel) {
-    inputFileExcel.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      if (typeof XLSX === 'undefined') {
-        showToast('Library Excel belum selesai dimuat. Silakan coba sesaat lagi.');
-        return;
-      }
-
-      if (statusDiv) statusDiv.textContent = `Membaca file ${file.name}...`;
-
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        try {
-          const data = new Uint8Array(event.target.result);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
-          await processImportedExcelRows(rows, statusDiv);
-        } catch (err) {
-          console.error("Gagal membaca file Excel:", err);
-          if (statusDiv) statusDiv.textContent = `❌ Gagal membaca file Excel: ${err.message}`;
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    });
-  }
-}
-
-function exportTeachersToExcel() {
+export function exportTeachersToExcel() {
   const xlsxLib = window.XLSX || (typeof XLSX !== 'undefined' ? XLSX : null);
   const defaultForm = currentForms[0] || INITIAL_FORMS[0];
 
@@ -996,11 +955,13 @@ function exportTeachersToExcel() {
       const workbook = xlsxLib.utils.book_new();
       xlsxLib.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
       
-      xlsxLib.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
+      const wbout = xlsxLib.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([wbout], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+      downloadBlob(blob, "data_link_guru_portal_autoform.xlsx");
       showToast("File Excel (.xlsx) berhasil diunduh!");
       return;
     } catch (err) {
-      console.warn("Gagal export via XLSX, beralih ke format CSV Excel:", err);
+      console.warn("Gagal export via XLSX array, beralih ke format CSV Excel:", err);
     }
   }
 
@@ -1023,11 +984,12 @@ function exportTeachersToExcel() {
   });
 
   const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\r\n");
-  downloadFile(csvContent, "data_link_guru_portal_autoform.csv", "text/csv;charset=utf-8;");
+  const csvBlob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  downloadBlob(csvBlob, "data_link_guru_portal_autoform.csv");
   showToast("File data guru berhasil diunduh (format CSV/Excel)!");
 }
 
-function exportTeachersToJSON() {
+export function exportTeachersToJSON() {
   const exportData = {
     generatedAt: new Date().toISOString(),
     totalTeachers: currentTeachers.length,
@@ -1036,20 +998,74 @@ function exportTeachersToJSON() {
       personalPortalUrl: getPersonalPortalUrl(t)
     }))
   };
-  downloadFile(JSON.stringify(exportData, null, 2), "data_guru_portal_autoform.json", "application/json");
+  const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+  downloadBlob(jsonBlob, "data_guru_portal_autoform.json");
   showToast("File JSON berhasil diunduh!");
 }
 
-function downloadFile(content, fileName, mimeType) {
-  const blob = new Blob([content], { type: mimeType });
+function downloadBlob(blob, fileName) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
-  link.setAttribute('href', url);
-  link.setAttribute('download', fileName);
+  link.href = url;
+  link.download = fileName;
+  link.style.display = 'none';
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  setTimeout(() => {
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, 200);
+}
+
+// Expose to window for direct HTML onclick access
+window.exportTeachersToExcel = exportTeachersToExcel;
+window.exportTeachersToJSON = exportTeachersToJSON;
+
+function initImportExport() {
+  const inputFileExcel = document.getElementById('input-file-excel');
+  const statusDiv = document.getElementById('import-preview-status');
+
+  // Global click delegation for export buttons
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('#btn-do-export-excel') || e.target.closest('#btn-export-teachers-quick')) {
+      e.preventDefault();
+      exportTeachersToExcel();
+    }
+    if (e.target.closest('#btn-do-export-json')) {
+      e.preventDefault();
+      exportTeachersToJSON();
+    }
+  });
+
+  if (inputFileExcel) {
+    inputFileExcel.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const xlsxLib = window.XLSX || (typeof XLSX !== 'undefined' ? XLSX : null);
+      if (!xlsxLib) {
+        showToast('Library Excel belum selesai dimuat. Silakan coba sesaat lagi.');
+        return;
+      }
+
+      if (statusDiv) statusDiv.textContent = `Membaca file ${file.name}...`;
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const data = new Uint8Array(event.target.result);
+          const workbook = xlsxLib.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = xlsxLib.utils.sheet_to_json(firstSheet, { header: 1 });
+          await processImportedExcelRows(rows, statusDiv);
+        } catch (err) {
+          console.error("Gagal membaca file Excel:", err);
+          if (statusDiv) statusDiv.textContent = `❌ Gagal membaca file Excel: ${err.message}`;
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+  }
 }
 
 async function processImportedExcelRows(rows, statusDiv) {
