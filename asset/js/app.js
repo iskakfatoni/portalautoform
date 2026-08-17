@@ -125,7 +125,7 @@ const ALL_CLASSES = [
   "-"
 ];
 
-// Master Data 5 Jenis Formulir (Urutan Resmi)
+// Master Data 5 Jenis Formulir (Urutan Resmi Sesuai Permintaan)
 const INITIAL_FORMS = [
   {
     id: "form_absensi_guru",
@@ -154,6 +154,19 @@ const INITIAL_FORMS = [
     statusBadge: "Spesifik Guru"
   },
   {
+    id: "form_absensi_piket",
+    name: "FORM ABSENSI PIKET",
+    category: "Piket",
+    icon: "fa-solid fa-shield-halved",
+    description: "Laporan catatan ketertiban dan presensi tugas piket guru harian.",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    entryGuru: "entry.1599393498",
+    entryNip: "entry.65154558",
+    entryKelas: "entry.591543822",
+    isActive: true,
+    statusBadge: "Auto-Fill Siap"
+  },
+  {
     id: "pengumpulan_bulanan_walikelas",
     name: "FORM WALI KELAS",
     category: "Walikelas",
@@ -165,19 +178,6 @@ const INITIAL_FORMS = [
     entryKelas: "",
     isActive: true,
     statusBadge: "Aktif & Terhubung"
-  },
-  {
-    id: "form_absensi_piket",
-    name: "ABSENSI PIKET",
-    category: "Piket",
-    icon: "fa-solid fa-shield-halved",
-    description: "Laporan catatan ketertiban dan presensi tugas piket guru harian.",
-    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
-    entryGuru: "entry.1599393498",
-    entryNip: "entry.65154558",
-    entryKelas: "entry.591543822",
-    isActive: true,
-    statusBadge: "Auto-Fill Siap"
   },
   {
     id: "form_guru_wali",
