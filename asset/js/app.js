@@ -618,6 +618,33 @@ async function handleAdminLoginState(email, displayName) {
   if (adminDashboardView) adminDashboardView.classList.remove('hidden');
   renderAdminTables();
   showToast(`Selamat datang Admin (${email})!`);
+
+  // Auto-sync urutan & nama resmi formulir ke Cloud Firestore
+  syncCanonicalFormsToFirestore();
+}
+
+async function syncCanonicalFormsToFirestore() {
+  if (!db || !currentUser || !isAuthorizedAdminEmail(currentUser.email)) return;
+  try {
+    for (const form of INITIAL_FORMS) {
+      await setDoc(doc(db, "forms", form.id), {
+        name: form.name,
+        category: form.category,
+        icon: form.icon,
+        description: form.description,
+        baseUrl: form.baseUrl,
+        entryGuru: form.entryGuru,
+        entryNip: form.entryNip,
+        entryKelas: form.entryKelas,
+        isActive: form.isActive !== false,
+        orderIndex: form.orderIndex,
+        statusBadge: form.statusBadge
+      }, { merge: true });
+    }
+    console.log("Urutan & teks resmi formulir berhasil diperbarui di Cloud Firestore.");
+  } catch (err) {
+    console.warn("Sinkronisasi formulir ke Firestore dilewati:", err);
+  }
 }
 
 function handleAdminLogoutState() {
