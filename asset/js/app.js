@@ -419,6 +419,12 @@ function initNavigation() {
       document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.toggle('active', pane.id === targetId);
       });
+
+      if (targetId === 'tab-admin') {
+        renderAdminTables();
+      } else if (targetId === 'tab-portal') {
+        renderUserPortal();
+      }
     });
   });
 
@@ -432,8 +438,24 @@ function initNavigation() {
       document.querySelectorAll('.admin-subpane').forEach(pane => {
         pane.classList.toggle('active', pane.id === targetId);
       });
+
+      if (targetId === 'subtab-schedule') {
+        renderScheduleTable();
+      } else if (targetId === 'subtab-forms') {
+        renderFormsTable();
+      } else if (targetId === 'subtab-teachers') {
+        renderTeachersTable();
+      }
     });
   });
+
+  // Admin Schedule Search Listener
+  const scheduleSearchInput = document.getElementById('admin-schedule-search');
+  if (scheduleSearchInput) {
+    scheduleSearchInput.addEventListener('input', (e) => {
+      renderScheduleTable(e.target.value.trim());
+    });
+  }
 
   // Tombol Admin di Header
   const btnAdminHeader = document.getElementById('btn-show-login-modal');
@@ -1077,12 +1099,16 @@ async function deleteScheduleHandler(index) {
   if (currentSchedules && currentSchedules[index]) {
     const item = currentSchedules[index];
     currentSchedules.splice(index, 1);
-    saveLocalSchedules();
     renderScheduleTable();
 
     if (db && isFirebaseActive) {
       try {
-        const docId = item.id || `${item.nip || 'guru'}_${item.hari}_${item.jamKe}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const cleanNip = (item.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
+        const cleanName = (item.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+        const cleanHari = (item.hari || '').trim().toLowerCase();
+        const cleanJam = (item.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+        const cleanKelas = (item.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+        const docId = item.id || `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
         await deleteDoc(doc(db, "schedules", docId));
       } catch (e) {
         console.warn("Gagal hapus jadwal dari Firestore:", e);
@@ -1536,19 +1562,24 @@ async function processImportedScheduleRows(rows) {
     currentSchedules = newSchedules;
     renderScheduleTable();
 
-    // Sinkronisasi ke Cloud Firestore agar APK Android & perangkat guru lain langsung terupdate
+    // Sinkronisasi ke Cloud Firestore dengan batch commit
     if (db && isFirebaseActive) {
       try {
         const batch = writeBatch(db);
         newSchedules.forEach((s) => {
-          const docId = `${s.nip || 'guru'}_${s.hari}_${s.jamKe}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+          const cleanNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
+          const cleanName = (s.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+          const cleanHari = (s.hari || '').trim().toLowerCase();
+          const cleanJam = (s.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+          const cleanKelas = (s.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+          const docId = `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
           batch.set(doc(db, "schedules", docId), s);
         });
         await batch.commit();
         showToast(`✅ Berhasil mengimpor & sinkron ${newSchedules.length} jadwal ke Cloud Firestore!`);
       } catch (e) {
         console.warn("Gagal sync jadwal ke Firestore:", e);
-        showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal mengajar ke lokal.`);
+        showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal ke memori! (Cloud sync error: ${e.message})`);
       }
     } else {
       showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal mengajar!`);
