@@ -308,40 +308,49 @@ function getActiveTeacherSchedule(teacher, now = new Date()) {
 
   if (teacherSchedules.length === 0) return null;
 
-  const currentDay = INDONESIAN_DAYS[now.getDay()];
+  const currentDayIndex = now.getDay(); // 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+  const currentDay = INDONESIAN_DAYS[currentDayIndex];
   const currentHours = String(now.getHours()).padStart(2, '0');
   const currentMinutes = String(now.getMinutes()).padStart(2, '0');
   const currentTimeStr = `${currentHours}:${currentMinutes}`;
 
-  // 1. Filter schedule for today
+  // 1. Filter jadwal untuk hari ini
   const todaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === currentDay.toLowerCase());
 
-  // KEBUTUHAN 1: Jika tidak ada jadwal sama sekali hari ini, return null
-  if (todaySchedules.length === 0) {
-    return null;
-  }
+  if (todaySchedules.length > 0) {
+    // A. Cek apakah ada jadwal yang sedang aktif saat ini
+    const activeSlot = todaySchedules.find(s => {
+      if (s.jamMulai && s.jamSelesai) {
+        return currentTimeStr >= s.jamMulai && currentTimeStr <= s.jamSelesai;
+      }
+      return false;
+    });
+    if (activeSlot) return activeSlot;
 
-  // KEBUTUHAN 2: Jika ada jadwal hari ini
-  // A. Cek apakah ada jadwal yang sedang aktif saat ini
-  const activeSlot = todaySchedules.find(s => {
-    if (s.jamMulai && s.jamSelesai) {
-      return currentTimeStr >= s.jamMulai && currentTimeStr <= s.jamSelesai;
+    // B. Jika belum waktunya pada hari ini, ambil jadwal terdekat berikutnya hari ini
+    const upcomingTodaySlots = todaySchedules.filter(s => {
+      return s.jamMulai && s.jamMulai >= currentTimeStr;
+    });
+    if (upcomingTodaySlots.length > 0) {
+      upcomingTodaySlots.sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+      return upcomingTodaySlots[0];
     }
-    return false;
-  });
-  if (activeSlot) return activeSlot;
-
-  // B. Jika belum waktunya, ambil jadwal terdekat berikutnya pada hari itu (untuk persiapan)
-  const upcomingSlots = todaySchedules.filter(s => {
-    return s.jamMulai && s.jamMulai >= currentTimeStr;
-  });
-  if (upcomingSlots.length > 0) {
-    upcomingSlots.sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
-    return upcomingSlots[0];
   }
 
-  // C. Jika semua jam mengajar hari ini sudah selesai, ambil jadwal pertama hari itu
-  return todaySchedules[0];
+  // C. RULE BARU: Jika jadwal hari ini sudah terlewati (atau hari ini kosong),
+  // cek jadwal hari berikutnya (besok)
+  const nextDayIndex = (currentDayIndex + 1) % 7;
+  const nextDayName = INDONESIAN_DAYS[nextDayIndex];
+  const nextDaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === nextDayName.toLowerCase());
+
+  if (nextDaySchedules.length > 0) {
+    // Urutkan jadwal hari berikutnya dan ambil yang paling awal
+    nextDaySchedules.sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || ''));
+    return nextDaySchedules[0];
+  }
+
+  // D. Jika hari berikutnya kosong: return null (HANYA isi Nama Guru & NIP)
+  return null;
 }
 
 function sortAndNormalizeForms(formsList) {

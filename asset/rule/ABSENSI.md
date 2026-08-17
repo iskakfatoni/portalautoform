@@ -38,12 +38,19 @@ Dokumen ini berisi dokumentasi resmi mengenai aturan logika bisnis, pemetaan par
   * Sistem otomatis mengambil **jadwal mengajar terdekat berikutnya pada hari tersebut**.
   * **Tujuan:** Memudahkan guru dalam persiapan sebelum bel masuk berbunyi tanpa harus menunggu jam aktif dimulai.
 
-### C. Saat Hari Tidak Ada Jadwal Mengajar (*No Schedule Day / Hari Kosong*)
+### C. Saat Form Dibuka Melewati Seluruh Jadwal Hari Itu (*Past Schedule / Next Day Fallback*)
+* Jika seluruh jam mengajar pada hari tersebut telah selesai dilewati (misal sore/malam hari):
+  * Sistem otomatis mencari **jadwal mengajar terdekat pada hari berikutnya (besok)** untuk membantu persiapan mengajar keesokan harinya.
+  * **Jika hari berikutnya KOSONG** (tidak ada jadwal sama sekali, misalnya hari Jumat sore ke Sabtu, atau besok hari libur):
+    * ✅ **Nama Guru & NIP** tetap terisi otomatis 100%.
+    * ✅ **Hari/Tanggal** tetap terisi tanggal hari ini.
+    * ✍️ **Jam Ke, Kelas, dan Mata Pelajaran dikosongkan** *(hanya Nama & NIP yang terisi)*.
+
+### D. Saat Hari Tidak Ada Jadwal Mengajar Sama Sekali (*No Schedule Day / Hari Kosong*)
 * Jika pada hari tersebut guru yang bersangkutan tidak memiliki jadwal mengajar sama sekali:
-  * ✅ **Nama Guru & NIP** tetap terisi otomatis 100%.
-  * ✅ **Hari/Tanggal** tetap terisi tanggal hari ini.
-  * ✍️ **Jam Ke, Kelas, dan Mata Pelajaran dibiarkan KOSONG**.
-  * **Tujuan:** Memberikan kebebasan bagi guru untuk memilih kelas dan mapel secara manual di Google Form jika sedang mengajar kelas pengganti atau jam tambahan.
+  * Sistem mengecek apakah hari berikutnya memiliki jadwal.
+  * Jika hari berikutnya ada jadwal: disiapkan jadwal terdekat hari berikutnya.
+  * Jika hari berikutnya juga kosong: **hanya diisi Nama Guru & NIP saja**, sedangkan Kelas, Jam Ke, dan Mapel dibiarkan kosong.
 
 ---
 
@@ -56,7 +63,8 @@ Dokumen ini berisi dokumentasi resmi mengenai aturan logika bisnis, pemetaan par
 2. **Akses Formulir Tetap Terbuka:**
    * Kelima tombol formulir tetap aktif dan dapat dibuka langsung kapan saja untuk memfasilitasi guru yang ingin mencicil laporan administrasi, wali kelas, atau tugas piket di akhir pekan.
 3. **Pengisian Form Absensi di Akhir Pekan:**
-   * Mengikuti aturan **Poin 2.C**: Nama Guru, NIP, dan Tanggal terisi otomatis, sedangkan Kelas dan Mapel dibiarkan kosong.
+   * Jika hari Senin berikutnya memiliki jadwal: otomatis menyiapkan jadwal hari Senin pertama.
+   * Jika tidak ada jadwal terdaftar di hari Senin: Nama Guru & NIP tetap terisi otomatis, sedangkan Kelas dan Mapel dibiarkan kosong.
 
 ---
 
