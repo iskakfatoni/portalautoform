@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PORTAL:AutoForm | Dashboard Utama</title>
+  <meta name="description" content="Portal administrasi dan pelaporan otomatis berbasis NIP Guru dan Manajemen Cloud Firebase.">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+
+  <!-- SheetJS (Excel .xlsx / .xls Library Lokal) -->
+  <script src="../js/xlsx.full.min.js"></script>
+
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body class="dark-mode">
+
+  <!-- Background Ambient Glow Effects -->
+  <div class="bg-glow-container" aria-hidden="true">
+    <div class="glow-sphere glow-1"></div>
+    <div class="glow-sphere glow-2"></div>
+    <div class="glow-sphere glow-3"></div>
+  </div>
+
+  <!-- App Wrapper -->
+  <div class="app-wrapper">
+
+    <!-- Top Minimalist Header -->
+    <header class="main-header" id="app-main-header">
+      <div class="brand-container">
+        <a href="./portal.html" class="brand-link">
+          <div class="brand-icon">
+            <i class="fa-solid fa-bolt-lightning"></i>
+          </div>
+          <div class="brand-text">
+            <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
+          </div>
+        </a>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="main-nav" aria-label="Navigasi Utama">
+        <button class="nav-tab-btn active" data-target="tab-user-portal">
+          <i class="fa-solid fa-list-check"></i> <span>Formulir Saya</span>
+        </button>
+        <button class="nav-tab-btn" data-target="tab-builder">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Generator Link</span>
+        </button>
+        <button class="nav-tab-btn" data-target="tab-admin" id="nav-btn-admin">
+          <i class="fa-solid fa-shield-halved"></i> <span>Panel Admin</span>
+        </button>
+        <button class="nav-tab-btn" data-target="tab-guide">
+          <i class="fa-solid fa-circle-question"></i> <span>Panduan</span>
+        </button>
+      </nav>
+
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema Terang/Gelap" aria-label="Ganti Tema">
+          <i class="fa-solid fa-sun light-icon"></i>
+          <i class="fa-solid fa-moon dark-icon"></i>
+        </button>
+
+        <!-- Logout Button (Return to login index.html) -->
+        <button id="btn-portal-logout" class="btn btn-sm btn-logout-pill" title="Keluar ke Halaman Login">
+          <i class="fa-solid fa-right-from-bracket"></i> <span>KELUAR</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Content Sections -->
+    <main class="content-area">
+
+      <!-- ====================================================================
+           TAB 1: PORTAL GURU (Layar Formulir Auto-Fill)
+           ==================================================================== -->
+      <section id="tab-user-portal" class="tab-pane active">
+
+        <div id="view-teacher-portal" class="portal-view">
+          
+          <!-- Compact Active Teacher Bar -->
+          <div class="teacher-compact-bar" id="teacher-profile-banner">
+            <div class="teacher-info-group">
+              <div class="teacher-avatar-mini">
+                <i class="fa-solid fa-user-graduate"></i>
+              </div>
+              <div>
+                <h2 class="teacher-title-mini" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
+                <div class="teacher-meta-chips" style="display: flex; gap: 8px; margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary);">
+                  <span><i class="fa-solid fa-id-card"></i> NIP: <strong id="active-teacher-nip" class="font-mono">-</strong></span>
+                  <span>•</span>
+                  <span><i class="fa-solid fa-chalkboard-user"></i> Kelas: <strong id="active-teacher-class">-</strong></span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="teacher-bar-actions" style="display: flex; gap: 8px;">
+              <button id="btn-copy-personal-portal-url" class="btn btn-secondary btn-sm" title="Salin Tautan Personal">
+                <i class="fa-solid fa-link"></i> <span>Salin Link</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Dynamic Direct Form Link Buttons -->
+          <div class="form-links-list" id="portal-forms-grid">
+            <!-- Populated dynamically by app.js -->
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           TAB 2: CUSTOM LINK GENERATOR
+           ==================================================================== -->
+      <section id="tab-builder" class="tab-pane">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Generator Tautan Kustom</h3>
+            <p class="section-subtitle">Buat link auto-fill untuk kombinasi guru, NIP, dan kelas baru secara instan</p>
+          </div>
+        </div>
+
+        <div class="builder-layout">
+          <div class="builder-card">
+            <h4 class="form-section-title"><i class="fa-solid fa-sliders"></i> Konfigurasi Parameter</h4>
+            
+            <form id="custom-link-form">
+              <div class="input-group">
+                <label for="builder-form-select"><i class="fa-solid fa-file-lines"></i> Pilih Formulir Target</label>
+                <select id="builder-form-select" class="form-control" required>
+                  <!-- Populated from forms database -->
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label for="builder-guru-select"><i class="fa-solid fa-user-tie"></i> Pilih Nama Guru</label>
+                <select id="builder-guru-select" class="form-control" required>
+                  <option value="">-- Pilih Guru --</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label for="builder-nip-input"><i class="fa-solid fa-id-card"></i> Nomor Induk Pegawai (NIP)</label>
+                <input type="text" id="builder-nip-input" class="form-control font-mono" placeholder="Contoh: 198109092022211004" required>
+              </div>
+
+              <div class="input-group">
+                <label for="builder-kelas-select"><i class="fa-solid fa-chalkboard-user"></i> Pilih Kelas</label>
+                <select id="builder-kelas-select" class="form-control" required>
+                  <option value="">-- Pilih Kelas --</option>
+                </select>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Hasilkan Tautan Auto-Fill
+              </button>
+            </form>
+          </div>
+
+          <div class="builder-result-card" id="builder-result-container">
+            <h4 class="form-section-title"><i class="fa-solid fa-link"></i> Hasil Tautan</h4>
+            
+            <div id="result-empty-state" class="empty-state">
+              <i class="fa-solid fa-arrow-pointer"></i>
+              <p>Lengkapi formulir di samping dan klik tombol <strong>Hasilkan Tautan</strong>.</p>
+            </div>
+
+            <div id="result-content" class="result-content-hidden">
+              <div class="generated-url-box">
+                <label class="url-label">Generated URL:</label>
+                <textarea id="generated-url-text" readonly class="generated-url-textarea" rows="4"></textarea>
+              </div>
+
+              <div class="result-action-btns">
+                <a id="btn-test-generated-url" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Uji Buka Form
+                </a>
+                <button id="btn-copy-generated-url" class="btn btn-secondary">
+                  <i class="fa-solid fa-copy"></i> Salin Link
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           TAB 3: PANEL ADMIN
+           ==================================================================== -->
+      <section id="tab-admin" class="tab-pane">
+
+        <!-- If NOT Authenticated as Admin -->
+        <div id="admin-locked-view" class="admin-locked-box" style="max-width: 440px; margin: 2rem auto; padding: 2.25rem 2rem;">
+          <div class="locked-icon" style="width: 56px; height: 56px; margin: 0 auto 1.25rem; font-size: 1.5rem;">
+            <i class="fa-solid fa-shield-halved"></i>
+          </div>
+          <h3 style="margin-bottom: 0.5rem; font-size: 1.35rem;">Akses Administrator</h3>
+          <p style="margin-bottom: 1.5rem; font-size: 0.88rem; color: var(--text-secondary);">Masukkan Email dan Password akun Administrator Firebase Anda.</p>
+          
+          <form id="admin-email-password-form" class="admin-auth-form" autocomplete="on">
+            <div class="input-group" style="text-align: left; margin-bottom: 14px;">
+              <label for="admin-login-email" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                <i class="fa-solid fa-envelope"></i> Email Admin
+              </label>
+              <input type="email" id="admin-login-email" class="form-control font-mono" placeholder="iskakfatoni@gmail.com" required style="width: 100%; box-sizing: border-box;">
+            </div>
+            
+            <div class="input-group" style="text-align: left; margin-bottom: 18px;">
+              <label for="admin-login-password" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 6px;">
+                <i class="fa-solid fa-lock"></i> Password
+              </label>
+              <input type="password" id="admin-login-password" class="form-control" placeholder="Masukkan password..." required style="width: 100%; box-sizing: border-box;">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="width: 100%; justify-content: center; padding: 0.85rem; font-weight: 700;">
+              <i class="fa-solid fa-right-to-bracket"></i> MASUK SEBAGAI ADMIN
+            </button>
+          </form>
+        </div>
+
+        <!-- If Authenticated as Admin -->
+        <div id="admin-dashboard-view" class="admin-dashboard-view hidden">
+          
+          <div class="admin-header-row" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <button id="btn-admin-back-to-portal" class="btn btn-secondary btn-sm">
+              <i class="fa-solid fa-arrow-left"></i> Kembali ke Formulir Saya
+            </button>
+            <span class="badge-role" style="font-size: 0.82rem; color: var(--text-muted);">
+              <i class="fa-solid fa-shield-halved"></i> Mode Administrator Aktif
+            </span>
+          </div>
+
+          <!-- Admin Stat Bar -->
+          <div class="admin-stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+              <div class="stat-data">
+                <span class="stat-number" id="stat-total-teachers">0</span>
+                <span class="stat-title">Total Guru Terdaftar</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-purple"><i class="fa-solid fa-folder-tree"></i></div>
+              <div class="stat-data">
+                <span class="stat-number" id="stat-total-forms">0</span>
+                <span class="stat-title">Formulir Aktif</span>
+              </div>
+            </div>
+
+            <div class="stat-card">
+              <div class="stat-icon icon-green"><i class="fa-solid fa-cloud-bolt"></i></div>
+              <div class="stat-data">
+                <span class="stat-number" id="stat-db-status">Online</span>
+                <span class="stat-title">Cloud Database</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Sub-Navigation -->
+          <div class="admin-subtabs">
+            <button class="admin-subtab-btn active" data-subtarget="subtab-teachers">
+              <i class="fa-solid fa-user-gear"></i> Manajemen Guru
+            </button>
+            <button class="admin-subtab-btn" data-subtarget="subtab-forms">
+              <i class="fa-solid fa-list-check"></i> Manajemen Formulir
+            </button>
+          </div>
+
+          <!-- Subtab 1: Manajemen Guru -->
+          <div id="subtab-teachers" class="admin-subpane active">
+            <div class="admin-action-bar">
+              <div class="search-box-admin">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="admin-teacher-search" placeholder="Cari nama atau NIP guru...">
+              </div>
+              <div class="admin-btn-group">
+                <button id="btn-modal-add-teacher" class="btn btn-primary btn-sm">
+                  <i class="fa-solid fa-plus"></i> Tambah Guru Baru
+                </button>
+                <button id="btn-export-excel" class="btn btn-secondary btn-sm" title="Ekspor Data ke Excel">
+                  <i class="fa-solid fa-file-excel"></i> Ekspor Excel
+                </button>
+                <button id="btn-sync-all-to-firestore" class="btn btn-secondary btn-sm" title="Sync ke Cloud">
+                  <i class="fa-solid fa-cloud-arrow-up"></i> Sync Cloud
+                </button>
+              </div>
+            </div>
+
+            <!-- Teachers Table -->
+            <div class="table-responsive">
+              <table class="data-table" id="teachers-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Nama Guru</th>
+                    <th>NIP</th>
+                    <th>Kelas Binaan</th>
+                    <th>Peran</th>
+                    <th>Link Personal</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="teachers-table-body">
+                  <!-- Populated by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Subtab 2: Manajemen Formulir -->
+          <div id="subtab-forms" class="admin-subpane">
+            <div class="admin-action-bar">
+              <h4>Daftar Google Form Terdaftar</h4>
+              <button id="btn-modal-add-form" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-plus"></i> Tambah Formulir Baru
+              </button>
+            </div>
+
+            <!-- Forms Table -->
+            <div class="table-responsive">
+              <table class="data-table" id="forms-table">
+                <thead>
+                  <tr>
+                    <th>Nama Formulir</th>
+                    <th>Kategori</th>
+                    <th>Entry Guru</th>
+                    <th>Entry NIP</th>
+                    <th>Entry Kelas</th>
+                    <th>Status</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="forms-table-body">
+                  <!-- Populated by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ====================================================================
+           TAB 4: PANDUAN & PETUNJUK
+           ==================================================================== -->
+      <section id="tab-guide" class="tab-pane">
+        <div class="section-header">
+          <div>
+            <h3 class="section-title">Panduan Penggunaan Sistem</h3>
+            <p class="section-subtitle">Petunjuk lengkap bagi Guru dan Administrator</p>
+          </div>
+        </div>
+
+        <div class="guide-grid">
+          <div class="guide-card">
+            <div class="guide-step-num">1</div>
+            <h4>Link Personal Khusus Guru</h4>
+            <p>Setiap guru memiliki URL unik, misal: <code>?nip=198109092022211004</code>. Saat link dibuka, portal langsung menampilkan nama dan kelas yang bersangkutan tanpa perlu memilih lagi.</p>
+          </div>
+
+          <div class="guide-card">
+            <div class="guide-step-num">2</div>
+            <h4>Impor & Ekspor Data Massal</h4>
+            <p>Admin dapat mengekspor daftar guru ke file CSV/Excel untuk dibagikan, atau mengimpor data untuk memperbarui NIP dan kelas guru secara bersamaan.</p>
+          </div>
+
+          <div class="guide-card">
+            <div class="guide-step-num">3</div>
+            <h4>Sinkronisasi Cloud Firebase</h4>
+            <p>Seluruh perubahan data guru dan formulir tersimpan aman di Cloud Firestore dan langsung diperbarui di semua perangkat secara real-time.</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Modals -->
+    <!-- Modal Add/Edit Guru -->
+    <div id="modal-teacher-form" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="modal-teacher-title"><i class="fa-solid fa-user-plus"></i> Tambah Data Guru Baru</h3>
+          <button class="modal-close-btn" id="btn-close-teacher-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-manage-teacher" class="modal-form">
+          <div class="input-group">
+            <label for="edit-teacher-name">Nama Lengkap & Gelar</label>
+            <input type="text" id="edit-teacher-name" class="form-control" required placeholder="Contoh: MUCHAMAD ISKAK FATONI, S.Pd.">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-teacher-nip">NIP (18 Digit)</label>
+            <input type="text" id="edit-teacher-nip" class="form-control font-mono" placeholder="Contoh: 198109092022211004">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-teacher-class">Kelas Binaan</label>
+            <select id="edit-teacher-class" class="form-control" required>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-teacher-role">Peran Guru</label>
+            <select id="edit-teacher-role" class="form-control" required>
+              <option value="Walikelas">Walikelas</option>
+              <option value="Guru Pengajar">Guru Pengajar</option>
+              <option value="Guru Piket">Guru Piket</option>
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="edit-teacher-journal-url">Link Form Jurnal Pribadi (Opsional)</label>
+            <input type="url" id="edit-teacher-journal-url" class="form-control font-mono" placeholder="https://forms.gle/...">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-teacher-modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Data</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal Add/Edit Form -->
+    <div id="modal-form-manage" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="modal-form-title"><i class="fa-solid fa-file-circle-plus"></i> Tambah Formulir Baru</h3>
+          <button class="modal-close-btn" id="btn-close-form-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-manage-form" class="modal-form">
+          <input type="hidden" id="edit-form-id">
+
+          <div class="input-group">
+            <label for="edit-form-name">Nama Formulir</label>
+            <input type="text" id="edit-form-name" class="form-control" required placeholder="Contoh: FORM PENILAIAN SUMATIF">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-form-category">Kategori</label>
+            <input type="text" id="edit-form-category" class="form-control" placeholder="Contoh: Akademik">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-form-url">Base URL Google Form</label>
+            <input type="url" id="edit-form-url" class="form-control font-mono" required placeholder="https://docs.google.com/forms/d/e/.../viewform">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-form-desc">Deskripsi Formulir</label>
+            <input type="text" id="edit-form-desc" class="form-control" placeholder="Penjelasan singkat tujuan form...">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-entry-guru">Entry ID Nama Guru</label>
+            <input type="text" id="edit-entry-guru" class="form-control font-mono" placeholder="entry.12345678">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-entry-nip">Entry ID NIP</label>
+            <input type="text" id="edit-entry-nip" class="form-control font-mono" placeholder="entry.87654321">
+          </div>
+
+          <div class="input-group">
+            <label for="edit-entry-kelas">Entry ID Kelas</label>
+            <input type="text" id="edit-entry-kelas" class="form-control font-mono" placeholder="entry.11223344">
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-form-modal">Batal</button>
+            <button type="submit" class="btn btn-primary">Simpan Formulir</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" role="alert" aria-live="assertive">
+      <i class="fa-solid fa-circle-check toast-icon"></i>
+      <span id="toast-message">Notifikasi</span>
+    </div>
+
+  </div>
+
+  <script type="module" src="../js/app.js"></script>
+</body>
+</html>

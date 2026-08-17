@@ -23,12 +23,24 @@ Portal web modern, ringan, dan cepat untuk akses otomatis Google Form dengan fit
 ## 📁 Struktur File
 ```text
 portal-autoform/
-├── index.html           # Antarmuka web utama (Portal Guru + Panel Admin)
-├── style.css            # Desain sistem responsif, Glassmorphism, Dark/Light Mode
-├── app.js               # Logika aplikasi, generator link, dan CRUD data
-├── firebase-config.js   # Modul inisialisasi Firebase Auth & Firestore (Modular ESM v10)
+├── index.html           # Halaman Login Utama / Gate NIP & Admin (Wajib di root)
+├── README.md            # Dokumentasi proyek
+├── .gitignore           # Konfigurasi Git ignore
 ├── firestore.rules      # Aturan keamanan database Cloud Firestore
-└── README.md            # Dokumentasi panduan lengkap
+└── asset/               # Folder aset & file pendukung
+    ├── app/             # Aplikasi desktop Windows (.exe)
+    │   └── PORTAL AutoForm.exe
+    ├── css/             # Stylesheet & desain UI
+    │   └── style.css
+    ├── js/              # Modul JavaScript
+    │   ├── login.js     # Logika proses autentikasi login
+    │   ├── app.js       # Logika aplikasi & dashboard utama
+    │   ├── firebase-config.js
+    │   └── xlsx.full.min.js
+    └── pages/           # Halaman tampilan utama & form
+        ├── portal.html  # Dashboard utama (Formulir, Generator, Panel Admin)
+        ├── form_absen.html
+        └── form_guru_wali.html
 ```
 
 ---

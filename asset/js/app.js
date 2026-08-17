@@ -284,6 +284,19 @@ function initNavigation() {
     });
   }
 
+  // Logout Button in Portal Header
+  const btnPortalLogout = document.getElementById('btn-portal-logout');
+  if (btnPortalLogout) {
+    btnPortalLogout.addEventListener('click', async () => {
+      localStorage.removeItem('portal_logged_nip');
+      sessionStorage.removeItem('portal_demo_admin');
+      if (auth && isFirebaseActive) {
+        try { await signOut(auth); } catch (e) {}
+      }
+      window.location.href = '../../index.html';
+    });
+  }
+
   // Tombol Kembali ke Portal Guru di dalam Admin Dashboard
   const btnBackPortal = document.getElementById('btn-admin-back-to-portal');
   if (btnBackPortal) {
@@ -304,6 +317,10 @@ function initNavigation() {
 
 export function switchToAdminPanel() {
   document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+  document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-target') === 'tab-admin');
+  });
+
   const adminTab = document.getElementById('tab-admin');
   if (adminTab) {
     adminTab.classList.add('active');
@@ -326,6 +343,10 @@ export function switchToAdminPanel() {
 
 export function switchToPortalView() {
   document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+  document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-target') === 'tab-user-portal');
+  });
+
   const portalTab = document.getElementById('tab-user-portal');
   if (portalTab) {
     portalTab.classList.add('active');
@@ -336,7 +357,14 @@ export function switchToPortalView() {
 function checkUrlParamsForTeacher() {
   const params = new URLSearchParams(window.location.search);
   const nipParam = params.get('nip');
+  const adminParam = params.get('admin');
   const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
+
+  // Jika URL mengarah ke admin mode
+  if (adminParam === 'true') {
+    switchToAdminPanel();
+    return;
+  }
 
   // 1. Cek dari URL Query Parameter (?nip=...)
   if (nipParam && nipParam !== '-') {
@@ -364,27 +392,24 @@ function checkUrlParamsForTeacher() {
     }
   }
 
-  // Jika tidak ada NIP atau NIP salah, tampilkan Layar 1 (Landing Page Input NIP)
-  showLandingView();
+  // 3. Cek apakah ada sesi admin di sessionStorage
+  const demoAdmin = sessionStorage.getItem('portal_demo_admin');
+  if (demoAdmin) {
+    switchToAdminPanel();
+    return;
+  }
+
+  // Jika belum login dan membuka portal langsung, fallback ke guru pertama atau redirect ke index.html
+  if (teachersList && teachersList.length > 0) {
+    showPortalView(teachersList[0]);
+  } else {
+    showLandingView();
+  }
 }
 
 function showLandingView() {
-  const landingView = document.getElementById('view-landing-nip');
-  const portalView = document.getElementById('view-teacher-portal');
-  const errorMsg = document.getElementById('landing-nip-error');
-  const inputNip = document.getElementById('landing-nip-input');
-  const mainHeader = document.getElementById('app-main-header');
-
-  // Pastikan header ringkas di atas selalu tampil
-  if (mainHeader) mainHeader.classList.remove('hidden');
-
-  if (landingView) landingView.classList.remove('hidden');
-  if (portalView) portalView.classList.add('hidden');
-  if (errorMsg) errorMsg.classList.add('hidden');
-  if (inputNip) {
-    inputNip.value = '';
-    inputNip.focus();
-  }
+  // Jika tidak ada sesi sama sekali, redirect ke halaman login
+  window.location.href = '../../index.html';
 }
 
 function showPortalView(teacher) {
