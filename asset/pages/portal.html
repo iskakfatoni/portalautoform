@@ -67,14 +67,8 @@
         <button class="nav-tab-btn active" data-target="tab-user-portal">
           <i class="fa-solid fa-list-check"></i> <span>Formulir Saya</span>
         </button>
-        <button class="nav-tab-btn" data-target="tab-builder">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>Generator Link</span>
-        </button>
         <button class="nav-tab-btn" data-target="tab-admin" id="nav-btn-admin">
           <i class="fa-solid fa-shield-halved"></i> <span>Panel Admin</span>
-        </button>
-        <button class="nav-tab-btn" data-target="tab-guide">
-          <i class="fa-solid fa-circle-question"></i> <span>Panduan</span>
         </button>
       </nav>
 
@@ -135,82 +129,7 @@
       </section>
 
       <!-- ====================================================================
-           TAB 2: CUSTOM LINK GENERATOR
-           ==================================================================== -->
-      <section id="tab-builder" class="tab-pane">
-        <div class="section-header">
-          <div>
-            <h3 class="section-title">Generator Tautan Kustom</h3>
-            <p class="section-subtitle">Buat link auto-fill untuk kombinasi guru, NIP, dan kelas baru secara instan</p>
-          </div>
-        </div>
-
-        <div class="builder-layout">
-          <div class="builder-card">
-            <h4 class="form-section-title"><i class="fa-solid fa-sliders"></i> Konfigurasi Parameter</h4>
-            
-            <form id="custom-link-form">
-              <div class="input-group">
-                <label for="builder-form-select"><i class="fa-solid fa-file-lines"></i> Pilih Formulir Target</label>
-                <select id="builder-form-select" class="form-control" required>
-                  <!-- Populated from forms database -->
-                </select>
-              </div>
-
-              <div class="input-group">
-                <label for="builder-guru-select"><i class="fa-solid fa-user-tie"></i> Pilih Nama Guru</label>
-                <select id="builder-guru-select" class="form-control" required>
-                  <option value="">-- Pilih Guru --</option>
-                </select>
-              </div>
-
-              <div class="input-group">
-                <label for="builder-nip-input"><i class="fa-solid fa-id-card"></i> Nomor Induk Pegawai (NIP)</label>
-                <input type="text" id="builder-nip-input" class="form-control font-mono" placeholder="Contoh: 198109092022211004" required>
-              </div>
-
-              <div class="input-group">
-                <label for="builder-kelas-select"><i class="fa-solid fa-chalkboard-user"></i> Pilih Kelas</label>
-                <select id="builder-kelas-select" class="form-control" required>
-                  <option value="">-- Pilih Kelas --</option>
-                </select>
-              </div>
-
-              <button type="submit" class="btn btn-primary btn-block">
-                <i class="fa-solid fa-wand-magic-sparkles"></i> Hasilkan Tautan Auto-Fill
-              </button>
-            </form>
-          </div>
-
-          <div class="builder-result-card" id="builder-result-container">
-            <h4 class="form-section-title"><i class="fa-solid fa-link"></i> Hasil Tautan</h4>
-            
-            <div id="result-empty-state" class="empty-state">
-              <i class="fa-solid fa-arrow-pointer"></i>
-              <p>Lengkapi formulir di samping dan klik tombol <strong>Hasilkan Tautan</strong>.</p>
-            </div>
-
-            <div id="result-content" class="result-content-hidden">
-              <div class="generated-url-box">
-                <label class="url-label">Generated URL:</label>
-                <textarea id="generated-url-text" readonly class="generated-url-textarea" rows="4"></textarea>
-              </div>
-
-              <div class="result-action-btns">
-                <a id="btn-test-generated-url" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
-                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Uji Buka Form
-                </a>
-                <button id="btn-copy-generated-url" class="btn btn-secondary">
-                  <i class="fa-solid fa-copy"></i> Salin Link
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- ====================================================================
-           TAB 3: PANEL ADMIN
+           TAB 2: PANEL ADMIN
            ==================================================================== -->
       <section id="tab-admin" class="tab-pane">
 
@@ -365,38 +284,6 @@
 
         </div>
 
-      </section>
-
-      <!-- ====================================================================
-           TAB 4: PANDUAN & PETUNJUK
-           ==================================================================== -->
-      <section id="tab-guide" class="tab-pane">
-        <div class="section-header">
-          <div>
-            <h3 class="section-title">Panduan Penggunaan Sistem</h3>
-            <p class="section-subtitle">Petunjuk lengkap bagi Guru dan Administrator</p>
-          </div>
-        </div>
-
-        <div class="guide-grid">
-          <div class="guide-card">
-            <div class="guide-step-num">1</div>
-            <h4>Link Personal Khusus Guru</h4>
-            <p>Setiap guru memiliki URL unik, misal: <code>?nip=198109092022211004</code>. Saat link dibuka, portal langsung menampilkan nama dan kelas yang bersangkutan tanpa perlu memilih lagi.</p>
-          </div>
-
-          <div class="guide-card">
-            <div class="guide-step-num">2</div>
-            <h4>Impor & Ekspor Data Massal</h4>
-            <p>Admin dapat mengekspor daftar guru ke file CSV/Excel untuk dibagikan, atau mengimpor data untuk memperbarui NIP dan kelas guru secara bersamaan.</p>
-          </div>
-
-          <div class="guide-card">
-            <div class="guide-step-num">3</div>
-            <h4>Sinkronisasi Cloud Firebase</h4>
-            <p>Seluruh perubahan data guru dan formulir tersimpan aman di Cloud Firestore dan langsung diperbarui di semua perangkat secara real-time.</p>
-          </div>
-        </div>
       </section>
 
     </main>
