@@ -151,13 +151,14 @@ const INITIAL_FORMS = [
     name: "FORM JURNAL MENGAJAR",
     category: "Akademik",
     icon: "fa-solid fa-book-open-reader",
-    description: "Jurnal agenda kegiatan mengajar harian, materi pembelajaran, dan catatan kelas.",
+    description: "Jurnal agenda kegiatan mengajar harian, materi pembelajaran, dan catatan kelas (Auto-fill: Tanggal, Jam Ke, Kelas, Mapel).",
     baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
-    entryGuru: "entry.1599393498",
-    entryNip: "entry.65154558",
-    entryKelas: "entry.591543822",
+    entryTanggal: "entry.1708105874",
+    entryJamKe: "entry.585996771",
+    entryKelas: "entry.666017338",
+    entryMapel: "entry.73505426",
     isActive: true,
-    statusBadge: "Spesifik Guru"
+    statusBadge: "Auto-Fill Jadwal Pribadi"
   },
   {
     orderIndex: 3,
@@ -967,13 +968,6 @@ function setActiveTeacher(teacher) {
 }
 
 function generateFormUrlForTeacher(form, teacher) {
-  // Jika form adalah Jurnal Mengajar pribadi guru
-  if (form.id === "form_jurnal_mengajar") {
-    if (teacher.journalFormUrl) {
-      return teacher.journalFormUrl;
-    }
-  }
-
   const params = new URLSearchParams();
   params.set('usp', 'pp_url');
 
@@ -1012,7 +1006,32 @@ function generateFormUrlForTeacher(form, teacher) {
     return `${form.baseUrl}?${params.toString()}`;
   }
 
-  // 2. Formulir Standar Lainnya
+  // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal Lengkap
+  if (form.id === "form_jurnal_mengajar") {
+    const rawUrl = (teacher && teacher.journalFormUrl) ? teacher.journalFormUrl : form.baseUrl;
+    if (!rawUrl) return "#";
+
+    // Selalu set tanggal hari ini
+    params.set(form.entryTanggal || "entry.1708105874", isoDate);
+
+    // Jika ada jadwal aktif / terdekat: isi Jam Ke, Kelas, dan Mapel
+    if (todaySchedule) {
+      if (todaySchedule.jamKe) {
+        params.set(form.entryJamKe || "entry.585996771", todaySchedule.jamKe);
+      }
+      if (todaySchedule.kelas) {
+        params.set(form.entryKelas || "entry.666017338", normalizeFormClassName(todaySchedule.kelas));
+      }
+      if (todaySchedule.mataPelajaran) {
+        params.set(form.entryMapel || "entry.73505426", todaySchedule.mataPelajaran);
+      }
+    }
+
+    const separator = rawUrl.includes('?') ? '&' : '?';
+    return `${rawUrl}${separator}${params.toString()}`;
+  }
+
+  // 3. Formulir Standar Lainnya
   if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
   if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
   if (form.entryKelas && teacher.class && teacher.class !== '-') {
