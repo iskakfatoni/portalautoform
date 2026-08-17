@@ -935,6 +935,7 @@ function generateFormUrlForTeacher(form, teacher) {
 
   const now = new Date();
   const todaySchedule = getActiveTeacherSchedule(teacher, now);
+  console.log(`[AutoForm] Guru: ${teacher ? teacher.name : 'Unknown'}, Total Jadwal di Memory: ${currentSchedules.length}, Jadwal Terpilih:`, todaySchedule);
 
   const yyyy = now.getFullYear();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -960,9 +961,9 @@ function generateFormUrlForTeacher(form, teacher) {
       if (form.entryMapel && todaySchedule.mataPelajaran) {
         params.set(form.entryMapel, todaySchedule.mataPelajaran);
       }
+    } else {
+      console.log("[AutoForm] Tidak ada jadwal yang cocok/aktif hari ini maupun besok. Jam, Kelas, dan Mapel dikosongkan.");
     }
-    // Jika TIDAK ADA jadwal sama sekali hari ini (todaySchedule === null):
-    // Jam Ke, Kelas, dan Mapel dibiarkan KOSONG, HANYA Nama, NIP & Tanggal yang terisi!
 
     return `${form.baseUrl}?${params.toString()}`;
   }
