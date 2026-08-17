@@ -769,6 +769,9 @@ async function handleAdminLoginState(email, displayName) {
   renderAdminTables();
   showToast(`Selamat datang Admin (${email})!`);
 
+  // Ambil data Firestore terbaru setelah autentikasi admin berhasil
+  await fetchFirestoreData();
+
   // Auto-sync urutan & nama resmi formulir ke Cloud Firestore
   syncCanonicalFormsToFirestore();
 }
