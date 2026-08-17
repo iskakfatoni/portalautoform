@@ -238,7 +238,26 @@ function normalizeDayName(dayStr) {
 }
 
 function formatTimeString(timeStr) {
-  if (!timeStr) return '';
+  if (timeStr === undefined || timeStr === null || timeStr === '') return '';
+  
+  // Jika timeStr adalah angka desimal dari Excel (misal 0.2916666666666667 untuk 07:00)
+  if (typeof timeStr === 'number' || (!isNaN(timeStr) && !String(timeStr).includes(':'))) {
+    const num = parseFloat(timeStr);
+    if (num >= 0 && num < 1) {
+      const totalMinutes = Math.round(num * 24 * 60);
+      const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+      const mm = String(totalMinutes % 60).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+  }
+
+  // Jika berupa objek Date
+  if (timeStr instanceof Date) {
+    const hh = String(timeStr.getHours()).padStart(2, '0');
+    const mm = String(timeStr.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
   let s = String(timeStr).trim().replace(/\./g, ':');
   const parts = s.split(':');
   if (parts.length >= 2) {
@@ -253,14 +272,19 @@ const INDONESIAN_DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 
 
 function getActiveTeacherSchedule(teacher, now = new Date()) {
   if (!teacher) return null;
-  const teacherNip = (teacher.nip || '').trim().replace(/[\s\.\-]+/g, '');
-  const teacherName = (teacher.name || '').trim().toLowerCase();
+  const teacherNipDigits = (teacher.nip || '').replace(/\D/g, '');
+  const teacherCleanName = (teacher.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
   const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : INITIAL_SCHEDULES;
   const teacherSchedules = schedules.filter(s => {
-    const sNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '');
-    if (sNip && teacherNip && sNip === teacherNip) return true;
-    if (s.name && s.name.trim().toLowerCase() === teacherName) return true;
+    const sNipDigits = (s.nip || '').replace(/\D/g, '');
+    if (sNipDigits && teacherNipDigits && sNipDigits === teacherNipDigits) return true;
+    
+    const sCleanName = (s.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (sCleanName && teacherCleanName) {
+      if (sCleanName === teacherCleanName) return true;
+      if (sCleanName.includes(teacherCleanName) || teacherCleanName.includes(sCleanName)) return true;
+    }
     return false;
   });
 
@@ -1489,8 +1513,17 @@ function initImportExport() {
         try {
           const data = new Uint8Array(event.target.result);
           const workbook = xlsxLib.read(data, { type: 'array' });
-          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = xlsxLib.utils.sheet_to_json(firstSheet, { header: 1 });
+          
+          // Cari sheet yang berisi data jadwal
+          let targetSheet = workbook.Sheets[workbook.SheetNames[0]];
+          for (const name of workbook.SheetNames) {
+            if (name.toLowerCase().includes('jadwal')) {
+              targetSheet = workbook.Sheets[name];
+              break;
+            }
+          }
+
+          const rows = xlsxLib.utils.sheet_to_json(targetSheet, { header: 1, raw: false, dateNF: 'HH:mm' });
           await processImportedScheduleRows(rows);
         } catch (err) {
           console.error("Gagal membaca file Excel Jadwal:", err);
@@ -1509,10 +1542,20 @@ async function processImportedScheduleRows(rows) {
     return;
   }
 
-  const headerRow = rows[0].map(h => String(h || '').trim().toLowerCase());
+  // Deteksi letak baris Header secara dinamis (mencari baris yang memiliki kata 'hari', 'kelas', 'mapel', 'jam', dsb)
+  let headerRowIdx = 0;
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const rowStr = (rows[i] || []).map(c => String(c || '').toLowerCase()).join(' ');
+    if (rowStr.includes('hari') || rowStr.includes('kelas') || rowStr.includes('mapel') || rowStr.includes('jam')) {
+      headerRowIdx = i;
+      break;
+    }
+  }
+
+  const headerRow = (rows[headerRowIdx] || []).map(h => String(h || '').trim().toLowerCase());
   
   let nipIdx = headerRow.findIndex(h => h.includes("nip"));
-  let nameIdx = headerRow.findIndex(h => h.includes("nama"));
+  let nameIdx = headerRow.findIndex(h => h.includes("nama") || h.includes("guru"));
   let hariIdx = headerRow.findIndex(h => h.includes("hari"));
   let jamKeIdx = headerRow.findIndex(h => h.includes("jam_ke") || h.includes("jam ke") || h.includes("sesi"));
   let jamMulaiIdx = headerRow.findIndex(h => h.includes("jam_mulai") || h.includes("jam mulai") || h.includes("mulai"));
@@ -1532,7 +1575,7 @@ async function processImportedScheduleRows(rows) {
   if (ketIdx === -1) ketIdx = 8;
 
   const newSchedules = [];
-  for (let i = 1; i < rows.length; i++) {
+  for (let i = headerRowIdx + 1; i < rows.length; i++) {
     const r = rows[i];
     if (!r || r.length === 0) continue;
 
