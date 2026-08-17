@@ -743,6 +743,17 @@ async function fetchFirestoreData() {
       saveLocalForms();
     }
 
+    // 3. Fetch Schedules (Sinkronisasi Jadwal Mengajar ke Semua Device / APK)
+    const schedulesSnapshot = await getDocs(collection(db, "schedules"));
+    if (!schedulesSnapshot.empty) {
+      const fetchedSchedules = [];
+      schedulesSnapshot.forEach(doc => {
+        fetchedSchedules.push(doc.data());
+      });
+      currentSchedules = fetchedSchedules;
+      saveLocalSchedules();
+    }
+
     // Re-check URL parameter and re-render forms with canonical order
     const adminTab = document.getElementById('tab-admin');
     if (adminTab && adminTab.classList.contains('active')) {
@@ -1165,11 +1176,21 @@ function renderScheduleTable(filterQuery = '') {
   });
 }
 
-function deleteScheduleHandler(index) {
+async function deleteScheduleHandler(index) {
   if (currentSchedules && currentSchedules[index]) {
+    const item = currentSchedules[index];
     currentSchedules.splice(index, 1);
     saveLocalSchedules();
     renderScheduleTable();
+
+    if (db && isFirebaseActive) {
+      try {
+        const docId = item.id || `${item.nip || 'guru'}_${item.hari}_${item.jamKe}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+        await deleteDoc(doc(db, "schedules", docId));
+      } catch (e) {
+        console.warn("Gagal hapus jadwal dari Firestore:", e);
+      }
+    }
     showToast('Jadwal berhasil dihapus.');
   }
 }
@@ -1622,7 +1643,24 @@ async function processImportedScheduleRows(rows) {
     currentSchedules = newSchedules;
     saveLocalSchedules();
     renderScheduleTable();
-    showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal mengajar!`);
+
+    // Sinkronisasi ke Cloud Firestore agar APK Android & perangkat guru lain langsung terupdate
+    if (db && isFirebaseActive) {
+      try {
+        const batch = writeBatch(db);
+        newSchedules.forEach((s) => {
+          const docId = `${s.nip || 'guru'}_${s.hari}_${s.jamKe}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+          batch.set(doc(db, "schedules", docId), s);
+        });
+        await batch.commit();
+        showToast(`✅ Berhasil mengimpor & sinkron ${newSchedules.length} jadwal ke Cloud Firestore!`);
+      } catch (e) {
+        console.warn("Gagal sync jadwal ke Firestore:", e);
+        showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal mengajar ke lokal.`);
+      }
+    } else {
+      showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal mengajar!`);
+    }
   } else {
     showToast("⚠️ Tidak ada data jadwal valid yang terbaca dari file.");
   }
