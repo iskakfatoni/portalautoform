@@ -316,19 +316,32 @@ function getActiveTeacherSchedule(teacher, now = new Date()) {
   // 1. Filter schedule for today
   const todaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === currentDay.toLowerCase());
 
-  if (todaySchedules.length > 0) {
-    const activeSlot = todaySchedules.find(s => {
-      if (s.jamMulai && s.jamSelesai) {
-        return currentTimeStr >= s.jamMulai && currentTimeStr <= s.jamSelesai;
-      }
-      return false;
-    });
-
-    if (activeSlot) return activeSlot;
-    return todaySchedules[0];
+  // KEBUTUHAN 1: Jika tidak ada jadwal sama sekali hari ini, return null
+  if (todaySchedules.length === 0) {
+    return null;
   }
 
-  return teacherSchedules[0];
+  // KEBUTUHAN 2: Jika ada jadwal hari ini
+  // A. Cek apakah ada jadwal yang sedang aktif saat ini
+  const activeSlot = todaySchedules.find(s => {
+    if (s.jamMulai && s.jamSelesai) {
+      return currentTimeStr >= s.jamMulai && currentTimeStr <= s.jamSelesai;
+    }
+    return false;
+  });
+  if (activeSlot) return activeSlot;
+
+  // B. Jika belum waktunya, ambil jadwal terdekat berikutnya pada hari itu (untuk persiapan)
+  const upcomingSlots = todaySchedules.filter(s => {
+    return s.jamMulai && s.jamMulai >= currentTimeStr;
+  });
+  if (upcomingSlots.length > 0) {
+    upcomingSlots.sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+    return upcomingSlots[0];
+  }
+
+  // C. Jika semua jam mengajar hari ini sudah selesai, ambil jadwal pertama hari itu
+  return todaySchedules[0];
 }
 
 function sortAndNormalizeForms(formsList) {
@@ -947,31 +960,26 @@ function generateFormUrlForTeacher(form, teacher) {
 
   // 1. Form Absensi Mengajar Khusus dengan Auto-Fill Jadwal Lengkap
   if (form.id === "form_absensi_guru") {
+    // Identitas Guru & Tanggal selalu diisi
     if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
     if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
-    
-    // Hari/Tanggal (entry.1708105874)
-    if (form.entryTanggal) {
-      params.set(form.entryTanggal, isoDate);
-    }
+    if (form.entryTanggal) params.set(form.entryTanggal, isoDate);
 
-    // Jam Ke (entry.585996771)
-    if (form.entryJamKe) {
-      const jamKeVal = todaySchedule ? todaySchedule.jamKe : "1-2";
-      params.set(form.entryJamKe, jamKeVal);
+    // KEBUTUHAN 1 & 2:
+    // Jika ada jadwal aktif / terdekat hari ini: isi Jam Ke, Kelas, dan Mapel
+    if (todaySchedule) {
+      if (form.entryJamKe && todaySchedule.jamKe) {
+        params.set(form.entryJamKe, todaySchedule.jamKe);
+      }
+      if (form.entryKelas && todaySchedule.kelas) {
+        params.set(form.entryKelas, normalizeFormClassName(todaySchedule.kelas));
+      }
+      if (form.entryMapel && todaySchedule.mataPelajaran) {
+        params.set(form.entryMapel, todaySchedule.mataPelajaran);
+      }
     }
-
-    // Kelas (entry.666017338)
-    if (form.entryKelas) {
-      const targetClass = (todaySchedule && todaySchedule.kelas) ? todaySchedule.kelas : (teacher.class || "XII TEI 2");
-      params.set(form.entryKelas, normalizeFormClassName(targetClass));
-    }
-
-    // Mata Pelajaran (entry.73505426)
-    if (form.entryMapel) {
-      const mapelVal = (todaySchedule && todaySchedule.mataPelajaran) ? todaySchedule.mataPelajaran : "Teknik Elektronika Industri";
-      params.set(form.entryMapel, mapelVal);
-    }
+    // Jika TIDAK ADA jadwal sama sekali hari ini (todaySchedule === null):
+    // Jam Ke, Kelas, dan Mapel dibiarkan KOSONG, HANYA Nama, NIP & Tanggal yang terisi!
 
     return `${form.baseUrl}?${params.toString()}`;
   }
@@ -987,7 +995,21 @@ function generateFormUrlForTeacher(form, teacher) {
 
 function renderUserPortal() {
   const container = document.getElementById('portal-forms-grid');
+  const weekendBanner = document.getElementById('weekend-holiday-banner');
   if (!container) return;
+
+  // Cek Hari Sabtu / Minggu (0 = Minggu, 6 = Sabtu)
+  const now = new Date();
+  const dayIndex = now.getDay();
+  const isWeekend = dayIndex === 0 || dayIndex === 6;
+
+  if (weekendBanner) {
+    if (isWeekend) {
+      weekendBanner.classList.remove('hidden');
+    } else {
+      weekendBanner.classList.add('hidden');
+    }
+  }
 
   const normalized = sortAndNormalizeForms(currentForms);
   const activeForms = normalized.filter(f => f.isActive !== false);
