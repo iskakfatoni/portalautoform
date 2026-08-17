@@ -672,7 +672,6 @@ function setupUserPortal() {
   const btnLandingGo = document.getElementById('btn-landing-go');
   const btnBackToLanding = document.getElementById('btn-back-to-landing-nip');
   const btnLandingAdmin = document.getElementById('btn-landing-admin-gate');
-  const btnCopyPortalUrl = document.getElementById('btn-copy-personal-portal-url');
 
   // Core NIP Verification Logic
   const processLandingNipSubmit = (e) => {
@@ -767,15 +766,6 @@ function setupUserPortal() {
       showToast('Sesi NIP ditutup. Silakan masukkan NIP lain.');
     });
   }
-
-  // 6. Salin Link Personal Portal
-  if (btnCopyPortalUrl) {
-    btnCopyPortalUrl.addEventListener('click', () => {
-      const link = getPersonalPortalUrl(activeTeacher);
-      copyToClipboard(link);
-      showToast(`Link portal personal ${activeTeacher.name} disalin!`);
-    });
-  }
 }
 
 function setActiveTeacher(teacher) {
@@ -866,14 +856,12 @@ function openInAppFormViewer(url, title) {
   const modal = document.getElementById('modal-form-viewer');
   const iframe = document.getElementById('inapp-google-form-frame');
   const titleEl = document.getElementById('viewer-form-title');
-  const externalLink = document.getElementById('btn-open-external-tab');
   const loader = document.getElementById('form-viewer-loader');
 
   if (!modal || !iframe) return;
 
   currentViewerUrl = url;
   if (titleEl) titleEl.textContent = title || "Google Form";
-  if (externalLink) externalLink.href = url;
 
   if (loader) loader.style.display = 'flex';
   iframe.style.opacity = '0';
@@ -954,7 +942,6 @@ function renderTeachersTable(filterQuery = '') {
   }
 
   tbody.innerHTML = filtered.map((t, idx) => {
-    const personalLink = getPersonalPortalUrl(t);
     return `
       <tr>
         <td>${idx + 1}</td>
@@ -962,11 +949,6 @@ function renderTeachersTable(filterQuery = '') {
         <td class="font-mono">${t.nip || '-'}</td>
         <td><span class="badge-class">${t.class || '-'}</span></td>
         <td>${t.role || 'Guru'}</td>
-        <td>
-          <button class="btn btn-secondary btn-sm btn-copy-teacher-link" data-url="${personalLink}" title="Salin Link Personal Portal Guru">
-            <i class="fa-solid fa-link"></i> Salin Link
-          </button>
-        </td>
         <td>
           <div class="action-btns-row">
             <button class="btn-icon-action btn-edit-teacher" data-name="${t.name}" title="Edit Data">
@@ -980,17 +962,6 @@ function renderTeachersTable(filterQuery = '') {
       </tr>
     `;
   }).join('');
-
-  // Attach copy teacher personal link
-  tbody.querySelectorAll('.btn-copy-teacher-link').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const url = btn.getAttribute('data-url');
-      if (url) {
-        copyToClipboard(url);
-        showToast('Link personal guru berhasil disalin!');
-      }
-    });
-  });
 
   // Attach Edit & Delete Teacher handlers
   tbody.querySelectorAll('.btn-edit-teacher').forEach(btn => {
