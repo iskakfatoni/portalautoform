@@ -38,7 +38,7 @@ const INITIAL_TEACHERS = [
     "nip": "197004301998022004",
     "class": "X TEI 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/UttCqb2kxt4LevCA8"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSeN20MexbrBL34C2Q686_fkiIwRRd1p8MlfQmirZxcd7z32gA/viewform"
   },
   {
     "orderIndex": 3,
