@@ -32,6 +32,7 @@ portal-autoform/
     │   └── PORTAL AutoForm.exe
     ├── css/             # Stylesheet & desain UI
     │   └── style.css
+    ├── image/           # Folder aset gambar & logo
     ├── js/              # Modul JavaScript
     │   ├── login.js     # Logika proses autentikasi login
     │   ├── app.js       # Logika aplikasi & dashboard utama
