@@ -1241,8 +1241,6 @@ async function saveFormHandler(formData) {
     currentForms.push(formData);
   }
 
-  saveLocalForms();
-
   if (db && isFirebaseActive) {
     try {
       await setDoc(doc(db, "forms", formData.id), formData);
@@ -1258,7 +1256,6 @@ async function saveFormHandler(formData) {
 
 async function deleteFormHandler(formId) {
   currentForms = currentForms.filter(f => f.id !== formId);
-  saveLocalForms();
 
   if (db && isFirebaseActive) {
     try {
@@ -1279,7 +1276,6 @@ async function seedMasterTeachersToFirestore() {
 
   showToast("Mengunggah master data guru ke Firestore...");
   currentTeachers = [...INITIAL_TEACHERS];
-  saveLocalTeachers();
 
   if (db && isFirebaseActive) {
     try {
@@ -1538,7 +1534,6 @@ async function processImportedScheduleRows(rows) {
 
   if (newSchedules.length > 0) {
     currentSchedules = newSchedules;
-    saveLocalSchedules();
     renderScheduleTable();
 
     // Sinkronisasi ke Cloud Firestore agar APK Android & perangkat guru lain langsung terupdate
@@ -1622,8 +1617,6 @@ async function processImportedExcelRows(rows, statusDiv) {
       currentTeachers.push(imported);
     }
   });
-
-  saveLocalTeachers();
 
   // Sinkronisasi ke Cloud Firestore
   if (db && isFirebaseActive) {
