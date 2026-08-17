@@ -291,6 +291,31 @@ function normalizeFormClassName(rawClass) {
   return clean;
 }
 
+function normalizeDayName(dayStr) {
+  if (!dayStr) return '';
+  const clean = String(dayStr).trim().replace(/['`’]/g, '').toLowerCase();
+  if (clean.startsWith('sen')) return 'Senin';
+  if (clean.startsWith('sel')) return 'Selasa';
+  if (clean.startsWith('rab')) return 'Rabu';
+  if (clean.startsWith('kam')) return 'Kamis';
+  if (clean.startsWith('jum')) return 'Jumat';
+  if (clean.startsWith('sab')) return 'Sabtu';
+  if (clean.startsWith('min') || clean.startsWith('ahd')) return 'Minggu';
+  return clean;
+}
+
+function formatTimeString(timeStr) {
+  if (!timeStr) return '';
+  let s = String(timeStr).trim().replace(/\./g, ':');
+  const parts = s.split(':');
+  if (parts.length >= 2) {
+    const hh = parts[0].trim().padStart(2, '0');
+    const mm = parts[1].trim().padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+  return s;
+}
+
 const INDONESIAN_DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 function getActiveTeacherSchedule(teacher, now = new Date()) {
@@ -319,25 +344,33 @@ function getActiveTeacherSchedule(teacher, now = new Date()) {
     return null;
   }
 
-  // 1. Filter jadwal untuk hari aktif ini (Senin - Jumat)
-  const todaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === currentDay.toLowerCase());
+  // 1. Filter jadwal untuk hari aktif ini (Senin - Jumat) dengan normalisasi ejaan hari
+  const todaySchedules = teacherSchedules.filter(s => normalizeDayName(s.hari) === currentDay);
 
   if (todaySchedules.length > 0) {
-    // A. Cek apakah ada jadwal yang sedang aktif saat ini
+    // A. Cek apakah ada jadwal yang sedang aktif saat ini (prioritas sesi yang baru mulai jika tepat di batas waktu)
     const activeSlot = todaySchedules.find(s => {
-      if (s.jamMulai && s.jamSelesai) {
-        return currentTimeStr >= s.jamMulai && currentTimeStr <= s.jamSelesai;
+      const sMulai = formatTimeString(s.jamMulai);
+      const sSelesai = formatTimeString(s.jamSelesai);
+      if (sMulai && sSelesai) {
+        return currentTimeStr >= sMulai && currentTimeStr < sSelesai;
       }
       return false;
+    }) || todaySchedules.find(s => {
+      const sMulai = formatTimeString(s.jamMulai);
+      const sSelesai = formatTimeString(s.jamSelesai);
+      return sMulai && sSelesai && currentTimeStr >= sMulai && currentTimeStr <= sSelesai;
     });
+
     if (activeSlot) return activeSlot;
 
     // B. Jika belum waktunya pada hari ini, ambil jadwal terdekat berikutnya hari ini
     const upcomingTodaySlots = todaySchedules.filter(s => {
-      return s.jamMulai && s.jamMulai >= currentTimeStr;
+      const sMulai = formatTimeString(s.jamMulai);
+      return sMulai && sMulai >= currentTimeStr;
     });
     if (upcomingTodaySlots.length > 0) {
-      upcomingTodaySlots.sort((a, b) => a.jamMulai.localeCompare(b.jamMulai));
+      upcomingTodaySlots.sort((a, b) => formatTimeString(a.jamMulai).localeCompare(formatTimeString(b.jamMulai)));
       return upcomingTodaySlots[0];
     }
   }
@@ -351,11 +384,11 @@ function getActiveTeacherSchedule(teacher, now = new Date()) {
   }
 
   const nextDayName = INDONESIAN_DAYS[nextDayIndex];
-  const nextDaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === nextDayName.toLowerCase());
+  const nextDaySchedules = teacherSchedules.filter(s => normalizeDayName(s.hari) === nextDayName);
 
   if (nextDaySchedules.length > 0) {
     // Urutkan jadwal hari berikutnya dan ambil yang paling awal
-    nextDaySchedules.sort((a, b) => (a.jamMulai || '').localeCompare(b.jamMulai || ''));
+    nextDaySchedules.sort((a, b) => formatTimeString(a.jamMulai).localeCompare(formatTimeString(b.jamMulai)));
     return nextDaySchedules[0];
   }
 
@@ -1561,10 +1594,11 @@ async function processImportedScheduleRows(rows) {
 
     const nip = String(r[nipIdx] || '').trim();
     const name = String(r[nameIdx] || '').trim();
-    const hari = String(r[hariIdx] || '').trim();
+    const rawHari = String(r[hariIdx] || '').trim();
+    const hari = normalizeDayName(rawHari) || rawHari;
     const jamKe = String(r[jamKeIdx] || '').trim();
-    const jamMulai = String(r[jamMulaiIdx] || '').trim();
-    const jamSelesai = String(r[jamSelesaiIdx] || '').trim();
+    const jamMulai = formatTimeString(r[jamMulaiIdx] || '');
+    const jamSelesai = formatTimeString(r[jamSelesaiIdx] || '');
     const kelas = String(r[kelasIdx] || '').trim();
     const mataPelajaran = String(r[mapelIdx] || '').trim();
     const keterangan = String(r[ketIdx] || '').trim();

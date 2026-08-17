@@ -52,6 +52,11 @@ Dokumen ini berisi dokumentasi resmi mengenai aturan logika bisnis, pemetaan par
   * Jika hari berikutnya ada jadwal: disiapkan jadwal terdekat hari berikutnya.
   * Jika hari berikutnya juga kosong: **hanya diisi Nama Guru & NIP saja**, sedangkan Kelas, Jam Ke, dan Mapel dibiarkan kosong.
 
+### E. Proteksi & Normalisasi Otomatis (*Input Sanitization*)
+1. **Normalisasi Format Waktu:** Format jam di Excel yang ditulis tanpa angka nol di depan (misal `7:00` atau `7.00`) otomatis dinormalisasi menjadi format 24 jam standar (`07:00`).
+2. **Normalisasi Ejaan Hari:** Variasi penulisan seperti `Jum'at`, `jum`at`, atau spasi berlebih otomatis diselaraskan menjadi `Jumat`.
+3. **Batas Pergantian Jam Pelajaran (*Boundary Minute Precision*):** Jika guru membuka aplikasi tepat pada menit pergantian jam (misal tepat pukul `08:30` saat sesi pertama berakhir dan sesi kedua dimulai), sistem secara cerdas memprioritaskan sesi yang baru dimulai.
+
 ---
 
 ## 3. Aturan Khusus Akhir Pekan (Sabtu & Minggu)
