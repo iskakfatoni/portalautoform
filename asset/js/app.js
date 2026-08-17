@@ -128,6 +128,7 @@ const ALL_CLASSES = [
 // Master Data 5 Jenis Formulir (Urutan Resmi Sesuai Permintaan)
 const INITIAL_FORMS = [
   {
+    orderIndex: 1,
     id: "form_absensi_guru",
     name: "FORM ABSENSI MENGAJAR",
     category: "Presensi",
@@ -141,6 +142,7 @@ const INITIAL_FORMS = [
     statusBadge: "Aktif & Terhubung"
   },
   {
+    orderIndex: 2,
     id: "form_jurnal_mengajar",
     name: "FORM JURNAL MENGAJAR",
     category: "Akademik",
@@ -154,6 +156,7 @@ const INITIAL_FORMS = [
     statusBadge: "Spesifik Guru"
   },
   {
+    orderIndex: 3,
     id: "form_absensi_piket",
     name: "FORM ABSENSI PIKET",
     category: "Piket",
@@ -167,6 +170,7 @@ const INITIAL_FORMS = [
     statusBadge: "Auto-Fill Siap"
   },
   {
+    orderIndex: 4,
     id: "pengumpulan_bulanan_walikelas",
     name: "FORM WALI KELAS",
     category: "Walikelas",
@@ -180,6 +184,7 @@ const INITIAL_FORMS = [
     statusBadge: "Aktif & Terhubung"
   },
   {
+    orderIndex: 5,
     id: "form_guru_wali",
     name: "FORM GURU WALI",
     category: "Guru Wali",
@@ -193,6 +198,35 @@ const INITIAL_FORMS = [
     statusBadge: "Aktif & Terhubung"
   }
 ];
+
+function sortAndNormalizeForms(formsList) {
+  if (!formsList || formsList.length === 0) return [...INITIAL_FORMS];
+
+  const ordered = [];
+  INITIAL_FORMS.forEach(initForm => {
+    const found = formsList.find(f => f.id === initForm.id);
+    if (found) {
+      ordered.push({
+        ...found,
+        name: initForm.name,
+        icon: initForm.icon,
+        category: initForm.category,
+        orderIndex: initForm.orderIndex
+      });
+    } else {
+      ordered.push({ ...initForm });
+    }
+  });
+
+  // Append any extra custom forms added by admin
+  formsList.forEach(f => {
+    if (!INITIAL_FORMS.some(init => init.id === f.id)) {
+      ordered.push(f);
+    }
+  });
+
+  return ordered.sort((a, b) => (a.orderIndex || 99) - (b.orderIndex || 99));
+}
 
 // State Aplikasi
 let currentTeachers = [...INITIAL_TEACHERS];
@@ -489,23 +523,24 @@ async function fetchFirestoreData() {
       saveLocalTeachers();
     }
 
-    // 2. Fetch Forms
+    // 2. Fetch Forms (Sinkronisasi dan Kunci Urutan Resmi)
     const formsSnapshot = await getDocs(collection(db, "forms"));
     if (!formsSnapshot.empty) {
       const fetchedForms = [];
       formsSnapshot.forEach(doc => {
         fetchedForms.push({ id: doc.id, ...doc.data() });
       });
-      currentForms = fetchedForms;
+      currentForms = sortAndNormalizeForms(fetchedForms);
       saveLocalForms();
     }
 
-    // Re-check URL parameter only if on user portal tab
+    // Re-check URL parameter and re-render forms with canonical order
     const adminTab = document.getElementById('tab-admin');
     if (adminTab && adminTab.classList.contains('active')) {
       renderAdminTables();
     } else {
       checkUrlParamsForTeacher();
+      renderUserPortal();
       renderAdminTables();
     }
   } catch (error) {
@@ -522,10 +557,7 @@ function loadLocalState() {
   if (savedForms) {
     try {
       const parsed = JSON.parse(savedForms);
-      currentForms = INITIAL_FORMS.map(initForm => {
-        const found = parsed.find(p => p.id === initForm.id);
-        return found ? { ...initForm, ...found, name: initForm.name } : initForm;
-      });
+      currentForms = sortAndNormalizeForms(parsed);
     } catch (e) {
       currentForms = [...INITIAL_FORMS];
     }
@@ -754,7 +786,8 @@ function renderUserPortal() {
   const container = document.getElementById('portal-forms-grid');
   if (!container) return;
 
-  const activeForms = currentForms.filter(f => f.isActive !== false);
+  const normalized = sortAndNormalizeForms(currentForms);
+  const activeForms = normalized.filter(f => f.isActive !== false);
 
   if (activeForms.length === 0) {
     container.innerHTML = `<div class="empty-state"><p>Belum ada formulir aktif yang tersedia.</p></div>`;
