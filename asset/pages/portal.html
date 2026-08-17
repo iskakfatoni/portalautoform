@@ -49,12 +49,14 @@
   <!-- App Wrapper -->
   <div class="app-wrapper">
 
-    <!-- Top Minimalist Header -->
-    <header class="main-header" id="app-main-header">
-      <div class="brand-container">
+    <!-- Top 2-Row Optimized Header -->
+    <header class="main-header portal-header-2row" id="app-main-header">
+      
+      <!-- Baris 1: Logo & Judul Aplikasi -->
+      <div class="header-row-brand">
         <a href="./portal.html" class="brand-link">
           <div class="brand-icon brand-logo-circle">
-            <img src="../image/logo-smkn1jetis.webp" alt="Logo SMKN 1 Jetis" class="brand-logo-img" width="36" height="36">
+            <img src="../image/logo-smkn1jetis.webp" alt="Logo SMKN 1 Jetis" class="brand-logo-img" width="34" height="34">
           </div>
           <div class="brand-text">
             <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
@@ -62,28 +64,34 @@
         </a>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="main-nav" aria-label="Navigasi Utama">
-        <button class="nav-tab-btn active" data-target="tab-user-portal">
-          <i class="fa-solid fa-list-check"></i> <span>Formulir Saya</span>
-        </button>
-        <button class="nav-tab-btn" data-target="tab-admin" id="nav-btn-admin">
-          <i class="fa-solid fa-shield-halved"></i> <span>Panel Admin</span>
-        </button>
-      </nav>
-
-      <div class="header-actions">
-        <!-- Theme Toggle -->
-        <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema Terang/Gelap" aria-label="Ganti Tema">
-          <i class="fa-solid fa-sun light-icon"></i>
-          <i class="fa-solid fa-moon dark-icon"></i>
+      <!-- Baris 2: Tombol Aksi & Navigasi (Ikon + Keterangan di Bawah) -->
+      <div class="header-row-actions">
+        <!-- Tombol 1: Formulir Saya -->
+        <button class="nav-tab-btn header-action-btn active" data-target="tab-user-portal" title="Formulir Saya">
+          <i class="fa-solid fa-list-check action-icon"></i>
+          <span class="action-caption">Formulir</span>
         </button>
 
-        <!-- Logout Button (Return to login index.html) -->
-        <button id="btn-portal-logout" class="btn btn-sm btn-logout-pill" title="Keluar ke Halaman Login">
-          <i class="fa-solid fa-right-from-bracket"></i> <span>KELUAR</span>
+        <!-- Tombol 2: Panel Admin -->
+        <button class="nav-tab-btn header-action-btn" data-target="tab-admin" id="nav-btn-admin" title="Panel Administrator">
+          <i class="fa-solid fa-shield-halved action-icon"></i>
+          <span class="action-caption">Admin</span>
+        </button>
+
+        <!-- Tombol 3: Ganti Tema -->
+        <button id="theme-toggle-btn" class="header-action-btn" title="Ganti Tema Terang/Gelap" aria-label="Ganti Tema">
+          <i class="fa-solid fa-sun light-icon action-icon"></i>
+          <i class="fa-solid fa-moon dark-icon action-icon"></i>
+          <span class="action-caption">Tema</span>
+        </button>
+
+        <!-- Tombol 4: Keluar -->
+        <button id="btn-portal-logout" class="header-action-btn btn-action-logout" title="Keluar ke Halaman Login">
+          <i class="fa-solid fa-right-from-bracket action-icon"></i>
+          <span class="action-caption">Keluar</span>
         </button>
       </div>
+
     </header>
 
     <!-- Content Sections -->
@@ -96,23 +104,21 @@
 
         <div id="view-teacher-portal" class="portal-view">
           
-          <!-- Compact Active Teacher Bar -->
+          <!-- Clean Active Teacher Bar (Hanya Nama dan NIP) -->
           <div class="teacher-compact-bar" id="teacher-profile-banner">
             <div class="teacher-info-group">
               <div class="teacher-avatar-mini">
                 <i class="fa-solid fa-user-graduate"></i>
               </div>
-              <div>
+              <div class="teacher-text-details">
                 <h2 class="teacher-title-mini" id="active-teacher-name">MUCHAMAD ISKAK FATONI, S.Pd.</h2>
-                <div class="teacher-meta-chips" style="display: flex; gap: 8px; margin-top: 4px; font-size: 0.8rem; color: var(--text-secondary);">
-                  <span><i class="fa-solid fa-id-card"></i> NIP: <strong id="active-teacher-nip" class="font-mono">-</strong></span>
-                  <span>•</span>
-                  <span><i class="fa-solid fa-chalkboard-user"></i> Kelas: <strong id="active-teacher-class">-</strong></span>
+                <div class="teacher-nip-text">
+                  <i class="fa-solid fa-id-card"></i> NIP: <strong id="active-teacher-nip" class="font-mono">-</strong>
                 </div>
               </div>
             </div>
             
-            <div class="teacher-bar-actions" style="display: flex; gap: 8px;">
+            <div class="teacher-bar-actions">
               <button id="btn-copy-personal-portal-url" class="btn btn-secondary btn-sm" title="Salin Tautan Personal">
                 <i class="fa-solid fa-link"></i> <span>Salin Link</span>
               </button>

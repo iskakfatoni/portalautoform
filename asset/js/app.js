@@ -777,8 +777,8 @@ function renderUserPortal() {
             <span class="form-card-title">${form.name}</span>
           </div>
         </div>
-        <div class="form-card-right">
-          <span class="form-card-action-btn">Buka Form <i class="fa-solid fa-arrow-up-right-from-square"></i></span>
+        <div class="form-card-right-icon">
+          <i class="fa-solid fa-arrow-up-right-from-square"></i>
         </div>
       </a>
     `;
