@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login | PORTAL:AutoForm</title>
+  <title>PORTAL:AutoForm | Masuk</title>
   <meta name="description" content="Portal administrasi dan pelaporan otomatis berbasis NIP Guru dan Manajemen Cloud Firebase.">
 
   <!-- Google Fonts -->
@@ -53,7 +53,7 @@
       </div>
     </header>
 
-    <!-- Main Content Area: Focused Login Box -->
+    <!-- Main Content Area: Focused Teacher Login -->
     <main class="content-area" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 140px);">
       
       <div class="landing-hero-card" style="width: 100%; max-width: 480px; margin: 0 auto;">
@@ -64,74 +64,31 @@
         </div>
 
         <div class="landing-text-header">
-          <h2 class="landing-title">Selamat Datang</h2>
-          <p class="landing-subtitle">Pilih opsi login untuk mengakses formulir dan administrasi otomatis.</p>
+          <h2 class="landing-title">Portal Formulir Guru</h2>
+          <p class="landing-subtitle">Masukkan NIP Anda untuk membuka seluruh tautan formulir, presensi, dan jurnal mengajar dengan isian otomatis.</p>
         </div>
 
-        <!-- Auth Mode Switcher Tabs -->
-        <div class="auth-tabs" style="display: flex; background: rgba(0,0,0,0.25); border-radius: var(--radius-md); padding: 4px; margin-bottom: 20px; gap: 4px;">
-          <button type="button" class="auth-tab-btn active btn-tab-pill" data-target="tab-auth-teacher" style="flex: 1; padding: 10px 14px; border: none; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fa-solid fa-user-graduate"></i> Guru (NIP)
+        <!-- GURU (Input NIP) -->
+        <form id="form-landing-nip" class="landing-nip-form" autocomplete="off">
+          <div class="landing-input-box">
+            <i class="fa-solid fa-id-card input-box-icon"></i>
+            <input 
+              type="text" 
+              id="landing-nip-input" 
+              class="landing-nip-input font-mono" 
+              placeholder="Masukkan 18 Digit NIP Anda..." 
+              maxlength="25" 
+              autofocus 
+              required
+            >
+          </div>
+          <button type="submit" class="btn btn-primary btn-landing-go" id="btn-landing-go" style="width: 100%; justify-content: center; padding: 0.95rem;">
+            <span>MASUK</span> <i class="fa-solid fa-right-to-bracket"></i>
           </button>
-          <button type="button" class="auth-tab-btn btn-tab-pill" data-target="tab-auth-admin" style="flex: 1; padding: 10px 14px; border: none; border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fa-solid fa-shield-halved"></i> Administrator
-          </button>
-        </div>
-
-        <!-- TAB 1: GURU (Input NIP) -->
-        <div id="tab-auth-teacher" class="auth-tab-pane active">
-          <form id="form-landing-nip" class="landing-nip-form" autocomplete="off">
-            <div class="landing-input-box">
-              <i class="fa-solid fa-id-card input-box-icon"></i>
-              <input 
-                type="text" 
-                id="landing-nip-input" 
-                class="landing-nip-input font-mono" 
-                placeholder="Masukkan 18 Digit NIP Anda..." 
-                maxlength="25" 
-                autofocus 
-                required
-              >
-            </div>
-            <button type="submit" class="btn btn-primary btn-landing-go" id="btn-landing-go" style="width: 100%; justify-content: center; padding: 0.95rem;">
-              <span>MASUK PORTAL GURU</span> <i class="fa-solid fa-right-to-bracket"></i>
-            </button>
-            <div id="landing-nip-error" class="landing-error-msg hidden">
-              <i class="fa-solid fa-circle-exclamation"></i> NIP tidak ditemukan di database. Pastikan digit NIP sudah benar.
-            </div>
-          </form>
-        </div>
-
-        <!-- TAB 2: ADMIN (Firebase Email/Password & Google) -->
-        <div id="tab-auth-admin" class="auth-tab-pane" style="display: none;">
-          <form id="admin-login-form" class="admin-auth-form" autocomplete="on">
-            <div class="input-group" style="text-align: left; margin-bottom: 14px;">
-              <label for="admin-login-email" style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                <i class="fa-solid fa-envelope"></i> Email Admin
-              </label>
-              <input type="email" id="admin-login-email" class="form-control font-mono" placeholder="iskakfatoni@gmail.com" required style="width: 100%;">
-            </div>
-
-            <div class="input-group" style="text-align: left; margin-bottom: 18px;">
-              <label for="admin-login-password" style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary);">
-                <i class="fa-solid fa-lock"></i> Password
-              </label>
-              <input type="password" id="admin-login-password" class="form-control" placeholder="Masukkan password admin..." required style="width: 100%;">
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block btn-lg" style="width: 100%; justify-content: center; padding: 0.9rem; font-weight: 700; margin-bottom: 12px;">
-              <i class="fa-solid fa-right-to-bracket"></i> MASUK SEBAGAI ADMIN
-            </button>
-
-            <button type="button" id="btn-login-google" class="btn btn-secondary btn-block" style="width: 100%; justify-content: center; padding: 0.75rem;">
-              <i class="fa-brands fa-google"></i> Masuk dengan Akun Google
-            </button>
-
-            <div id="admin-login-error" class="landing-error-msg hidden" style="margin-top: 14px;">
-              <i class="fa-solid fa-circle-exclamation"></i> Gagal masuk akun admin.
-            </div>
-          </form>
-        </div>
+          <div id="landing-nip-error" class="landing-error-msg hidden">
+            <i class="fa-solid fa-circle-exclamation"></i> NIP tidak ditemukan di database. Pastikan digit NIP sudah benar.
+          </div>
+        </form>
 
       </div>
 
