@@ -54,13 +54,32 @@ export function getActiveFirebaseConfig() {
   return DEFAULT_FIREBASE_CONFIG;
 }
 
-let app = null;
-let auth = null;
-let db = null;
-let googleProvider = null;
-let isFirebaseActive = false;
+export let app = null;
+export let auth = null;
+export let db = null;
+export let googleProvider = null;
+export let isFirebaseActive = false;
+
+export function getDb() {
+  if (!db) initFirebase();
+  return db;
+}
+
+export function getAuthInstance() {
+  if (!auth) initFirebase();
+  return auth;
+}
+
+export function isFirebaseReady() {
+  if (!isFirebaseActive) initFirebase();
+  return isFirebaseActive && db !== null;
+}
 
 export function initFirebase() {
+  if (app && db && auth) {
+    return { app, auth, db, googleProvider, isFirebaseActive: true };
+  }
+
   const config = getActiveFirebaseConfig();
   if (config.apiKey && config.apiKey !== "YOUR_API_KEY") {
     try {
@@ -68,10 +87,9 @@ export function initFirebase() {
       auth = getAuth(app);
       db = getFirestore(app);
       googleProvider = new GoogleAuthProvider();
-      // Force prompt select account
       googleProvider.setCustomParameters({ prompt: 'select_account' });
       isFirebaseActive = true;
-      console.log("Firebase connected successfully to project:", config.projectId);
+      console.log("🔥 Firebase connected successfully to project:", config.projectId);
     } catch (error) {
       console.error("Gagal inisialisasi Firebase:", error);
       isFirebaseActive = false;
@@ -84,15 +102,13 @@ export function initFirebase() {
   return { app, auth, db, googleProvider, isFirebaseActive };
 }
 
+// Inisialisasi otomatis langsung saat modul dimuat
+initFirebase();
+
 export { 
-  app, 
-  auth, 
-  db, 
-  googleProvider, 
-  isFirebaseActive,
   GoogleAuthProvider, 
   signInWithPopup, 
-  signInWithEmailAndPassword,
+  signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged,
   collection, 

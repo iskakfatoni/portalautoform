@@ -676,21 +676,21 @@ function setupFirebaseConnection() {
 }
 
 async function fetchFirestoreData() {
-  if (!db) return;
+  const activeDb = getDb();
+  if (!activeDb) return;
   try {
     // 1. Fetch Teachers
-    const teachersSnapshot = await getDocs(collection(db, "teachers"));
+    const teachersSnapshot = await getDocs(collection(activeDb, "teachers"));
     if (!teachersSnapshot.empty) {
       const fetched = [];
       teachersSnapshot.forEach(doc => {
         fetched.push(doc.data());
       });
       currentTeachers = fetched;
-      saveLocalTeachers();
     }
 
     // 2. Fetch Forms (Sinkronisasi dan Kunci Urutan Resmi)
-    const formsSnapshot = await getDocs(collection(db, "forms"));
+    const formsSnapshot = await getDocs(collection(activeDb, "forms"));
     if (!formsSnapshot.empty) {
       const fetchedForms = [];
       formsSnapshot.forEach(doc => {
@@ -700,13 +700,14 @@ async function fetchFirestoreData() {
     }
 
     // 3. Fetch Schedules (Sinkronisasi Jadwal Mengajar ke Semua Device / APK)
-    const schedulesSnapshot = await getDocs(collection(db, "schedules"));
+    const schedulesSnapshot = await getDocs(collection(activeDb, "schedules"));
     if (!schedulesSnapshot.empty) {
       const fetchedSchedules = [];
       schedulesSnapshot.forEach(doc => {
         fetchedSchedules.push(doc.data());
       });
       currentSchedules = fetchedSchedules;
+      console.log("✅ Berhasil memuat", fetchedSchedules.length, "jadwal dari Cloud Firestore.");
     }
 
     // Re-check URL parameter and re-render forms with canonical order
@@ -1223,12 +1224,11 @@ async function saveTeacherHandler(teacherData) {
     currentTeachers.unshift(teacherData);
   }
 
-  saveLocalTeachers();
-
-  if (db && isFirebaseActive) {
+  const activeDb = getDb();
+  if (activeDb) {
     try {
       const docId = teacherData.nip && teacherData.nip !== '-' ? teacherData.nip : teacherData.name.replace(/[^a-zA-Z0-9]/g, '_');
-      await setDoc(doc(db, "teachers", docId), teacherData);
+      await setDoc(doc(activeDb, "teachers", docId), teacherData);
     } catch (e) {
       console.warn("Firestore sync warning:", e);
     }
@@ -1242,12 +1242,12 @@ async function saveTeacherHandler(teacherData) {
 async function deleteTeacherHandler(teacherName) {
   const teacher = currentTeachers.find(t => t.name === teacherName);
   currentTeachers = currentTeachers.filter(t => t.name !== teacherName);
-  saveLocalTeachers();
 
-  if (db && isFirebaseActive && teacher) {
+  const activeDb = getDb();
+  if (activeDb && teacher) {
     try {
       const docId = teacher.nip && teacher.nip !== '-' ? teacher.nip : teacher.name.replace(/[^a-zA-Z0-9]/g, '_');
-      await deleteDoc(doc(db, "teachers", docId));
+      await deleteDoc(doc(activeDb, "teachers", docId));
     } catch (e) {
       console.warn("Firestore delete warning:", e);
     }
@@ -1563,9 +1563,10 @@ async function processImportedScheduleRows(rows) {
     renderScheduleTable();
 
     // Sinkronisasi ke Cloud Firestore dengan batch commit
-    if (db && isFirebaseActive) {
+    const activeDb = getDb();
+    if (activeDb) {
       try {
-        const batch = writeBatch(db);
+        const batch = writeBatch(activeDb);
         newSchedules.forEach((s) => {
           const cleanNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
           const cleanName = (s.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
@@ -1573,12 +1574,13 @@ async function processImportedScheduleRows(rows) {
           const cleanJam = (s.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
           const cleanKelas = (s.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
           const docId = `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
-          batch.set(doc(db, "schedules", docId), s);
+          batch.set(doc(activeDb, "schedules", docId), s);
         });
         await batch.commit();
+        console.log("🔥 Berhasil mengunggah", newSchedules.length, "jadwal ke Cloud Firestore!");
         showToast(`✅ Berhasil mengimpor & sinkron ${newSchedules.length} jadwal ke Cloud Firestore!`);
       } catch (e) {
-        console.warn("Gagal sync jadwal ke Firestore:", e);
+        console.error("Gagal sync jadwal ke Firestore:", e);
         showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal ke memori! (Cloud sync error: ${e.message})`);
       }
     } else {
