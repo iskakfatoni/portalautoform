@@ -252,6 +252,7 @@
                     <th>NIP</th>
                     <th>Kelas Binaan</th>
                     <th>Peran</th>
+                    <th>Link Jurnal</th>
                     <th>Aksi</th>
                   </tr>
                 </thead>
@@ -265,10 +266,14 @@
           <!-- Subtab 2: Manajemen Formulir -->
           <div id="subtab-forms" class="admin-subpane">
             <div class="admin-action-bar">
-              <h4>Daftar Google Form Terdaftar</h4>
-              <button id="btn-modal-add-form" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-plus"></i> Tambah Formulir Baru
-              </button>
+              <div>
+                <p class="section-desc">Atur link Google Form, kategori, dan Entry ID field autofill.</p>
+              </div>
+              <div>
+                <button id="btn-modal-add-form" class="btn btn-primary btn-sm">
+                  <i class="fa-solid fa-plus"></i> Tambah Formulir Baru
+                </button>
+              </div>
             </div>
 
             <!-- Forms Table -->
@@ -278,7 +283,7 @@
                   <tr>
                     <th>Nama Formulir</th>
                     <th>Kategori</th>
-                    <th>Entry Guru</th>
+                    <th>Entry Nama</th>
                     <th>Entry NIP</th>
                     <th>Entry Kelas</th>
                     <th>Status</th>
@@ -375,8 +380,11 @@
           </div>
 
           <div class="input-group">
-            <label for="edit-teacher-journal-url">Link Form Jurnal Pribadi (Opsional)</label>
-            <input type="url" id="edit-teacher-journal-url" class="form-control font-mono" placeholder="https://forms.gle/...">
+            <label for="edit-teacher-journal-url">Link Form Jurnal Pribadi (Wajib format URL Panjang /viewform)</label>
+            <input type="url" id="edit-teacher-journal-url" class="form-control font-mono" placeholder="https://docs.google.com/forms/d/e/.../viewform">
+            <small style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">
+              💡 <strong>Catatan Autofill:</strong> Wajib gunakan URL Panjang (<code>docs.google.com/forms/d/e/.../viewform</code>). Jika menggunakan shortlink <code>forms.gle</code>, Google akan menghapus parameter autofill saat redirect.
+            </small>
           </div>
 
           <div class="modal-footer">

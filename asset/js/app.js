@@ -153,6 +153,8 @@ const INITIAL_FORMS = [
     icon: "fa-solid fa-book-open-reader",
     description: "Jurnal agenda kegiatan mengajar harian, materi pembelajaran, dan catatan kelas (Auto-fill: Tanggal, Jam Ke, Kelas, Mapel).",
     baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    entryGuru: "entry.691754896",
+    entryNip: "entry.65154558",
     entryTanggal: "entry.1708105874",
     entryJamKe: "entry.585996771",
     entryKelas: "entry.666017338",
@@ -980,11 +982,23 @@ function generateFormUrlForTeacher(form, teacher) {
   const dd = String(now.getDate()).padStart(2, '0');
   const isoDate = `${yyyy}-${mm}-${dd}`;
 
+  // Helper untuk menstandarkan URL Google Forms ke mode viewform dan menghapus query lama
+  const cleanFormUrl = (url) => {
+    if (!url) return '';
+    let clean = url.trim().split('?')[0];
+    clean = clean.replace(/\/edit(\/.*)?$/, '/viewform');
+    if (clean.includes('docs.google.com/forms/d/') && !clean.endsWith('/viewform')) {
+      clean = clean.replace(/\/+$/, '') + '/viewform';
+    }
+    return clean;
+  };
+
   // 1. Form Absensi Mengajar Khusus dengan Auto-Fill Jadwal Lengkap
   if (form.id === "form_absensi_guru") {
+    const targetUrl = cleanFormUrl(form.baseUrl);
     // Identitas Guru & Tanggal selalu diisi
-    if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
-    if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
+    if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
+    if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
     if (form.entryTanggal) params.set(form.entryTanggal, isoDate);
 
     // KEBUTUHAN 1 & 2:
@@ -1003,13 +1017,21 @@ function generateFormUrlForTeacher(form, teacher) {
       console.log("[AutoForm] Tidak ada jadwal yang cocok/aktif hari ini maupun besok. Jam, Kelas, dan Mapel dikosongkan.");
     }
 
-    return `${form.baseUrl}?${params.toString()}`;
+    return `${targetUrl}?${params.toString()}`;
   }
 
   // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal Lengkap
   if (form.id === "form_jurnal_mengajar") {
-    const rawUrl = (teacher && teacher.journalFormUrl) ? teacher.journalFormUrl : form.baseUrl;
+    const rawUrl = (teacher && teacher.journalFormUrl && teacher.journalFormUrl.trim() !== '' && teacher.journalFormUrl !== '-') 
+      ? teacher.journalFormUrl.trim() 
+      : form.baseUrl;
     if (!rawUrl) return "#";
+
+    const targetUrl = cleanFormUrl(rawUrl);
+
+    // Identitas Guru (jika field entry tersedia)
+    if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
+    if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
 
     // Selalu set tanggal hari ini
     params.set(form.entryTanggal || "entry.1708105874", isoDate);
@@ -1027,17 +1049,17 @@ function generateFormUrlForTeacher(form, teacher) {
       }
     }
 
-    const separator = rawUrl.includes('?') ? '&' : '?';
-    return `${rawUrl}${separator}${params.toString()}`;
+    return `${targetUrl}?${params.toString()}`;
   }
 
   // 3. Formulir Standar Lainnya
-  if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
-  if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
-  if (form.entryKelas && teacher.class && teacher.class !== '-') {
+  const targetUrl = cleanFormUrl(form.baseUrl);
+  if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
+  if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
+  if (form.entryKelas && teacher && teacher.class && teacher.class !== '-') {
     params.set(form.entryKelas, normalizeFormClassName(teacher.class));
   }
-  return `${form.baseUrl}?${params.toString()}`;
+  return `${targetUrl}?${params.toString()}`;
 }
 
 function renderUserPortal() {
@@ -1195,6 +1217,17 @@ function renderTeachersTable(filterQuery = '') {
   }
 
   tbody.innerHTML = filtered.map((t, idx) => {
+    let journalStatusBadge = '<span class="pill-badge" style="background:rgba(150,150,150,0.15);color:var(--text-muted);font-size:0.75rem;">Default Base</span>';
+    if (t.journalFormUrl) {
+      if (t.journalFormUrl.includes('docs.google.com/forms/d/')) {
+        journalStatusBadge = `<a href="${t.journalFormUrl}" target="_blank" rel="noopener noreferrer" class="pill-badge pill-auto" style="text-decoration:none;font-size:0.75rem;" title="${t.journalFormUrl}"><i class="fa-solid fa-circle-check"></i> URL Panjang</a>`;
+      } else if (t.journalFormUrl.includes('forms.gle/')) {
+        journalStatusBadge = `<span class="pill-badge" style="background:rgba(234,179,8,0.2);color:#eab308;font-size:0.75rem;" title="Shortlink forms.gle tidak mendukung autofill. Silakan edit dan ubah ke URL viewform!"><i class="fa-solid fa-triangle-exclamation"></i> forms.gle</span>`;
+      } else {
+        journalStatusBadge = `<span class="pill-badge pill-auto" style="font-size:0.75rem;">Kustom</span>`;
+      }
+    }
+
     return `
       <tr>
         <td>${idx + 1}</td>
@@ -1202,6 +1235,7 @@ function renderTeachersTable(filterQuery = '') {
         <td class="font-mono">${t.nip || '-'}</td>
         <td><span class="badge-class">${t.class || '-'}</span></td>
         <td>${t.role || 'Guru'}</td>
+        <td>${journalStatusBadge}</td>
         <td>
           <div class="action-btns-row">
             <button class="btn-icon-action btn-edit-teacher" data-name="${t.name}" title="Edit Data">
