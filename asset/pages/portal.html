@@ -209,6 +209,9 @@
             <button class="admin-subtab-btn" data-subtarget="subtab-forms">
               <i class="fa-solid fa-list-check"></i> Manajemen Formulir
             </button>
+            <button class="admin-subtab-btn" data-subtarget="subtab-schedule">
+              <i class="fa-solid fa-calendar-days"></i> Jadwal Mengajar
+            </button>
           </div>
 
           <!-- Subtab 1: Manajemen Guru -->
@@ -272,6 +275,47 @@
                   </tr>
                 </thead>
                 <tbody id="forms-table-body">
+                  <!-- Populated by app.js -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Subtab 3: Manajemen Jadwal Mengajar -->
+          <div id="subtab-schedule" class="admin-subpane">
+            <div class="admin-action-bar">
+              <div class="search-box-admin">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="admin-schedule-search" placeholder="Cari hari, kelas, atau mapel...">
+              </div>
+              <div class="admin-btn-group">
+                <a href="../template/Template_Jadwal_Mengajar.xlsx" download class="btn btn-secondary btn-sm" title="Unduh Template Excel">
+                  <i class="fa-solid fa-download"></i> Unduh Template Excel
+                </a>
+                <label for="input-import-schedule-excel" class="btn btn-primary btn-sm" style="cursor: pointer; margin-bottom: 0;">
+                  <i class="fa-solid fa-file-import"></i> Impor Jadwal CSV/Excel
+                </label>
+                <input type="file" id="input-import-schedule-excel" accept=".xlsx, .csv" style="display: none;">
+              </div>
+            </div>
+
+            <!-- Schedule Table -->
+            <div class="table-responsive">
+              <table class="data-table" id="schedule-table">
+                <thead>
+                  <tr>
+                    <th>No</th>
+                    <th>Hari</th>
+                    <th>Jam Ke</th>
+                    <th>Waktu (WIB)</th>
+                    <th>Kelas</th>
+                    <th>Mata Pelajaran</th>
+                    <th>Nama Guru</th>
+                    <th>NIP</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="schedule-table-body">
                   <!-- Populated by app.js -->
                 </tbody>
               </table>

@@ -133,13 +133,16 @@ const INITIAL_FORMS = [
     name: "FORM ABSENSI MENGAJAR",
     category: "Presensi",
     icon: "fa-solid fa-clipboard-user",
-    description: "Presensi dan laporan kegiatan mengajar harian (Auto-fill: Nama Guru & NIP).",
+    description: "Presensi dan laporan kegiatan mengajar harian (Auto-fill: Nama, NIP, Hari/Tanggal, Jam Ke, Kelas, Mapel).",
     baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfrm87oC00zamhQQBP4LS5BcwxSHa97M9plvLpYUHQ7dR-ybQ/viewform",
     entryGuru: "entry.691754896",
     entryNip: "entry.65154558",
+    entryTanggal: "entry.1708105874",
+    entryJamKe: "entry.585996771",
     entryKelas: "entry.666017338",
+    entryMapel: "entry.73505426",
     isActive: true,
-    statusBadge: "Aktif & Terhubung"
+    statusBadge: "Auto-Fill Jadwal Aktif"
   },
   {
     orderIndex: 2,
@@ -199,6 +202,135 @@ const INITIAL_FORMS = [
   }
 ];
 
+// Master Template Data Jadwal Mengajar Guru
+const INITIAL_SCHEDULES = [
+  {
+    nip: "198109092022211004",
+    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+    hari: "Senin",
+    jamKe: "1-4",
+    jamMulai: "07:00",
+    jamSelesai: "10:00",
+    kelas: "XII TEI 2",
+    mataPelajaran: "Penerapan Sistem Radio dan Televisi",
+    keterangan: "Lab Elektronika"
+  },
+  {
+    nip: "198109092022211004",
+    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+    hari: "Senin",
+    jamKe: "5-8",
+    jamMulai: "10:15",
+    jamSelesai: "13:30",
+    kelas: "XI TEI 1",
+    mataPelajaran: "Mikroprosesor dan Mikrokontroler",
+    keterangan: "Lab Komputer"
+  },
+  {
+    nip: "198109092022211004",
+    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+    hari: "Selasa",
+    jamKe: "1-4",
+    jamMulai: "07:00",
+    jamSelesai: "10:00",
+    kelas: "XII TEI 1",
+    mataPelajaran: "Teknik Kontrol Sistem Robotik",
+    keterangan: "Lab Robotika"
+  },
+  {
+    nip: "198109092022211004",
+    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+    hari: "Rabu",
+    jamKe: "1-4",
+    jamMulai: "07:00",
+    jamSelesai: "10:00",
+    kelas: "XII TEI 2",
+    mataPelajaran: "Teknik Kontrol Sistem Robotik",
+    keterangan: "Lab Elektronika"
+  },
+  {
+    nip: "198109092022211004",
+    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+    hari: "Kamis",
+    jamKe: "5-8",
+    jamMulai: "10:15",
+    jamSelesai: "13:30",
+    kelas: "X TEI 1",
+    mataPelajaran: "Dasar-Dasar Teknik Elektronika",
+    keterangan: "Ruang Teori"
+  },
+  {
+    nip: "198109092022211004",
+    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+    hari: "Jumat",
+    jamKe: "1-3",
+    jamMulai: "07:00",
+    jamSelesai: "09:15",
+    kelas: "XII TEI 2",
+    mataPelajaran: "Projek Kreatif dan Kewirausahaan",
+    keterangan: "Lab TEI"
+  }
+];
+
+// Format Pilihan Kelas Resmi di Google Form Absen Mengajar
+const FORM_CLASS_OPTIONS = [
+  "X  TAV", "X  TEI 1", "X  TEI 2", "X  TPL 1", "X  TPL 2", "X  TPM 1", "X  TPM 2", "X  TKR1", "X  TKR2", "X  TBKR", "X  TSM 1", "X  TSM 2", "X  DKV 1", "X  DKV 2", "X  DKV 3",
+  "XI  TAV", "XI  TEI 1", "XI  TEI 2", "XI  TPL 1", "XI  TPL 2", "XI  TPM 1", "XI  TPM 2", "XI  TKR1", "XI  TKR2", "XI  TBKR", "XI  TSM 1", "XI  TSM 2", "XI  DKV 1", "XI  DKV 2", "XI  DKV 3",
+  "XII  TAV", "XII  TEI 1", "XII  TEI 2", "XII  TPL 1", "XII  TPL 2", "XII  TPM 1", "XII  TPM 2", "XII  TKR1", "XII  TKR2", "XII  TBKR", "XII  TSM 1", "XII  TSM 2", "XII DKV 1", "XII  DKV 2", "XII  DKV 3"
+];
+
+function normalizeFormClassName(rawClass) {
+  if (!rawClass || rawClass === '-') return '';
+  const clean = rawClass.trim().replace(/\s+/g, ' ');
+  const exact = FORM_CLASS_OPTIONS.find(opt => opt.replace(/\s+/g, ' ').toUpperCase() === clean.toUpperCase());
+  if (exact) return exact;
+
+  if (clean.startsWith('XII ')) return clean.replace('XII ', 'XII  ');
+  if (clean.startsWith('XI ')) return clean.replace('XI ', 'XI  ');
+  if (clean.startsWith('X ')) return clean.replace('X ', 'X  ');
+  return clean;
+}
+
+const INDONESIAN_DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+function getActiveTeacherSchedule(teacher, now = new Date()) {
+  if (!teacher) return null;
+  const teacherNip = (teacher.nip || '').trim().replace(/[\s\.\-]+/g, '');
+  const teacherName = (teacher.name || '').trim().toLowerCase();
+
+  const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : INITIAL_SCHEDULES;
+  const teacherSchedules = schedules.filter(s => {
+    const sNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '');
+    if (sNip && teacherNip && sNip === teacherNip) return true;
+    if (s.name && s.name.trim().toLowerCase() === teacherName) return true;
+    return false;
+  });
+
+  if (teacherSchedules.length === 0) return null;
+
+  const currentDay = INDONESIAN_DAYS[now.getDay()];
+  const currentHours = String(now.getHours()).padStart(2, '0');
+  const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+  const currentTimeStr = `${currentHours}:${currentMinutes}`;
+
+  // 1. Filter schedule for today
+  const todaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === currentDay.toLowerCase());
+
+  if (todaySchedules.length > 0) {
+    const activeSlot = todaySchedules.find(s => {
+      if (s.jamMulai && s.jamSelesai) {
+        return currentTimeStr >= s.jamMulai && currentTimeStr <= s.jamSelesai;
+      }
+      return false;
+    });
+
+    if (activeSlot) return activeSlot;
+    return todaySchedules[0];
+  }
+
+  return teacherSchedules[0];
+}
+
 function sortAndNormalizeForms(formsList) {
   if (!formsList || formsList.length === 0) return [...INITIAL_FORMS];
 
@@ -211,7 +343,10 @@ function sortAndNormalizeForms(formsList) {
         name: initForm.name,
         icon: initForm.icon,
         category: initForm.category,
-        orderIndex: initForm.orderIndex
+        orderIndex: initForm.orderIndex,
+        entryTanggal: initForm.entryTanggal,
+        entryJamKe: initForm.entryJamKe,
+        entryMapel: initForm.entryMapel
       });
     } else {
       ordered.push({ ...initForm });
@@ -231,6 +366,7 @@ function sortAndNormalizeForms(formsList) {
 // State Aplikasi
 let currentTeachers = [...INITIAL_TEACHERS];
 let currentForms = [...INITIAL_FORMS];
+let currentSchedules = [...INITIAL_SCHEDULES];
 let activeTeacher = {
   name: "MUCHAMAD ISKAK FATONI, S.Pd.",
   nip: "198109092022211004",
@@ -340,11 +476,19 @@ function initNavigation() {
     });
   }
 
-  // Admin Search
+  // Admin Search Guru
   const adminSearch = document.getElementById('admin-teacher-search');
   if (adminSearch) {
     adminSearch.addEventListener('input', () => {
       renderTeachersTable(adminSearch.value.trim());
+    });
+  }
+
+  // Admin Search Jadwal Mengajar
+  const adminSchedSearch = document.getElementById('admin-schedule-search');
+  if (adminSchedSearch) {
+    adminSchedSearch.addEventListener('input', () => {
+      renderScheduleTable(adminSchedSearch.value.trim());
     });
   }
 }
@@ -564,6 +708,12 @@ function loadLocalState() {
   } else {
     currentForms = [...INITIAL_FORMS];
   }
+  const savedSchedules = localStorage.getItem('portal_schedule_data');
+  if (savedSchedules) {
+    try { currentSchedules = JSON.parse(savedSchedules); } catch (e) {}
+  } else {
+    currentSchedules = [...INITIAL_SCHEDULES];
+  }
 }
 
 function saveLocalTeachers() {
@@ -572,6 +722,10 @@ function saveLocalTeachers() {
 
 function saveLocalForms() {
   localStorage.setItem('portal_forms_data', JSON.stringify(currentForms));
+}
+
+function saveLocalSchedules() {
+  localStorage.setItem('portal_schedule_data', JSON.stringify(currentSchedules));
 }
 
 /* ==========================================================================
@@ -782,19 +936,51 @@ function generateFormUrlForTeacher(form, teacher) {
 
   const params = new URLSearchParams();
   params.set('usp', 'pp_url');
+
+  const now = new Date();
+  const todaySchedule = getActiveTeacherSchedule(teacher, now);
+
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const isoDate = `${yyyy}-${mm}-${dd}`;
+
+  // 1. Form Absensi Mengajar Khusus dengan Auto-Fill Jadwal Lengkap
+  if (form.id === "form_absensi_guru") {
+    if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
+    if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
+    
+    // Hari/Tanggal (entry.1708105874)
+    if (form.entryTanggal) {
+      params.set(form.entryTanggal, isoDate);
+    }
+
+    // Jam Ke (entry.585996771)
+    if (form.entryJamKe) {
+      const jamKeVal = todaySchedule ? todaySchedule.jamKe : "1-2";
+      params.set(form.entryJamKe, jamKeVal);
+    }
+
+    // Kelas (entry.666017338)
+    if (form.entryKelas) {
+      const targetClass = (todaySchedule && todaySchedule.kelas) ? todaySchedule.kelas : (teacher.class || "XII TEI 2");
+      params.set(form.entryKelas, normalizeFormClassName(targetClass));
+    }
+
+    // Mata Pelajaran (entry.73505426)
+    if (form.entryMapel) {
+      const mapelVal = (todaySchedule && todaySchedule.mataPelajaran) ? todaySchedule.mataPelajaran : "Teknik Elektronika Industri";
+      params.set(form.entryMapel, mapelVal);
+    }
+
+    return `${form.baseUrl}?${params.toString()}`;
+  }
+
+  // 2. Formulir Standar Lainnya
   if (form.entryGuru && teacher.name) params.set(form.entryGuru, teacher.name);
   if (form.entryNip && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
   if (form.entryKelas && teacher.class && teacher.class !== '-') {
-    let classVal = teacher.class;
-    // Format khusus Absen Mengajar jika menggunakan spasi ganda (misal "XII  TEI 2")
-    if (form.id === "form_absensi_guru" && classVal.includes("XII ")) {
-      classVal = classVal.replace("XII ", "XII  ");
-    } else if (form.id === "form_absensi_guru" && classVal.includes("XI ")) {
-      classVal = classVal.replace("XI ", "XI  ");
-    } else if (form.id === "form_absensi_guru" && classVal.includes("X ")) {
-      classVal = classVal.replace("X ", "X  ");
-    }
-    params.set(form.entryKelas, classVal);
+    params.set(form.entryKelas, normalizeFormClassName(teacher.class));
   }
   return `${form.baseUrl}?${params.toString()}`;
 }
@@ -847,6 +1033,71 @@ function renderAdminTables() {
 
   renderTeachersTable();
   renderFormsTable();
+  renderScheduleTable();
+}
+
+function renderScheduleTable(filterQuery = '') {
+  const tbody = document.getElementById('schedule-table-body');
+  if (!tbody) return;
+
+  const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : INITIAL_SCHEDULES;
+  let filtered = schedules;
+  if (filterQuery) {
+    const q = filterQuery.toLowerCase();
+    filtered = schedules.filter(s => 
+      (s.hari && s.hari.toLowerCase().includes(q)) ||
+      (s.kelas && s.kelas.toLowerCase().includes(q)) ||
+      (s.mataPelajaran && s.mataPelajaran.toLowerCase().includes(q)) ||
+      (s.name && s.name.toLowerCase().includes(q)) ||
+      (s.nip && s.nip.includes(q))
+    );
+  }
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada jadwal mengajar yang cocok.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((s, idx) => {
+    const timeRange = (s.jamMulai && s.jamSelesai) ? `${s.jamMulai} - ${s.jamSelesai}` : '-';
+    return `
+      <tr>
+        <td>${idx + 1}</td>
+        <td><strong>${s.hari || '-'}</strong></td>
+        <td><span class="badge-class">${s.jamKe || '-'}</span></td>
+        <td class="font-mono">${timeRange}</td>
+        <td><strong>${s.kelas || '-'}</strong></td>
+        <td>${s.mataPelajaran || '-'}</td>
+        <td>${s.name || '-'}</td>
+        <td class="font-mono">${s.nip || '-'}</td>
+        <td>
+          <div class="action-btns-row">
+            <button class="btn-icon-action btn-del btn-del-schedule" data-index="${idx}" title="Hapus Jadwal">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  tbody.querySelectorAll('.btn-del-schedule').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.getAttribute('data-index'), 10);
+      if (confirm('Yakin ingin menghapus jadwal ini?')) {
+        deleteScheduleHandler(idx);
+      }
+    });
+  });
+}
+
+function deleteScheduleHandler(index) {
+  if (currentSchedules && currentSchedules[index]) {
+    currentSchedules.splice(index, 1);
+    saveLocalSchedules();
+    renderScheduleTable();
+    showToast('Jadwal berhasil dihapus.');
+  }
 }
 
 function renderTeachersTable(filterQuery = '') {
@@ -1199,6 +1450,106 @@ function initImportExport() {
       };
       reader.readAsArrayBuffer(file);
     });
+  }
+
+  // Impor Jadwal Mengajar Excel / CSV
+  const inputImportSchedule = document.getElementById('input-import-schedule-excel');
+  if (inputImportSchedule) {
+    inputImportSchedule.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const xlsxLib = window.XLSX;
+      if (!xlsxLib) {
+        showToast('Library Excel belum selesai dimuat. Silakan coba sesaat lagi.');
+        return;
+      }
+
+      showToast(`Membaca jadwal dari ${file.name}...`);
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        try {
+          const data = new Uint8Array(event.target.result);
+          const workbook = xlsxLib.read(data, { type: 'array' });
+          const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          const rows = xlsxLib.utils.sheet_to_json(firstSheet, { header: 1 });
+          await processImportedScheduleRows(rows);
+        } catch (err) {
+          console.error("Gagal membaca file Excel Jadwal:", err);
+          showToast(`❌ Gagal membaca file jadwal: ${err.message}`);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+      inputImportSchedule.value = '';
+    });
+  }
+}
+
+async function processImportedScheduleRows(rows) {
+  if (!rows || rows.length <= 1) {
+    showToast("❌ File jadwal kosong atau tidak memiliki baris data.");
+    return;
+  }
+
+  const headerRow = rows[0].map(h => String(h || '').trim().toLowerCase());
+  
+  let nipIdx = headerRow.findIndex(h => h.includes("nip"));
+  let nameIdx = headerRow.findIndex(h => h.includes("nama"));
+  let hariIdx = headerRow.findIndex(h => h.includes("hari"));
+  let jamKeIdx = headerRow.findIndex(h => h.includes("jam_ke") || h.includes("jam ke") || h.includes("sesi"));
+  let jamMulaiIdx = headerRow.findIndex(h => h.includes("jam_mulai") || h.includes("jam mulai") || h.includes("mulai"));
+  let jamSelesaiIdx = headerRow.findIndex(h => h.includes("jam_selesai") || h.includes("jam selesai") || h.includes("selesai"));
+  let kelasIdx = headerRow.findIndex(h => h.includes("kelas"));
+  let mapelIdx = headerRow.findIndex(h => h.includes("mapel") || h.includes("pelajaran"));
+  let ketIdx = headerRow.findIndex(h => h.includes("ket") || h.includes("ruang"));
+
+  if (nipIdx === -1) nipIdx = 0;
+  if (nameIdx === -1) nameIdx = 1;
+  if (hariIdx === -1) hariIdx = 2;
+  if (jamKeIdx === -1) jamKeIdx = 3;
+  if (jamMulaiIdx === -1) jamMulaiIdx = 4;
+  if (jamSelesaiIdx === -1) jamSelesaiIdx = 5;
+  if (kelasIdx === -1) kelasIdx = 6;
+  if (mapelIdx === -1) mapelIdx = 7;
+  if (ketIdx === -1) ketIdx = 8;
+
+  const newSchedules = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r || r.length === 0) continue;
+
+    const nip = String(r[nipIdx] || '').trim();
+    const name = String(r[nameIdx] || '').trim();
+    const hari = String(r[hariIdx] || '').trim();
+    const jamKe = String(r[jamKeIdx] || '').trim();
+    const jamMulai = String(r[jamMulaiIdx] || '').trim();
+    const jamSelesai = String(r[jamSelesaiIdx] || '').trim();
+    const kelas = String(r[kelasIdx] || '').trim();
+    const mataPelajaran = String(r[mapelIdx] || '').trim();
+    const keterangan = String(r[ketIdx] || '').trim();
+
+    if (!hari && !kelas && !name) continue;
+
+    newSchedules.push({
+      nip,
+      name,
+      hari,
+      jamKe,
+      jamMulai,
+      jamSelesai,
+      kelas,
+      mataPelajaran,
+      keterangan
+    });
+  }
+
+  if (newSchedules.length > 0) {
+    currentSchedules = newSchedules;
+    saveLocalSchedules();
+    renderScheduleTable();
+    showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal mengajar!`);
+  } else {
+    showToast("⚠️ Tidak ada data jadwal valid yang terbaca dari file.");
   }
 }
 
