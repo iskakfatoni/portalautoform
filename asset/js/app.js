@@ -397,19 +397,13 @@ function checkUrlParamsForTeacher() {
   if (demoAdmin) {
     switchToAdminPanel();
     return;
-  }
-
-  // Jika belum login dan membuka portal langsung, fallback ke guru pertama atau redirect ke index.html
-  if (teachersList && teachersList.length > 0) {
-    showPortalView(teachersList[0]);
-  } else {
-    showLandingView();
-  }
+  // Jika tidak ada NIP valid dan bukan admin, tolak akses dan kembali ke login
+  showLandingView();
 }
 
 function showLandingView() {
-  // Jika tidak ada sesi sama sekali, redirect ke halaman login
-  window.location.href = '../../index.html';
+  // Redirect paksa ke halaman login utama
+  window.location.replace('../../index.html');
 }
 
 function showPortalView(teacher) {
