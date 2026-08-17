@@ -7,6 +7,7 @@ import {
   initFirebase,
   auth,
   db,
+  getDb,
   googleProvider,
   isFirebaseActive,
   signInWithPopup,
@@ -701,9 +702,13 @@ function setupFirebaseConnection() {
 
 async function fetchFirestoreData() {
   const activeDb = getDb();
-  if (!activeDb) return;
+  if (!activeDb) {
+    console.warn("⚠️ activeDb belum tersedia saat fetchFirestoreData dipanggil.");
+    return;
+  }
+
+  // 1. Fetch Teachers
   try {
-    // 1. Fetch Teachers
     const teachersSnapshot = await getDocs(collection(activeDb, "teachers"));
     if (!teachersSnapshot.empty) {
       const fetched = [];
@@ -711,9 +716,14 @@ async function fetchFirestoreData() {
         fetched.push(doc.data());
       });
       currentTeachers = fetched;
+      console.log(`[Firestore] ✅ ${fetched.length} guru berhasil dimuat.`);
     }
+  } catch (err) {
+    console.error("❌ Error membaca koleksi 'teachers':", err);
+  }
 
-    // 2. Fetch Forms (Sinkronisasi dan Kunci Urutan Resmi)
+  // 2. Fetch Forms (Sinkronisasi dan Kunci Urutan Resmi)
+  try {
     const formsSnapshot = await getDocs(collection(activeDb, "forms"));
     if (!formsSnapshot.empty) {
       const fetchedForms = [];
@@ -721,9 +731,14 @@ async function fetchFirestoreData() {
         fetchedForms.push({ id: doc.id, ...doc.data() });
       });
       currentForms = sortAndNormalizeForms(fetchedForms);
+      console.log(`[Firestore] ✅ ${fetchedForms.length} formulir berhasil dimuat.`);
     }
+  } catch (err) {
+    console.error("❌ Error membaca koleksi 'forms':", err);
+  }
 
-    // 3. Fetch Schedules (Sinkronisasi Jadwal Mengajar ke Semua Device / APK)
+  // 3. Fetch Schedules (Sinkronisasi Jadwal Mengajar ke Semua Device / APK)
+  try {
     const schedulesSnapshot = await getDocs(collection(activeDb, "schedules"));
     if (!schedulesSnapshot.empty) {
       const fetchedSchedules = [];
@@ -731,20 +746,22 @@ async function fetchFirestoreData() {
         fetchedSchedules.push(doc.data());
       });
       currentSchedules = fetchedSchedules;
-      console.log("✅ Berhasil memuat", fetchedSchedules.length, "jadwal dari Cloud Firestore.");
-    }
-
-    // Re-check URL parameter and re-render forms with canonical order
-    const adminTab = document.getElementById('tab-admin');
-    if (adminTab && adminTab.classList.contains('active')) {
-      renderAdminTables();
+      console.log(`[Firestore] ✅ ${fetchedSchedules.length} jadwal berhasil dimuat.`);
     } else {
-      checkUrlParamsForTeacher();
-      renderUserPortal();
-      renderAdminTables();
+      console.warn("[Firestore] ⚠️ Koleksi 'schedules' di Firestore kosong (0 dokumen).");
     }
-  } catch (error) {
-    console.warn("Gagal memuat data dari Firestore:", error);
+  } catch (err) {
+    console.error("❌ Error membaca koleksi 'schedules':", err);
+  }
+
+  // Re-check URL parameter and re-render forms with canonical order
+  const adminTab = document.getElementById('tab-admin');
+  if (adminTab && adminTab.classList.contains('active')) {
+    renderAdminTables();
+  } else {
+    checkUrlParamsForTeacher();
+    renderUserPortal();
+    renderAdminTables();
   }
 }
 
