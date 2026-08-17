@@ -30,7 +30,7 @@ const INITIAL_TEACHERS = [
     "nip": "196706281992031005",
     "class": "X TAV",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/BeJzAbXvcmBDChdM7"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfkbps0npjehTlYmsKU0-Wk0asBRldMI6Le293RIrT1S-JLvg/viewform"
   },
   {
     "orderIndex": 2,
