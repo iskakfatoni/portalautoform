@@ -17,14 +17,26 @@
   <!-- Favicon -->
   <link rel="icon" type="image/webp" href="../image/logo-smkn1jetis.webp">
 
-  <!-- Early Route Protection Guard -->
+  <!-- Early Route Protection Guard & Theme Auto Detection -->
   <script>
     (function() {
+      // 1. Route guard
       const params = new URLSearchParams(window.location.search);
       const nip = params.get('nip') || localStorage.getItem('portal_logged_nip');
       const admin = params.get('admin') === 'true' || sessionStorage.getItem('portal_demo_admin');
       if (!nip && !admin) {
         window.location.replace('../../index.html');
+      }
+
+      // 2. Theme auto detection
+      const saved = localStorage.getItem('portal_theme');
+      const isLight = saved === 'light' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+      if (isLight) {
+        document.documentElement.classList.add('theme-light-init');
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.classList.remove('dark-mode');
+          document.body.classList.add('light-mode');
+        });
       }
     })();
   </script>

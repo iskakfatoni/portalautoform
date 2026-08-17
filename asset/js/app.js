@@ -1670,19 +1670,47 @@ function fallbackCopy(text) {
   document.body.removeChild(el);
 }
 
-function initTheme() {
-  const btn = document.getElementById('theme-toggle-btn');
-  const saved = localStorage.getItem('portal_theme') || 'dark';
-  if (saved === 'light') {
+function getPreferredTheme() {
+  const saved = localStorage.getItem('portal_theme');
+  if (saved === 'light' || saved === 'dark') {
+    return saved;
+  }
+  // Auto detect dari pengaturan HP/OS pengguna
+  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    return 'light';
+  }
+  return 'dark';
+}
+
+function applyTheme(theme) {
+  if (theme === 'light') {
     document.body.classList.remove('dark-mode');
     document.body.classList.add('light-mode');
+  } else {
+    document.body.classList.remove('light-mode');
+    document.body.classList.add('dark-mode');
   }
+}
+
+function initTheme() {
+  applyTheme(getPreferredTheme());
+
+  // Listener perubahan tema HP secara real-time
+  if (window.matchMedia) {
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('portal_theme')) {
+        applyTheme(e.matches ? 'dark' : 'light');
+      }
+    });
+  }
+
+  const btn = document.getElementById('theme-toggle-btn');
   if (btn) {
     btn.addEventListener('click', () => {
       const isDark = document.body.classList.contains('dark-mode');
-      document.body.classList.toggle('dark-mode', !isDark);
-      document.body.classList.toggle('light-mode', isDark);
-      localStorage.setItem('portal_theme', isDark ? 'light' : 'dark');
+      const newTheme = isDark ? 'light' : 'dark';
+      applyTheme(newTheme);
+      localStorage.setItem('portal_theme', newTheme);
     });
   }
 }

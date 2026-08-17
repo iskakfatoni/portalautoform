@@ -17,6 +17,21 @@
   <!-- Favicon -->
   <link rel="icon" type="image/webp" href="asset/image/logo-smkn1jetis.webp">
 
+  <!-- Early Theme Detection Guard (Auto System / Saved) -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('portal_theme');
+      const isLight = saved === 'light' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+      if (isLight) {
+        document.documentElement.classList.add('theme-light-init');
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.classList.remove('dark-mode');
+          document.body.classList.add('light-mode');
+        });
+      }
+    })();
+  </script>
+
   <link rel="stylesheet" href="asset/css/style.css">
 </head>
 <body class="dark-mode">
