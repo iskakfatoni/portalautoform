@@ -202,75 +202,8 @@ const INITIAL_FORMS = [
   }
 ];
 
-// Master Template Data Jadwal Mengajar Guru
-const INITIAL_SCHEDULES = [
-  {
-    nip: "198109092022211004",
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-    hari: "Senin",
-    jamKe: "1-4",
-    jamMulai: "07:00",
-    jamSelesai: "10:00",
-    kelas: "XII TEI 2",
-    mataPelajaran: "Penerapan Sistem Radio dan Televisi",
-    keterangan: "Lab Elektronika"
-  },
-  {
-    nip: "198109092022211004",
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-    hari: "Senin",
-    jamKe: "5-8",
-    jamMulai: "10:15",
-    jamSelesai: "13:30",
-    kelas: "XI TEI 1",
-    mataPelajaran: "Mikroprosesor dan Mikrokontroler",
-    keterangan: "Lab Komputer"
-  },
-  {
-    nip: "198109092022211004",
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-    hari: "Selasa",
-    jamKe: "1-4",
-    jamMulai: "07:00",
-    jamSelesai: "10:00",
-    kelas: "XII TEI 1",
-    mataPelajaran: "Teknik Kontrol Sistem Robotik",
-    keterangan: "Lab Robotika"
-  },
-  {
-    nip: "198109092022211004",
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-    hari: "Rabu",
-    jamKe: "1-4",
-    jamMulai: "07:00",
-    jamSelesai: "10:00",
-    kelas: "XII TEI 2",
-    mataPelajaran: "Teknik Kontrol Sistem Robotik",
-    keterangan: "Lab Elektronika"
-  },
-  {
-    nip: "198109092022211004",
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-    hari: "Kamis",
-    jamKe: "5-8",
-    jamMulai: "10:15",
-    jamSelesai: "13:30",
-    kelas: "X TEI 1",
-    mataPelajaran: "Dasar-Dasar Teknik Elektronika",
-    keterangan: "Ruang Teori"
-  },
-  {
-    nip: "198109092022211004",
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-    hari: "Jumat",
-    jamKe: "1-3",
-    jamMulai: "07:00",
-    jamSelesai: "09:15",
-    kelas: "XII TEI 2",
-    mataPelajaran: "Projek Kreatif dan Kewirausahaan",
-    keterangan: "Lab TEI"
-  }
-];
+// Master Data Jadwal Mengajar Guru (Dimuat langsung dari Cloud Firestore)
+const INITIAL_SCHEDULES = [];
 
 // Format Pilihan Kelas Resmi di Google Form Absen Mengajar
 const FORM_CLASS_OPTIONS = [
@@ -453,8 +386,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Setup dropdown kelas di modal
   populateClassDropdowns();
 
-  // Load dataset lokal tersimpan (jika ada)
-  loadLocalState();
+  // Bersihkan cache lokal usang agar data 100% murni memori & Cloud Firestore
+  localStorage.removeItem('portal_teachers_data');
+  localStorage.removeItem('portal_forms_data');
+  localStorage.removeItem('portal_schedule_data');
 
   // Setup Portal Guru (Attach MASUK button and NIP listeners immediately!)
   setupUserPortal();
@@ -740,7 +675,6 @@ async function fetchFirestoreData() {
         fetchedForms.push({ id: doc.id, ...doc.data() });
       });
       currentForms = sortAndNormalizeForms(fetchedForms);
-      saveLocalForms();
     }
 
     // 3. Fetch Schedules (Sinkronisasi Jadwal Mengajar ke Semua Device / APK)
@@ -751,7 +685,6 @@ async function fetchFirestoreData() {
         fetchedSchedules.push(doc.data());
       });
       currentSchedules = fetchedSchedules;
-      saveLocalSchedules();
     }
 
     // Re-check URL parameter and re-render forms with canonical order
@@ -766,42 +699,6 @@ async function fetchFirestoreData() {
   } catch (error) {
     console.warn("Gagal memuat data dari Firestore:", error);
   }
-}
-
-function loadLocalState() {
-  const savedTeachers = localStorage.getItem('portal_teachers_data');
-  if (savedTeachers) {
-    try { currentTeachers = JSON.parse(savedTeachers); } catch (e) {}
-  }
-  const savedForms = localStorage.getItem('portal_forms_data');
-  if (savedForms) {
-    try {
-      const parsed = JSON.parse(savedForms);
-      currentForms = sortAndNormalizeForms(parsed);
-    } catch (e) {
-      currentForms = [...INITIAL_FORMS];
-    }
-  } else {
-    currentForms = [...INITIAL_FORMS];
-  }
-  const savedSchedules = localStorage.getItem('portal_schedule_data');
-  if (savedSchedules) {
-    try { currentSchedules = JSON.parse(savedSchedules); } catch (e) {}
-  } else {
-    currentSchedules = [...INITIAL_SCHEDULES];
-  }
-}
-
-function saveLocalTeachers() {
-  localStorage.setItem('portal_teachers_data', JSON.stringify(currentTeachers));
-}
-
-function saveLocalForms() {
-  localStorage.setItem('portal_forms_data', JSON.stringify(currentForms));
-}
-
-function saveLocalSchedules() {
-  localStorage.setItem('portal_schedule_data', JSON.stringify(currentSchedules));
 }
 
 /* ==========================================================================

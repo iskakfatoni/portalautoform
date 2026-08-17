@@ -119,7 +119,7 @@ let teachersData = [...INITIAL_TEACHERS];
 
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
-  loadSavedTeachers();
+  await loadSavedTeachers();
   initLoginTabs();
   initTeacherLogin();
   initAdminLogin();
@@ -175,15 +175,23 @@ function initTheme() {
   }
 }
 
-// 2. Load Local Data / Sync Cloud
-function loadSavedTeachers() {
-  const localData = localStorage.getItem('portal_teachers_data');
-  if (localData) {
-    try {
-      teachersData = JSON.parse(localData);
-    } catch (e) {
-      teachersData = [...INITIAL_TEACHERS];
+// 2. Load Real-Time Teachers from Cloud Firestore / Memory
+async function loadSavedTeachers() {
+  localStorage.removeItem('portal_teachers_data');
+  teachersData = [...INITIAL_TEACHERS];
+
+  try {
+    const { isFirebaseActive: active } = initFirebase();
+    if (active && db) {
+      const snapshot = await getDocs(collection(db, "teachers"));
+      if (!snapshot.empty) {
+        const fetched = [];
+        snapshot.forEach(doc => fetched.push(doc.data()));
+        teachersData = fetched;
+      }
     }
+  } catch (e) {
+    console.warn("Firestore fetch error di halaman login:", e);
   }
 }
 
