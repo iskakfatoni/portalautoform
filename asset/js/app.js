@@ -1630,72 +1630,8 @@ function initModals() {
     });
   }
 
-  // 5. Button Sync All to Firestore
-  const btnSyncFirestore = document.getElementById('btn-sync-all-to-firestore');
-  if (btnSyncFirestore) {
-    btnSyncFirestore.addEventListener('click', async () => {
-      await syncLocalToFirestore();
-    });
-  }
-
-  // 6. In-App Google Form Viewer Modal Events
+  // 5. In-App Google Form Viewer Modal Events
   setupFormViewerEvents();
-}
-
-async function syncLocalToFirestore() {
-  if (!db) {
-    alert('Firebase belum terhubung. Pastikan internet aktif dan kredensial Firebase benar.');
-    showToast('⚠️ Firebase belum terhubung atau sedang offline!');
-    return;
-  }
-
-  try {
-    showToast('⏳ Memulai upload 92 guru & 5 formulir ke Firestore...');
-
-    // 1. Upload Teachers
-    const teachersCol = collection(db, "teachers");
-    let batch = writeBatch(db);
-    let count = 0;
-
-    for (const teacher of currentTeachers) {
-      const docId = teacher.nip && teacher.nip !== '-' 
-        ? String(teacher.nip).replace(/[\s\.\-]+/g, '') 
-        : teacher.name.replace(/[^a-zA-Z0-9]/g, '_');
-      
-      const teacherRef = doc(teachersCol, docId);
-      batch.set(teacherRef, teacher, { merge: true });
-      count++;
-
-      if (count % 200 === 0) {
-        await batch.commit();
-        batch = writeBatch(db);
-      }
-    }
-    await batch.commit();
-
-    // 2. Upload Forms
-    const formsCol = collection(db, "forms");
-    const formsBatch = writeBatch(db);
-    for (const form of currentForms) {
-      const formRef = doc(formsCol, form.id);
-      formsBatch.set(formRef, form, { merge: true });
-    }
-    await formsBatch.commit();
-
-    alert('✅ BERHASIL!\n\nSeluruh 92 Data Guru & 5 Formulir telah sukses di-upload dan tersimpan di Cloud Firestore Firebase!');
-    showToast('✅ Berhasil! 92 Guru & 5 Formulir tersimpan di Cloud Firestore!');
-    renderAdminTables();
-  } catch (err) {
-    console.error('Gagal upload ke Firestore:', err);
-    let hint = '';
-    if (err.code === 'permission-denied' || String(err.message).includes('insufficient permissions')) {
-      hint = '\n\n👉 SOLUSI: Buka Firebase Console (console.firebase.google.com) > Firestore Database > Tab Rules > Ganti rules menjadi: allow read, write: if true; lalu klik Publish.';
-    } else if (err.code === 'unavailable' || err.code === 'not-found') {
-      hint = '\n\n👉 SOLUSI: Pastikan Anda sudah membuat Database Cloud Firestore di Firebase Console project form-autoform.';
-    }
-    alert(`⚠️ Gagal upload ke Cloud Firestore:\n\nPesan: ${err.message}${hint}`);
-    showToast(`⚠️ Gagal upload: ${err.code || err.message}`);
-  }
 }
 
 function openTeacherModal(teacher = null) {
