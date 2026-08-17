@@ -23,6 +23,14 @@ service cloud.firestore {
       allow write: if isAuthorizedAdmin();
     }
 
+    // Koleksi Jadwal Mengajar (schedules)
+    // - Publik: Bisa membaca jadwal (agar form guru & APK Android auto-fill)
+    // - Admin: Hanya iskakfatoni@gmail.com yang bisa menambah, mengedit, dan menghapus (CRUD / Impor)
+    match /schedules/{document=**} {
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
+    }
+
     // Koleksi Pengaturan (settings)
     match /settings/{document=**} {
       allow read: if true;
