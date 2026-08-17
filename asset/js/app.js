@@ -397,28 +397,19 @@ function checkUrlParamsForTeacher() {
   if (demoAdmin) {
     switchToAdminPanel();
     return;
-  // Jika tidak ada NIP valid dan bukan admin, tolak akses dan kembali ke login
-  showLandingView();
-}
+  }
 
-function showLandingView() {
-  // Redirect paksa ke halaman login utama
-  window.location.replace('../../index.html');
+  // 4. Default Fallback: Tampilkan guru pertama / default jika tidak ada parameter agar dashboard selalu terisi
+  const defaultTeacher = teachersList.find(t => t.nip === "198109092022211004") || teachersList[0];
+  if (defaultTeacher) {
+    showPortalView(defaultTeacher);
+  }
 }
 
 function showPortalView(teacher) {
+  if (!teacher) return;
   activeTeacher = teacher;
   
-  const landingView = document.getElementById('view-landing-nip');
-  const portalView = document.getElementById('view-teacher-portal');
-  const mainHeader = document.getElementById('app-main-header');
-
-  // Tampilkan header saat berada di dalam portal link
-  if (mainHeader) mainHeader.classList.remove('hidden');
-
-  if (landingView) landingView.classList.add('hidden');
-  if (portalView) portalView.classList.remove('hidden');
-
   // Update profil banner
   const nameEl = document.getElementById('active-teacher-name');
   const nipEl = document.getElementById('active-teacher-nip');
