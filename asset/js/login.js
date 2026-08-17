@@ -16,15 +16,6 @@ import {
 } from './firebase-config.js';
 
 // Master Data Guru Awal (Fallback jika belum ada di cache/cloud)
-const INITIAL_TEACHERS = [
-  { orderIndex: 1, name: "HERMAWANTO, S.Pd., M.Psi", nip: "196706281992031005", class: "X TAV", role: "Walikelas", journalFormUrl: "https://forms.gle/BeJzAbXvcmBDChdM7" },
-  { orderIndex: 2, name: "NURUL HIDAYATI, S.Pd., M.Psi", nip: "197004301998022004", class: "X TEI 1", role: "Walikelas", journalFormUrl: "https://forms.gle/UttCqb2kxt4LevCA8" },
-  { orderIndex: 3, name: "Drs. MOEHAIMIN", nip: "196709041997031005", class: "X TEI 2", role: "Walikelas", journalFormUrl: "https://forms.gle/ekQJWbDbi72DSNHX9" },
-  { orderIndex: 4, name: "DHURROTUL FARIDAH, S.Pd", nip: "196707142006042005", class: "X TPL 1", role: "Walikelas", journalFormUrl: "https://forms.gle/EAzSZTbK6kUfrX8C6" },
-  { orderIndex: 5, name: "SRI WINARTI, S.Pd", nip: "197307112007012008", class: "X TPL 2", role: "Walikelas", journalFormUrl: "https://forms.gle/8ZEBkkUCnKsji4o86" },
-  { orderIndex: 6, name: "MUNASRI, S.Pd.", nip: "197003282008012013", class: "X TPM 1", role: "Walikelas", journalFormUrl: "https://forms.gle/FzjMqjr2bhYB4mFGA" },
-  { orderIndex: 7, name: "NUR HAYATI, S.Psi, M.Pd.", nip: "197310152009012003", class: "X TPM 2", role: "Walikelas", journalFormUrl: "https://forms.gle/tjdYkQqDwhcY3s9M8" },
-  { orderIndex: 8, name: "DWI RETNO TUGAS ERNAWATI, S.Pd", nip: "196702142008012009", class: "X TKR1", role: "Walikelas", journalFormUrl: "https://forms.gle/hpaJmjc4TSuY21187" },
   { orderIndex: 9, name: "KASIATIN, S.Pd", nip: "196908112007012019", class: "X TKR2", role: "Walikelas", journalFormUrl: "https://forms.gle/zCXw2UY7hgtbguuc6" },
   { orderIndex: 10, name: "SUHARTO DWI SUHERNOWO, ST", nip: "197803262009011007", class: "X TBKR", role: "Walikelas", journalFormUrl: "https://forms.gle/8SMDhw8YpsNPPHPK7" },
   { orderIndex: 11, name: "ARSYL NOVA ARIRI, ST, M.Pd.", nip: "197811142009012007", class: "X TSM 1", role: "Walikelas", journalFormUrl: "https://forms.gle/sZ2Rff4sL9N4FTrh9" },
@@ -115,7 +106,7 @@ const AUTHORIZED_ADMIN_EMAILS = [
   "iskakfatoni@gmail.com"
 ];
 
-let teachersData = [...INITIAL_TEACHERS];
+let teachersData = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   initTheme();
@@ -178,7 +169,7 @@ function initTheme() {
 // 2. Load Real-Time Teachers from Cloud Firestore / Memory
 async function loadSavedTeachers() {
   localStorage.removeItem('portal_teachers_data');
-  teachersData = [...INITIAL_TEACHERS];
+  teachersData = [];
 
   try {
     const { isFirebaseActive: active } = initFirebase();
