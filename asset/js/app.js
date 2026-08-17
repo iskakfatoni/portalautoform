@@ -1462,21 +1462,28 @@ async function handleAdminLoginState(email, displayName) {
 
   // Auto-sync urutan & nama resmi formulir ke Cloud Firestore
   syncCanonicalFormsToFirestore();
+
+  // Auto-sync data guru & Long URL Google Form ke Cloud Firestore
+  syncCanonicalTeachersToFirestore();
 }
 
 async function syncCanonicalFormsToFirestore() {
-  if (!db || !currentUser || !isAuthorizedAdminEmail(currentUser.email)) return;
+  const activeDb = getDb();
+  if (!activeDb || !currentUser || !isAuthorizedAdminEmail(currentUser.email)) return;
   try {
     for (const form of INITIAL_FORMS) {
-      await setDoc(doc(db, "forms", form.id), {
+      await setDoc(doc(activeDb, "forms", form.id), {
         name: form.name,
         category: form.category,
         icon: form.icon,
         description: form.description,
         baseUrl: form.baseUrl,
-        entryGuru: form.entryGuru,
-        entryNip: form.entryNip,
-        entryKelas: form.entryKelas,
+        entryGuru: form.entryGuru || "",
+        entryNip: form.entryNip || "",
+        entryTanggal: form.entryTanggal || "",
+        entryJamKe: form.entryJamKe || "",
+        entryKelas: form.entryKelas || "",
+        entryMapel: form.entryMapel || "",
         isActive: form.isActive !== false,
         orderIndex: form.orderIndex,
         statusBadge: form.statusBadge
@@ -1485,6 +1492,27 @@ async function syncCanonicalFormsToFirestore() {
     console.log("Urutan & teks resmi formulir berhasil diperbarui di Cloud Firestore.");
   } catch (err) {
     console.warn("Sinkronisasi formulir ke Firestore dilewati:", err);
+  }
+}
+
+async function syncCanonicalTeachersToFirestore() {
+  const activeDb = getDb();
+  if (!activeDb || !currentUser || !isAuthorizedAdminEmail(currentUser.email)) return;
+  try {
+    const batch = writeBatch(activeDb);
+    let count = 0;
+
+    INITIAL_TEACHERS.forEach(t => {
+      const docId = t.nip && t.nip !== '-' ? t.nip : t.name.replace(/[^a-zA-Z0-9]/g, '_');
+      const ref = doc(activeDb, "teachers", docId);
+      batch.set(ref, t, { merge: true });
+      count++;
+    });
+
+    await batch.commit();
+    console.log("🔥 [Firestore] Berhasil menyimpan " + count + " Master Data Guru & Long URL ke Cloud Firestore!");
+  } catch (err) {
+    console.warn("⚠️ Gagal sinkronisasi data guru ke Firestore:", err);
   }
 }
 
