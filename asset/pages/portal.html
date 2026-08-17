@@ -395,6 +395,41 @@
       </div>
     </div>
 
+    <!-- Full-Screen In-App Google Form Viewer Modal -->
+    <div id="modal-form-viewer" class="form-viewer-overlay hidden" aria-modal="true" role="dialog">
+      <div class="form-viewer-wrapper">
+        
+        <!-- Top Toolbar Header -->
+        <div class="form-viewer-header">
+          <div class="form-viewer-title-group">
+            <button id="btn-close-form-viewer" class="btn btn-sm btn-viewer-back" title="Kembali ke Daftar Formulir">
+              <i class="fa-solid fa-arrow-left"></i> <span>KEMBALI</span>
+            </button>
+            <h3 id="viewer-form-title" class="viewer-form-title">FORMULIR</h3>
+          </div>
+
+          <div class="form-viewer-actions">
+            <button id="btn-reload-form-viewer" class="icon-btn-viewer" title="Muat Ulang Form" aria-label="Refresh">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+            <a id="btn-open-external-tab" href="#" target="_blank" rel="noopener noreferrer" class="icon-btn-viewer" title="Buka di Tab Browser Baru" aria-label="Buka di Browser">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            </a>
+          </div>
+        </div>
+
+        <!-- In-App Iframe Container with Loading Animation -->
+        <div class="form-viewer-body">
+          <div id="form-viewer-loader" class="form-viewer-loading">
+            <div class="spinner-glow"></div>
+            <p>Menyiapkan Google Form Auto-Fill...</p>
+          </div>
+          <iframe id="inapp-google-form-frame" class="google-form-iframe" src="about:blank" allow="camera; microphone; geolocation" title="Google Form Auto-Fill"></iframe>
+        </div>
+
+      </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast" role="alert" aria-live="assertive">
       <i class="fa-solid fa-circle-check toast-icon"></i>

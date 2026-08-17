@@ -827,7 +827,7 @@ function renderUserPortal() {
     const themeIndex = (idx % 5) + 1;
 
     return `
-      <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="form-direct-card card-theme-${themeIndex}" title="Buka ${form.name}">
+      <a href="${generatedUrl}" class="form-direct-card card-theme-${themeIndex}" data-form-url="${generatedUrl}" data-form-name="${form.name}" title="Buka ${form.name}">
         <div class="form-card-left">
           <div class="form-card-icon-box">
             <i class="${formIcon}"></i>
@@ -843,6 +843,89 @@ function renderUserPortal() {
       </a>
     `;
   }).join('');
+
+  // Attach in-app click listener to open Google Form directly inside modal
+  const cards = container.querySelectorAll('.form-direct-card');
+  cards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      const url = card.getAttribute('data-form-url') || card.getAttribute('href');
+      const name = card.getAttribute('data-form-name') || 'Google Form';
+      openInAppFormViewer(url, name);
+    });
+  });
+}
+
+/* ==========================================================================
+   In-App Google Form Modal Viewer
+   ========================================================================== */
+
+let currentViewerUrl = "";
+
+function openInAppFormViewer(url, title) {
+  const modal = document.getElementById('modal-form-viewer');
+  const iframe = document.getElementById('inapp-google-form-frame');
+  const titleEl = document.getElementById('viewer-form-title');
+  const externalLink = document.getElementById('btn-open-external-tab');
+  const loader = document.getElementById('form-viewer-loader');
+
+  if (!modal || !iframe) return;
+
+  currentViewerUrl = url;
+  if (titleEl) titleEl.textContent = title || "Google Form";
+  if (externalLink) externalLink.href = url;
+
+  if (loader) loader.style.display = 'flex';
+  iframe.style.opacity = '0';
+
+  // Load URL in iframe
+  iframe.src = url;
+
+  iframe.onload = () => {
+    if (loader) loader.style.display = 'none';
+    iframe.style.opacity = '1';
+  };
+
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInAppFormViewer() {
+  const modal = document.getElementById('modal-form-viewer');
+  const iframe = document.getElementById('inapp-google-form-frame');
+  if (modal) modal.classList.add('hidden');
+  if (iframe) iframe.src = 'about:blank';
+  document.body.style.overflow = '';
+}
+
+function setupFormViewerEvents() {
+  const btnClose = document.getElementById('btn-close-form-viewer');
+  const btnReload = document.getElementById('btn-reload-form-viewer');
+  const iframe = document.getElementById('inapp-google-form-frame');
+  const loader = document.getElementById('form-viewer-loader');
+
+  if (btnClose) {
+    btnClose.addEventListener('click', closeInAppFormViewer);
+  }
+
+  if (btnReload) {
+    btnReload.addEventListener('click', () => {
+      if (currentViewerUrl && iframe) {
+        if (loader) loader.style.display = 'flex';
+        iframe.style.opacity = '0';
+        iframe.src = currentViewerUrl;
+      }
+    });
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('modal-form-viewer');
+      if (modal && !modal.classList.contains('hidden')) {
+        closeInAppFormViewer();
+      }
+    }
+  });
 }
 
 /* ==========================================================================
@@ -1554,6 +1637,9 @@ function initModals() {
       await syncLocalToFirestore();
     });
   }
+
+  // 6. In-App Google Form Viewer Modal Events
+  setupFormViewerEvents();
 }
 
 async function syncLocalToFirestore() {
