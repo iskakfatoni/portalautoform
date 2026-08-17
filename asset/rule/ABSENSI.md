@@ -56,19 +56,62 @@ Dokumen ini berisi dokumentasi resmi mengenai aturan logika bisnis, pemetaan par
 
 ## 3. Aturan Khusus Akhir Pekan (Sabtu & Minggu)
 
-1. **Banner Sambutan Akhir Pekan (*Weekend Greeting Banner*):**
-   * Setiap hari **Sabtu** dan **Minggu**, sistem secara otomatis menampilkan banner sambutan di bagian atas portal:
-     > 🎉 **Selamat Berakhir Pekan / Hari Libur!**  
-     > *KBM sekolah libur hari ini dan aktif kembali pada hari **Senin**. Anda tetap dapat mengakses dan mengisi formulir di bawah jika diperlukan.*
-2. **Akses Formulir Tetap Terbuka:**
-   * Kelima tombol formulir tetap aktif dan dapat dibuka langsung kapan saja untuk memfasilitasi guru yang ingin mencicil laporan administrasi, wali kelas, atau tugas piket di akhir pekan.
-3. **Pengisian Form Absensi di Akhir Pekan:**
-   * Jika hari Senin berikutnya memiliki jadwal: otomatis menyiapkan jadwal hari Senin pertama.
-   * Jika tidak ada jadwal terdaftar di hari Senin: Nama Guru & NIP tetap terisi otomatis, sedangkan Kelas dan Mapel dibiarkan kosong.
+### A. Tampilan Banner Akhir Pekan (*Weekend Greeting Banner*)
+* Setiap hari **Sabtu** dan **Minggu**, sistem secara otomatis mendeteksi status libur akhir pekan dan menampilkan banner ramah di halaman portal guru:
+  > 🎉 **Selamat Berakhir Pekan / Hari Libur!**  
+  > *Kegiatan Belajar Mengajar (KBM) libur hari ini dan aktif kembali pada hari **Senin**. Anda tetap dapat mengakses dan mengisi formulir di bawah jika diperlukan.*
+
+### B. Perilaku Auto-Fill Form Absensi di Akhir Pekan (Sabtu & Minggu)
+* Karena hari Sabtu dan Minggu merupakan hari libur resmi KBM:
+  * ✅ **Nama Guru & NIP** tetap terisi otomatis 100%.
+  * ✅ **Hari/Tanggal** tetap terisi tanggal hari ini.
+  * ✍️ **Jam Ke, Kelas, dan Mata Pelajaran dibiarkan KOSONG**.
+  * **Tujuan:** Tidak memaksa jadwal kelas tertentu saat akhir pekan, sehingga jika guru memiliki agenda pengganti/kegiatan khusus, guru dapat memilih manual di form.
+
+### C. Akses 5 Formulir Tetap Terbuka Penuh
+* Kelima tombol formulir utama (**Form Absensi Mengajar, Jurnal Mengajar, Absensi Piket, Wali Kelas, dan Guru Wali**) tetap aktif dan dapat dibuka langsung kapan saja untuk memfasilitasi guru yang ingin menyelesaikan laporan administrasi di akhir pekan.
 
 ---
 
-## 4. Struktur Data & Format Template Excel Jadwal
+## 4. Diagram Alur Logika Auto-Fill (*Full Decision Flow*)
+
+```
+               [ Guru Membuka FORM ABSENSI MENGAJAR ]
+                                 │
+                                 ▼
+                     [ Cek Hari Saat Ini ]
+                    /                     \
+                   /                       \
+        [ Sabtu / Minggu ]         [ Senin - Jumat (Hari Aktif) ]
+                │                                  │
+                ▼                                  ▼
+        [ Muncul Banner Libur ]          [ Cek Jadwal Hari Ini ]
+                │                               /         \
+                ▼                              /           \
+     [ HANYA ISI NAMA & NIP ]        [ Ada Jadwal ]     [ Tidak Ada Jadwal ]
+     (Kelas & Mapel Kosong)                 │                    │
+                                            ▼                    │
+                               [ Cek Waktu Jam Saat Ini ]        │
+                               /            │           \        │
+                              /             │            \       │
+                 [ Jam Aktif ]      [ Belum Jamnya ]   [ Sudah Lewat ]
+                       │             (Pagi/Jeda)         Semua Jadwal
+                       │                    │                  │
+                       ▼                    ▼                  ▼
+                 [ Isi Jadwal         [ Isi Jadwal       [ Cek Jadwal Besok ]
+                  Jam Ini ]          Terdekat Hari Ini]       /          \
+                                                             /            \
+                                                  [ Besok Ada ]        [ Besok Libur/Kosong ]
+                                                  (Senin-Kamis)           (Jumat Sore / Libur)
+                                                        │                         │
+                                                        ▼                         ▼
+                                                  [ Isi Jadwal           [ HANYA ISI NAMA & NIP ]
+                                                  Terdekat Besok ]       (Kelas & Mapel Kosong)
+```
+
+---
+
+## 5. Struktur Data & Format Template Excel Jadwal
 
 File template jadwal mengajar tersedia di: **`asset/template/Template_Jadwal_Mengajar.xlsx`**.
 

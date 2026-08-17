@@ -314,7 +314,12 @@ function getActiveTeacherSchedule(teacher, now = new Date()) {
   const currentMinutes = String(now.getMinutes()).padStart(2, '0');
   const currentTimeStr = `${currentHours}:${currentMinutes}`;
 
-  // 1. Filter jadwal untuk hari ini
+  // ATURAN AKHIR PEKAN (Sabtu & Minggu): Libur KBM, HANYA isi Nama Guru & NIP
+  if (currentDayIndex === 0 || currentDayIndex === 6) {
+    return null;
+  }
+
+  // 1. Filter jadwal untuk hari aktif ini (Senin - Jumat)
   const todaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === currentDay.toLowerCase());
 
   if (todaySchedules.length > 0) {
@@ -337,9 +342,14 @@ function getActiveTeacherSchedule(teacher, now = new Date()) {
     }
   }
 
-  // C. RULE BARU: Jika jadwal hari ini sudah terlewati (atau hari ini kosong),
-  // cek jadwal hari berikutnya (besok)
+  // C. Jika jadwal hari ini sudah terlewati (misal sore/malam hari Senin-Kamis):
+  // Cek jadwal hari kerja berikutnya (besok)
   const nextDayIndex = (currentDayIndex + 1) % 7;
+  if (nextDayIndex === 0 || nextDayIndex === 6) {
+    // Jika besok adalah akhir pekan (Jumat sore -> Sabtu), HANYA isi Nama & NIP
+    return null;
+  }
+
   const nextDayName = INDONESIAN_DAYS[nextDayIndex];
   const nextDaySchedules = teacherSchedules.filter(s => s.hari.toLowerCase() === nextDayName.toLowerCase());
 
