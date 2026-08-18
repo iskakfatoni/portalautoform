@@ -835,7 +835,6 @@ function renderTeachersTable(filterQuery = '') {
         <td>${idx + 1}</td>
         <td><strong>${t.name}</strong></td>
         <td class="font-mono">${t.nip || '-'}</td>
-        <td><span class="badge-class">${t.class || '-'}</span></td>
         <td>${t.role || 'Guru'}</td>
         <td>${journalStatusBadge}</td>
         <td>
@@ -881,7 +880,6 @@ function renderFormsTable() {
       <td>${f.category || 'Umum'}</td>
       <td class="font-mono">${f.entryGuru || '-'}</td>
       <td class="font-mono">${f.entryNip || '-'}</td>
-      <td class="font-mono">${f.entryKelas || '-'}</td>
       <td><span class="pill-badge pill-auto">${f.isActive !== false ? 'Aktif' : 'Non-Aktif'}</span></td>
       <td>
         <div class="action-btns-row">
@@ -1056,7 +1054,6 @@ export function exportTeachersToExcel() {
       "No": idx + 1,
       "Nama Guru": t.name,
       "NIP": t.nip || "-",
-      "Kelas Binaan": t.class || "-",
       "Peran": t.role || "Guru",
       "URL Jurnal Pribadi": t.journalFormUrl || "",
       "Link Portal Guru": getPersonalPortalUrl(t),
@@ -1070,7 +1067,6 @@ export function exportTeachersToExcel() {
       { wch: 6 },
       { wch: 36 },
       { wch: 22 },
-      { wch: 16 },
       { wch: 16 },
       { wch: 45 },
       { wch: 55 },
@@ -1403,7 +1399,6 @@ async function processImportedExcelRows(rows, statusDiv) {
 function setupFormBuilder() {
   const formSelect = document.getElementById('builder-form-select');
   const guruSelect = document.getElementById('builder-guru-select');
-  const kelasSelect = document.getElementById('builder-kelas-select');
   const builderForm = document.getElementById('custom-link-form');
 
   const emptyState = document.getElementById('result-empty-state');
@@ -1422,12 +1417,6 @@ function setupFormBuilder() {
     populateGuruSelect(guruSelect);
   }
 
-  // Populate Kelas
-  if (kelasSelect) {
-    kelasSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>' + 
-      ALL_CLASSES.filter(c => c !== '-').map(c => `<option value="${c}">${c}</option>`).join('');
-  }
-
   if (builderForm) {
     builderForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -1435,11 +1424,10 @@ function setupFormBuilder() {
       const targetForm = currentForms.find(f => f.id === formId) || currentForms[0];
       const guruVal = guruSelect.value;
       const nipVal = document.getElementById('builder-nip-input').value.trim();
-      const kelasVal = kelasSelect.value;
 
-      if (!targetForm || !guruVal || !nipVal || !kelasVal) return;
+      if (!targetForm || !guruVal || !nipVal) return;
 
-      const fullUrl = generateFormUrlForTeacher(targetForm, { name: guruVal, nip: nipVal, class: kelasVal });
+      const fullUrl = generateFormUrlForTeacher(targetForm, { name: guruVal, nip: nipVal });
 
       generatedText.value = fullUrl;
       btnTest.href = fullUrl;
@@ -1459,9 +1447,9 @@ function setupFormBuilder() {
 
 function populateGuruSelect(selectElem) {
   if (!selectElem) return;
-  const list = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
+  const list = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : [];
   selectElem.innerHTML = '<option value="">-- Pilih Guru --</option>' + 
-    list.map(t => `<option value="${t.name}">${t.name} (${t.nip !== '-' ? t.nip : t.class})</option>`).join('');
+    list.map(t => `<option value="${t.name}">${t.name} (${t.nip !== '-' ? t.nip : ''})</option>`).join('');
 }
 
 /* ==========================================================================
@@ -1545,11 +1533,10 @@ function initModals() {
       e.preventDefault();
       const name = document.getElementById('edit-teacher-name').value.trim();
       const nip = document.getElementById('edit-teacher-nip').value.trim();
-      const cls = document.getElementById('edit-teacher-class').value;
       const role = document.getElementById('edit-teacher-role').value;
       const journalFormUrl = document.getElementById('edit-teacher-journal-url').value.trim();
 
-      await saveTeacherHandler({ name, nip, class: cls, role, journalFormUrl });
+      await saveTeacherHandler({ name, nip, role, journalFormUrl });
       modalTeacher.classList.add('hidden');
     });
   }
@@ -1573,7 +1560,6 @@ function initModals() {
       const desc = document.getElementById('edit-form-desc').value.trim();
       const entryGuru = document.getElementById('edit-entry-guru').value.trim();
       const entryNip = document.getElementById('edit-entry-nip').value.trim();
-      const entryKelas = document.getElementById('edit-entry-kelas').value.trim();
 
       await saveFormHandler({
         id,
@@ -1583,7 +1569,6 @@ function initModals() {
         description: desc,
         entryGuru,
         entryNip,
-        entryKelas,
         isActive: true
       });
 
@@ -1636,7 +1621,6 @@ function openTeacherModal(teacher = null) {
   const title = document.getElementById('modal-teacher-title');
   const nameInp = document.getElementById('edit-teacher-name');
   const nipInp = document.getElementById('edit-teacher-nip');
-  const classInp = document.getElementById('edit-teacher-class');
   const roleInp = document.getElementById('edit-teacher-role');
   const journalInp = document.getElementById('edit-teacher-journal-url');
 
@@ -1645,7 +1629,6 @@ function openTeacherModal(teacher = null) {
     nameInp.value = teacher.name;
     nameInp.readOnly = true;
     nipInp.value = teacher.nip && teacher.nip !== '-' ? teacher.nip : '';
-    classInp.value = teacher.class || '-';
     roleInp.value = teacher.role || 'Walikelas';
     if (journalInp) journalInp.value = teacher.journalFormUrl || '';
   } else {
@@ -1653,7 +1636,6 @@ function openTeacherModal(teacher = null) {
     nameInp.value = '';
     nameInp.readOnly = false;
     nipInp.value = '';
-    classInp.value = 'XII TEI 2';
     roleInp.value = 'Walikelas';
     if (journalInp) journalInp.value = '';
   }
@@ -1670,7 +1652,6 @@ function openFormModal(form = null) {
   const descInp = document.getElementById('edit-form-desc');
   const guruInp = document.getElementById('edit-entry-guru');
   const nipInp = document.getElementById('edit-entry-nip');
-  const kelasInp = document.getElementById('edit-entry-kelas');
 
   if (form) {
     title.innerHTML = `<i class="fa-solid fa-file-pen"></i> Edit Formulir`;
@@ -1681,7 +1662,6 @@ function openFormModal(form = null) {
     descInp.value = form.description || '';
     guruInp.value = form.entryGuru || '';
     nipInp.value = form.entryNip || '';
-    kelasInp.value = form.entryKelas || '';
   } else {
     title.innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Tambah Formulir Baru`;
     idInp.value = '';
@@ -1691,7 +1671,6 @@ function openFormModal(form = null) {
     descInp.value = '';
     guruInp.value = 'entry.1599393498';
     nipInp.value = 'entry.65154558';
-    kelasInp.value = 'entry.591543822';
   }
   modal.classList.remove('hidden');
 }
