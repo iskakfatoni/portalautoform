@@ -510,7 +510,7 @@ const INITIAL_TEACHERS = [
     "nip": "197206202024211005",
     "class": "-",
     "role": "Guru Pengajar",
-    "journalFormUrl": "https://forms.gle/1DCZSoKurcAwXyia8"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdGR9KnW2FGcWAVjUfLzEpLkENkH6O1XpstPv9041fsBK4r7A/viewform"
   },
   {
     "orderIndex": 62,
