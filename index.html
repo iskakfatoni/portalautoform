@@ -89,19 +89,30 @@
         </div>
 
         <!-- GURU (Input NIP) -->
-        <form id="form-landing-nip" class="landing-nip-form" autocomplete="off">
+        <form id="form-landing-nip" class="landing-nip-form" autocomplete="on">
           <div class="landing-input-box">
             <i class="fa-solid fa-id-card input-box-icon"></i>
             <input 
               type="text" 
+              name="nip"
               id="landing-nip-input" 
               class="landing-nip-input font-mono" 
               placeholder="Masukkan 18 Digit NIP Anda..." 
+              autocomplete="username"
               maxlength="25" 
               autofocus 
               required
             >
           </div>
+
+          <!-- Remember NIP Checkbox -->
+          <div class="landing-remember-row">
+            <label class="landing-remember-label" for="remember-nip-checkbox">
+              <input type="checkbox" id="remember-nip-checkbox" class="landing-remember-checkbox" checked>
+              <span>Ingat NIP di perangkat ini</span>
+            </label>
+          </div>
+
           <button type="submit" class="btn btn-primary btn-landing-go btn-landing-submit" id="btn-landing-go">
             <span>MASUK</span> <i class="fa-solid fa-right-to-bracket"></i>
           </button>
@@ -116,6 +127,6 @@
 
   </div>
 
-  <script type="module" src="asset/js/login.js?v=2.2.0"></script>
+  <script type="module" src="asset/js/login.js?v=2.3.0"></script>
 </body>
 </html>

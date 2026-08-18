@@ -244,17 +244,20 @@ function checkUrlParamsForTeacher() {
     const found = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanNip);
     if (found) {
       localStorage.setItem('portal_logged_nip', found.nip);
+      localStorage.setItem('portal_remember_nip', found.nip);
       showPortalView(found);
       showToast(`Selamat datang kembali, ${found.name}!`);
       return;
     }
   }
 
-  const savedNip = localStorage.getItem('portal_logged_nip');
+  const savedNip = localStorage.getItem('portal_logged_nip') || localStorage.getItem('portal_remember_nip');
   if (savedNip && savedNip !== '-') {
     const cleanSavedNip = savedNip.replace(/[\s\.\-]+/g, '');
     const foundSaved = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanSavedNip);
     if (foundSaved) {
+      localStorage.setItem('portal_logged_nip', foundSaved.nip);
+      localStorage.setItem('portal_remember_nip', foundSaved.nip);
       const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanSavedNip)}`;
       window.history.replaceState({ nip: foundSaved.nip }, '', newUrl);
       showPortalView(foundSaved);

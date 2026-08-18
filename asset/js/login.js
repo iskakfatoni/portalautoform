@@ -30,6 +30,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAdminLogin();
   initFirebaseLogin();
 
+  // Pre-fill NIP tersimpan ke input field
+  const inputNip = document.getElementById('landing-nip-input');
+  const rememberCheckbox = document.getElementById('remember-nip-checkbox');
+  const rememberedNip = localStorage.getItem('portal_remember_nip') || localStorage.getItem('portal_logged_nip');
+
+  if (rememberedNip && inputNip) {
+    inputNip.value = rememberedNip;
+    if (rememberCheckbox) rememberCheckbox.checked = true;
+  }
+
   // Load Real-Time Teachers from Cloud Firestore
   await loadSavedTeachers();
 
@@ -53,6 +63,7 @@ function checkExistingSession() {
   if (nipParam && nipParam !== '-') {
     const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
     localStorage.setItem('portal_logged_nip', cleanNip);
+    localStorage.setItem('portal_remember_nip', cleanNip);
     window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
     return;
   }
@@ -92,6 +103,7 @@ function initTeacherLogin() {
   const form = document.getElementById('form-landing-nip');
   const inputNip = document.getElementById('landing-nip-input');
   const errorMsg = document.getElementById('landing-nip-error');
+  const rememberCheckbox = document.getElementById('remember-nip-checkbox');
 
   if (!form || !inputNip) return;
 
@@ -126,8 +138,15 @@ function initTeacherLogin() {
 
     if (found) {
       hideError(errorMsg);
-      localStorage.setItem('portal_logged_nip', found.nip);
       const cleanTeacherNip = String(found.nip).trim().replace(/[\s\.\-]+/g, '');
+      
+      localStorage.setItem('portal_logged_nip', cleanTeacherNip);
+      if (!rememberCheckbox || rememberCheckbox.checked) {
+        localStorage.setItem('portal_remember_nip', cleanTeacherNip);
+      } else {
+        localStorage.removeItem('portal_remember_nip');
+      }
+
       window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanTeacherNip)}`;
     } else {
       showError(errorMsg, `NIP <strong>${rawVal}</strong> tidak ditemukan di database Cloud Firestore.`);

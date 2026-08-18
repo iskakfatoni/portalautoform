@@ -3084,6 +3084,39 @@ body.landing-page .landing-content-centered {
   padding: 0;
 }
 
+/* Landing Remember NIP Row */
+.landing-remember-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: -0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.landing-remember-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  transition: color var(--transition-fast);
+}
+
+.landing-remember-label:hover {
+  color: var(--text-primary);
+}
+
+.landing-remember-checkbox {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+  border-radius: 4px;
+}
+
 .btn-landing-submit,
 .btn-landing-go {
   width: 100%;
