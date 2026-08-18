@@ -232,7 +232,7 @@ function checkUrlParamsForTeacher() {
   const params = new URLSearchParams(window.location.search);
   const nipParam = params.get('nip');
   const adminParam = params.get('admin');
-  const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
+  const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : [];
 
   if (adminParam === 'true') {
     switchToAdminPanel();
@@ -443,7 +443,7 @@ function setupUserPortal() {
       return;
     }
 
-    const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
+    const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : [];
 
     let found = teachersList.find(t => {
       if (!t.nip || t.nip === '-') return false;
@@ -546,7 +546,6 @@ function renderFormsTableApp() {
 function renderScheduleTableApp(filterQuery = '') {
   renderScheduleTable(
     currentSchedules,
-    INITIAL_SCHEDULES,
     (idx) => {
       if (confirm('Yakin ingin menghapus jadwal ini?')) {
         deleteScheduleHandler(idx);

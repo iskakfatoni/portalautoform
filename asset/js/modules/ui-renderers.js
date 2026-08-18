@@ -153,11 +153,11 @@ export function renderFormsTable(currentForms, onEditForm, onDeleteForm) {
   });
 }
 
-export function renderScheduleTable(currentSchedules, INITIAL_SCHEDULES, onDeleteSchedule, filterQuery = '') {
+export function renderScheduleTable(currentSchedules, onDeleteSchedule, filterQuery = '') {
   const tbody = document.getElementById('schedule-table-body');
   if (!tbody) return;
 
-  const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : INITIAL_SCHEDULES;
+  const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : [];
   let filtered = schedules;
   if (filterQuery) {
     const q = filterQuery.toLowerCase();
