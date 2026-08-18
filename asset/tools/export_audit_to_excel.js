@@ -3,7 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import XLSX from 'xlsx';
 import https from 'https';
-import { INITIAL_TEACHERS } from './asset/js/modules/initial-data.js';
+import { INITIAL_TEACHERS } from '../js/modules/initial-data.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -156,9 +156,8 @@ async function main() {
   ];
   XLSX.utils.book_append_sheet(workbook, ws3, `Master ${allTeachers.length} Guru Lengkap`);
 
-  // Simpan file Excel
-  const exportFileName = 'daftar_guru_status_link_google_form.xlsx';
-  const exportPath = path.join(__dirname, exportFileName);
+  // Simpan file Excel di root
+  const exportPath = path.resolve(__dirname, '..', '..', 'daftar_guru_status_link_google_form.xlsx');
   XLSX.writeFile(workbook, exportPath);
 
   console.log(`\n🎉 Berhasil membuat file Excel untuk proyek [${projectId}]!`);

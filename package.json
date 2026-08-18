@@ -1,5 +1,11 @@
 {
+  "name": "portalautoform",
+  "version": "2.1.0",
+  "description": "PORTAL:AutoForm - SMKN 1 Jetis Mojokerto",
   "type": "module",
+  "scripts": {
+    "export-audit": "node asset/tools/export_audit_to_excel.js"
+  },
   "dependencies": {
     "xlsx": "^0.18.5"
   }

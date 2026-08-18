@@ -14,8 +14,8 @@ portalautoform/
 │
 ├── index.html                               # 🌐 Landing Page & Gerbang Login Guru (NIP) / Admin
 ├── firestore.rules                          # 🔒 Aturan Keamanan Database Cloud Firestore
-├── export_audit_to_excel.js                 # 📊 Tool Ekspor Audit Excel Real-Time dari Firestore
-├── sync_all_teachers_to_firebase.py         # ⚡ Script CLI Sinkronisasi Batch Master Data ke Firestore
+├── package.json                             # 📦 Konfigurasi Paket & Script npm ("npm run export-audit")
+├── README.md                                # 📘 Dokumentasi Utama Proyek
 ├── daftar_guru_status_link_google_form.xlsx # 📑 File Excel Laporan Status Link Google Form (100% Valid)
 │
 └── asset/
@@ -26,6 +26,9 @@ portalautoform/
     │   ├── portal.html                      # 📱 Portal Interaktif Guru & Admin Dashboard
     │   ├── form_absen.html                  # 📄 Halaman Wrapper Embed Google Forms
     │   └── offline.html                     # 🔌 Halaman Fallback Penanganan Mode Offline
+    │
+    ├── tools/
+    │   └── export_audit_to_excel.js         # 📊 Tool Ekspor Audit Excel Real-Time dari Firestore
     │
     ├── js/
     │   ├── firebase-config.js               # ⚙️ Inisialisasi Resmi Firebase JS SDK v10 (form-autoform)
