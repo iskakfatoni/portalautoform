@@ -2900,29 +2900,56 @@ body.light-mode .school-badge-pill {
 }
 
 /* ==========================================================================
-   Landing Page Components & Responsive Centered Card Layout
+   Landing Page Specific True Viewport Centering & Responsive Layout
    ========================================================================== */
-.landing-content-centered {
+body.landing-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+body.landing-page .app-wrapper {
+  min-height: 100%;
+  height: 100%;
+  max-width: 1160px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 1.25rem 1.25rem 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+body.landing-page .main-header {
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+body.landing-page .landing-content-centered {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: calc(100vh - 120px);
-  padding: 1.5rem 0.75rem 2.5rem;
   width: 100%;
+  padding: 0;
+  margin-top: -28px; /* Optical balance against top header */
 }
 
 .landing-hero-card {
   width: 100%;
-  max-width: 460px;
+  max-width: 450px;
+  margin: 0 auto;
   background: var(--bg-card);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg), 0 0 35px rgba(99, 102, 241, 0.08);
-  padding: 2.5rem 2rem;
+  box-shadow: var(--shadow-lg), 0 0 40px rgba(99, 102, 241, 0.1);
+  padding: 2.25rem 2rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -3085,27 +3112,42 @@ body.light-mode .school-badge-pill {
   text-align: center;
 }
 
-/* Responsiveness for Mobile Screens */
-@media screen and (max-width: 480px) {
-  .landing-content-centered {
-    padding: 1rem 0.5rem 2rem;
-    min-height: calc(100vh - 100px);
+/* Responsiveness for Mobile & Short Screens */
+@media screen and (max-height: 680px), screen and (max-width: 640px) {
+  body.landing-page {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
   }
 
+  body.landing-page .app-wrapper {
+    min-height: 100vh;
+    height: auto;
+    padding: 0.75rem 0.75rem 1.5rem;
+  }
+
+  body.landing-page .landing-content-centered {
+    margin-top: 0;
+    padding: 1.5rem 0.5rem;
+    min-height: auto;
+  }
+}
+
+@media screen and (max-width: 480px) {
   .landing-hero-card {
-    padding: 2rem 1.25rem;
+    padding: 1.75rem 1.25rem;
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-md);
   }
 
   .school-logo-wrapper {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 1rem;
+    width: 78px;
+    height: 78px;
+    margin-bottom: 0.85rem;
   }
 
   .landing-title {
-    font-size: 1.35rem;
+    font-size: 1.3rem;
   }
 
   .landing-nip-input {
@@ -3119,4 +3161,5 @@ body.light-mode .school-badge-pill {
     font-size: 0.95rem;
   }
 }
+
 
