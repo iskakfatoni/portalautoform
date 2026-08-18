@@ -58,14 +58,11 @@ function checkExistingSession() {
   const nipParam = params.get('nip');
   const adminParam = params.get('admin');
 
-  if (nipParam) {
+  if (nipParam && nipParam !== '-') {
     const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
-    const found = teachersData.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanNip);
-    if (found) {
-      localStorage.setItem('portal_logged_nip', found.nip);
-      window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
-      return;
-    }
+    localStorage.setItem('portal_logged_nip', cleanNip);
+    window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
+    return;
   }
 
   if (adminParam === 'true') {
@@ -76,10 +73,7 @@ function checkExistingSession() {
   const savedNip = localStorage.getItem('portal_logged_nip');
   if (savedNip && savedNip !== '-') {
     const cleanNip = savedNip.replace(/[\s\.\-]+/g, '');
-    const found = teachersData.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanNip);
-    if (found) {
-      window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
-    }
+    window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
   }
 }
 
