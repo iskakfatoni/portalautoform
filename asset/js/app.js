@@ -741,7 +741,7 @@ async function deleteFormHandler(formId) {
 }
 
 async function seedMasterTeachersToFirestore() {
-  if (!confirm("Upload 94 data guru bawaan ke Firestore Cloud? Data yang sudah ada dengan nama yang sama akan diperbarui.")) return;
+  if (!confirm("Upload 92 data guru bawaan ke Firestore Cloud? Data yang sudah ada dengan nama yang sama akan diperbarui.")) return;
 
   showToast("Mengunggah master data guru ke Firestore...");
   currentTeachers = [...INITIAL_TEACHERS];
@@ -755,13 +755,13 @@ async function seedMasterTeachersToFirestore() {
         batch.set(ref, t);
       });
       await batch.commit();
-      showToast("🚀 94 Master Data Guru berhasil diunggah ke Cloud Firestore!");
+      showToast("🚀 92 Master Data Guru berhasil diunggah ke Cloud Firestore!");
     } catch (err) {
       console.error("Gagal batch upload:", err);
       showToast("Gagal mengunggah ke Firestore. Pastikan izin Firestore Rules sudah diatur.");
     }
   } else {
-    showToast("94 Master Guru dimuat ke penyimpanan lokal browser.");
+    showToast("92 Master Guru dimuat ke penyimpanan lokal browser.");
   }
 
   renderAdminTables();

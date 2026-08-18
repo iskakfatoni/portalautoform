@@ -1,40 +1,23 @@
 import fs from 'fs';
 import path from 'path';
-import os from 'os';
 import { fileURLToPath } from 'url';
 import XLSX from 'xlsx';
 import https from 'https';
+import { INITIAL_TEACHERS } from './asset/js/modules/initial-data.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 1. Ambil access token dari configstore
-const cfgPath = path.join(os.homedir(), '.config', 'configstore', 'firebase-tools.json');
-let accessToken = '';
-
-if (fs.existsSync(cfgPath)) {
-  try {
-    const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
-    accessToken = cfg.tokens?.access_token || '';
-  } catch (e) {
-    console.warn('Gagal membaca token Firebase:', e.message);
-  }
-}
-
-const projectId = 'portal-guru-jetis-36d41';
+const projectId = 'form-autoform';
+const apiKey = 'AIzaSyBJUu8_4G_WK30h4W61XunUFvu7uutBibo';
 
 function fetchFirestoreTeachers() {
-  return new Promise((resolve, reject) => {
-    if (!accessToken) {
-      return resolve([]);
-    }
-
+  return new Promise((resolve) => {
     const options = {
       hostname: 'firestore.googleapis.com',
-      path: `/v1/projects/${projectId}/databases/(default)/documents/teachers?pageSize=100`,
+      path: `/v1/projects/${projectId}/databases/(default)/documents/teachers?pageSize=100&key=${apiKey}`,
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       }
     };
@@ -60,24 +43,26 @@ function fetchFirestoreTeachers() {
           list.sort((a, b) => (a.orderIndex || 999) - (b.orderIndex || 999));
           resolve(list);
         } catch (err) {
-          reject(err);
+          console.warn("Gagal parsing response Firestore, fallback ke INITIAL_TEACHERS:", err.message);
+          resolve(INITIAL_TEACHERS);
         }
       });
     });
 
-    req.on('error', reject);
+    req.on('error', (err) => {
+      console.warn("Error koneksi Firestore, fallback ke INITIAL_TEACHERS:", err.message);
+      resolve(INITIAL_TEACHERS);
+    });
     req.end();
   });
 }
 
 async function main() {
-  let teachers = [];
-  try {
-    teachers = await fetchFirestoreTeachers();
-    console.log(`[+] Berhasil mengambil ${teachers.length} guru dari Cloud Firestore (${projectId})`);
-  } catch (e) {
-    console.warn('[-] Gagal mengambil dari Firestore API, menggunakan fallback:', e.message);
+  let teachers = await fetchFirestoreTeachers();
+  if (!teachers || teachers.length === 0) {
+    teachers = INITIAL_TEACHERS;
   }
+  console.log(`[+] Menggunakan ${teachers.length} data guru (Target Proyek: ${projectId})`);
 
   // 1. Data Sheet 1: Guru yang Perlu Update Link (Shortlink forms.gle)
   const failedTeachers = teachers
@@ -176,7 +161,7 @@ async function main() {
   const exportPath = path.join(__dirname, exportFileName);
   XLSX.writeFile(workbook, exportPath);
 
-  console.log(`\n🎉 Berhasil membuat file Excel dari Cloud Firestore!`);
+  console.log(`\n🎉 Berhasil membuat file Excel untuk proyek [${projectId}]!`);
   console.log(`📁 Lokasi file: ${exportPath}`);
   console.log(`📊 Ringkasan:`);
   console.log(`   - Sheet 1: ${failedTeachers.length} Guru Perlu Update Link`);
