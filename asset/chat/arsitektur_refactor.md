@@ -16,7 +16,6 @@ portalautoform/
 ├── firestore.rules                          # 🔒 Aturan Keamanan Database Cloud Firestore
 ├── README.md                                # 📘 Dokumentasi Utama Proyek
 ├── .gitignore                               # 🛡️ Git Ignore Configuration
-├── daftar_guru_status_link_google_form.xlsx # 📑 File Excel Laporan Status Link Google Form (100% Valid)
 │
 └── asset/
     ├── css/
