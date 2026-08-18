@@ -6,17 +6,15 @@
 import {
   initFirebase,
   auth,
-  db,
   googleProvider,
   isFirebaseActive,
   signInWithPopup,
-  signInWithEmailAndPassword,
-  collection,
-  getDocs
+  signInWithEmailAndPassword
 } from './firebase-config.js';
 
 import { initTheme } from './modules/theme-manager.js';
 import { isAuthorizedAdminEmail } from './modules/auth-manager.js';
+import { fetchTeachers } from './modules/firestore-service.js';
 
 let teachersData = [];
 
@@ -27,34 +25,23 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   initTheme('theme-toggle-btn');
-  await loadSavedTeachers();
   initLoginTabs();
   initTeacherLogin();
   initAdminLogin();
   initFirebaseLogin();
 
+  // Load Real-Time Teachers from Cloud Firestore
+  await loadSavedTeachers();
+
   // Auto-redirect jika sudah ada sesi NIP tersimpan
   checkExistingSession();
 });
 
-// Load Real-Time Teachers from Cloud Firestore / Memory
+// Load Real-Time Teachers from Cloud Firestore (Multi-Layer)
 async function loadSavedTeachers() {
   localStorage.removeItem('portal_teachers_data');
-  teachersData = [];
-
-  try {
-    const { isFirebaseActive: active } = initFirebase();
-    if (active && db) {
-      const snapshot = await getDocs(collection(db, "teachers"));
-      if (!snapshot.empty) {
-        const fetched = [];
-        snapshot.forEach(doc => fetched.push(doc.data()));
-        teachersData = fetched;
-      }
-    }
-  } catch (e) {
-    console.warn("Firestore fetch error di halaman login:", e);
-  }
+  teachersData = await fetchTeachers();
+  console.log(`🔥 [Login] Berhasil memuat ${teachersData.length} Master Guru dari Cloud Firestore!`);
 }
 
 // Check Existing Active Session
@@ -108,7 +95,7 @@ function initTeacherLogin() {
 
   if (!form || !inputNip) return;
 
-  const handleNipSubmit = (e) => {
+  const handleNipSubmit = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
 
     const rawVal = inputNip.value || '';
@@ -118,6 +105,11 @@ function initTeacherLogin() {
       showError(errorMsg, 'Silakan masukkan NIP Anda.');
       inputNip.focus();
       return;
+    }
+
+    if (!teachersData || teachersData.length === 0) {
+      showError(errorMsg, '<i class="fa-solid fa-spinner fa-spin"></i> Menghubungkan ke Cloud Firestore...');
+      teachersData = await fetchTeachers();
     }
 
     // 1. Cari NIP
@@ -138,7 +130,7 @@ function initTeacherLogin() {
       const cleanTeacherNip = String(found.nip).trim().replace(/[\s\.\-]+/g, '');
       window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanTeacherNip)}`;
     } else {
-      showError(errorMsg, `NIP <strong>${rawVal}</strong> tidak ditemukan di database guru.`);
+      showError(errorMsg, `NIP <strong>${rawVal}</strong> tidak ditemukan di database Cloud Firestore.`);
       inputNip.focus();
     }
   };

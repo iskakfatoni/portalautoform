@@ -1,0 +1,132 @@
+/**
+ * Firestore Service Module (Pure Cloud Engine)
+ * PORTAL:AutoForm - SMKN 1 Jetis Mojokerto
+ * Menyediakan integrasi Firebase SDK v10 dengan Instant REST API Fallback
+ */
+
+import {
+  getDb,
+  collection,
+  getDocs,
+  doc,
+  setDoc,
+  deleteDoc,
+  writeBatch,
+  DEFAULT_FIREBASE_CONFIG
+} from '../firebase-config.js';
+
+import { formatTimeString } from './formatters.js';
+
+// Parser dokumen REST Firestore menjadi objek JavaScript
+export function parseFirestoreDoc(docObj) {
+  const fields = docObj.fields || {};
+  const result = { id: docObj.name ? docObj.name.split('/').pop() : '' };
+
+  for (const [key, val] of Object.entries(fields)) {
+    if ('stringValue' in val) result[key] = val.stringValue;
+    else if ('integerValue' in val) result[key] = parseInt(val.integerValue, 10);
+    else if ('doubleValue' in val) result[key] = parseFloat(val.doubleValue);
+    else if ('booleanValue' in val) result[key] = val.booleanValue;
+    else if ('nullValue' in val) result[key] = null;
+    else if ('arrayValue' in val) {
+      result[key] = (val.arrayValue.values || []).map(v => Object.values(v)[0]);
+    } else if ('mapValue' in val) {
+      result[key] = val.mapValue.fields || {};
+    }
+  }
+  return result;
+}
+
+// Fetch Generic Collection dengan Multi-Layer (SDK + REST API)
+export async function fetchCollection(collectionName) {
+  // 1. Coba via Firebase JS SDK
+  const activeDb = getDb();
+  if (activeDb) {
+    try {
+      const snap = await getDocs(collection(activeDb, collectionName));
+      if (!snap.empty) {
+        const list = [];
+        snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+        return list;
+      }
+    } catch (sdkErr) {
+      console.warn(`[Firestore SDK] Koleksi '${collectionName}' dialihkan ke REST API:`, sdkErr.message);
+    }
+  }
+
+  // 2. Instant Fail-Safe via Firestore REST API
+  try {
+    const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=100&key=${apiKey}`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      const docs = data.documents || [];
+      return docs.map(parseFirestoreDoc);
+    }
+  } catch (restErr) {
+    console.error(`[Firestore REST] Gagal memuat koleksi '${collectionName}':`, restErr);
+  }
+
+  return [];
+}
+
+// 1. Fetch Teachers (Master Guru Cloud Firestore)
+export async function fetchTeachers() {
+  const list = await fetchCollection('teachers');
+  return list.sort((a, b) => {
+    const orderA = (a.orderIndex !== undefined && a.orderIndex !== null) ? a.orderIndex : 999;
+    const orderB = (b.orderIndex !== undefined && b.orderIndex !== null) ? b.orderIndex : 999;
+    if (orderA !== orderB) return orderA - orderB;
+    return (a.name || '').localeCompare(b.name || '');
+  });
+}
+
+// 2. Fetch Forms (Master Formulir Cloud Firestore)
+export async function fetchForms() {
+  const list = await fetchCollection('forms');
+  return list.sort((a, b) => (a.orderIndex || 99) - (b.orderIndex || 99));
+}
+
+// 3. Fetch Schedules (Jadwal Mengajar Cloud Firestore)
+export async function fetchSchedules() {
+  const list = await fetchCollection('schedules');
+  return list.map(item => ({
+    ...item,
+    jamMulai: formatTimeString(item.jamMulai),
+    jamSelesai: formatTimeString(item.jamSelesai)
+  }));
+}
+
+// 4. Save Teacher ke Firestore
+export async function saveTeacherToFirestore(teacherData) {
+  const activeDb = getDb();
+  if (!activeDb) return false;
+  const docId = teacherData.nip && teacherData.nip !== '-' ? teacherData.nip : teacherData.name.replace(/[^a-zA-Z0-9]/g, '_');
+  await setDoc(doc(activeDb, "teachers", docId), teacherData, { merge: true });
+  return true;
+}
+
+// 5. Delete Teacher dari Firestore
+export async function deleteTeacherFromFirestore(docId) {
+  const activeDb = getDb();
+  if (!activeDb) return false;
+  await deleteDoc(doc(activeDb, "teachers", docId));
+  return true;
+}
+
+// 6. Save Form ke Firestore
+export async function saveFormToFirestore(formData) {
+  const activeDb = getDb();
+  if (!activeDb) return false;
+  await setDoc(doc(activeDb, "forms", formData.id), formData, { merge: true });
+  return true;
+}
+
+// 7. Delete Form dari Firestore
+export async function deleteFormFromFirestore(formId) {
+  const activeDb = getDb();
+  if (!activeDb) return false;
+  await deleteDoc(doc(activeDb, "forms", formId));
+  return true;
+}

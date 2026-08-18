@@ -6,19 +6,21 @@
 import {
   initFirebase,
   auth,
-  db,
-  getDb,
   isFirebaseActive,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
-  collection,
-  doc,
-  getDocs,
-  setDoc,
-  deleteDoc,
-  writeBatch
+  onAuthStateChanged
 } from './firebase-config.js';
+
+import {
+  fetchTeachers,
+  fetchForms,
+  fetchSchedules,
+  saveTeacherToFirestore,
+  deleteTeacherFromFirestore,
+  saveFormToFirestore,
+  deleteFormFromFirestore
+} from './modules/firestore-service.js';
 
 import {
   formatTimeString
@@ -44,7 +46,8 @@ import {
   renderUserPortal,
   renderTeachersTable,
   renderFormsTable,
-  renderScheduleTable
+  renderScheduleTable,
+  populateGuruSelect
 } from './modules/ui-renderers.js';
 
 // Helper wrappers to preserve signatures
@@ -81,16 +84,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   localStorage.removeItem('portal_forms_data');
   localStorage.removeItem('portal_schedule_data');
 
-  // Setup Portal Guru
+  // Setup Portal Guru & Form Builder
   setupUserPortal();
-
-  // Setup Form Builder
   setupFormBuilder();
 
-  // Check URL Query Parameter (?nip=...)
-  checkUrlParamsForTeacher();
+  // 1. Muat data langsung dari Cloud Firestore
+  await fetchFirestoreData();
 
-  // Inisialisasi Firebase & Auth Listener
+  // 2. Inisialisasi Firebase & Auth Listener
   setupFirebaseConnection();
 });
 
@@ -333,47 +334,26 @@ function setupFirebaseConnection() {
 }
 
 async function fetchFirestoreData() {
-  const activeDb = getDb();
-  if (!activeDb) return;
-
   try {
-    const teachersSnapshot = await getDocs(collection(activeDb, "teachers"));
-    if (!teachersSnapshot.empty) {
-      const fetched = [];
-      teachersSnapshot.forEach(doc => fetched.push(doc.data()));
-      currentTeachers = fetched;
-    }
-  } catch (err) {
-    console.error("❌ Error membaca koleksi 'teachers':", err);
-  }
+    const [teachers, forms, schedules] = await Promise.all([
+      fetchTeachers(),
+      fetchForms(),
+      fetchSchedules()
+    ]);
 
-  try {
-    const formsSnapshot = await getDocs(collection(activeDb, "forms"));
-    if (!formsSnapshot.empty) {
-      const fetchedForms = [];
-      formsSnapshot.forEach(doc => fetchedForms.push({ id: doc.id, ...doc.data() }));
-      currentForms = sortAndNormalizeForms(fetchedForms);
+    if (teachers && teachers.length > 0) {
+      currentTeachers = teachers;
     }
-  } catch (err) {
-    console.error("❌ Error membaca koleksi 'forms':", err);
-  }
+    if (forms && forms.length > 0) {
+      currentForms = sortAndNormalizeForms(forms);
+    }
+    if (schedules && schedules.length > 0) {
+      currentSchedules = schedules;
+    }
 
-  try {
-    const schedulesSnapshot = await getDocs(collection(activeDb, "schedules"));
-    if (!schedulesSnapshot.empty) {
-      const fetchedSchedules = [];
-      schedulesSnapshot.forEach(doc => {
-        const item = doc.data();
-        fetchedSchedules.push({
-          ...item,
-          jamMulai: formatTimeString(item.jamMulai),
-          jamSelesai: formatTimeString(item.jamSelesai)
-        });
-      });
-      currentSchedules = fetchedSchedules;
-    }
+    console.log(`🔥 [App] Dimuat dari Firestore: ${currentTeachers.length} Guru, ${currentForms.length} Form, ${currentSchedules.length} Jadwal`);
   } catch (err) {
-    console.error("❌ Error membaca koleksi 'schedules':", err);
+    console.error("❌ Error memuat data Firestore:", err);
   }
 
   const adminTab = document.getElementById('tab-admin');
@@ -608,14 +588,10 @@ async function saveTeacherHandler(teacherData) {
     currentTeachers.unshift(teacherData);
   }
 
-  const activeDb = getDb();
-  if (activeDb) {
-    try {
-      const docId = teacherData.nip && teacherData.nip !== '-' ? teacherData.nip : teacherData.name.replace(/[^a-zA-Z0-9]/g, '_');
-      await setDoc(doc(activeDb, "teachers", docId), teacherData);
-    } catch (e) {
-      console.warn("Firestore sync warning:", e);
-    }
+  try {
+    await saveTeacherToFirestore(teacherData);
+  } catch (e) {
+    console.warn("Firestore sync warning:", e);
   }
 
   renderAdminTables();
@@ -627,11 +603,10 @@ async function deleteTeacherHandler(teacherName) {
   const teacher = currentTeachers.find(t => t.name === teacherName);
   currentTeachers = currentTeachers.filter(t => t.name !== teacherName);
 
-  const activeDb = getDb();
-  if (activeDb && teacher) {
+  if (teacher) {
     try {
       const docId = teacher.nip && teacher.nip !== '-' ? teacher.nip : teacher.name.replace(/[^a-zA-Z0-9]/g, '_');
-      await deleteDoc(doc(activeDb, "teachers", docId));
+      await deleteTeacherFromFirestore(docId);
     } catch (e) {
       console.warn("Firestore delete warning:", e);
     }
@@ -650,12 +625,10 @@ async function saveFormHandler(formData) {
     currentForms.push(formData);
   }
 
-  if (db && isFirebaseActive) {
-    try {
-      await setDoc(doc(db, "forms", formData.id), formData);
-    } catch (e) {
-      console.warn("Firestore form sync warning:", e);
-    }
+  try {
+    await saveFormToFirestore(formData);
+  } catch (e) {
+    console.warn("Firestore form sync warning:", e);
   }
 
   renderAdminTables();
@@ -666,12 +639,10 @@ async function saveFormHandler(formData) {
 async function deleteFormHandler(formId) {
   currentForms = currentForms.filter(f => f.id !== formId);
 
-  if (db && isFirebaseActive) {
-    try {
-      await deleteDoc(doc(db, "forms", formId));
-    } catch (e) {
-      console.warn("Firestore form delete warning:", e);
-    }
+  try {
+    await deleteFormFromFirestore(formId);
+  } catch (e) {
+    console.warn("Firestore form delete warning:", e);
   }
 
   renderAdminTables();
