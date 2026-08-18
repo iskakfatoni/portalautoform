@@ -358,7 +358,7 @@ const INITIAL_TEACHERS = [
     "nip": "199511062019032010",
     "class": "XII DKV 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/wtPkKSjFyF5RRwop8"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSf4Z31ED-5m9YP8u3CbOt0PWt94nwzJafZSig17a3DoqRlpCQ/viewform"
   },
   {
     "orderIndex": 43,
