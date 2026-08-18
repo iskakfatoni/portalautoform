@@ -171,9 +171,13 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 
   // 3. Form Absensi Guru Piket & Formulir Standar Lainnya
   const targetUrl = cleanFormUrl(form.baseUrl);
-  if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
-  if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
-  if (form.entryTanggal) params.set(form.entryTanggal, isoDate);
+  const entryGuruKey = (form.id === "form_absensi_piket") ? (form.entryGuru || "entry.227643322") : form.entryGuru;
+  const entryNipKey = (form.id === "form_absensi_piket") ? (form.entryNip || "entry.1591970773") : form.entryNip;
+  const entryTanggalKey = (form.id === "form_absensi_piket") ? (form.entryTanggal || "entry.965224728") : form.entryTanggal;
+
+  if (entryGuruKey && teacher && teacher.name) params.set(entryGuruKey, teacher.name);
+  if (entryNipKey && teacher && teacher.nip && teacher.nip !== '-') params.set(entryNipKey, teacher.nip);
+  if (entryTanggalKey) params.set(entryTanggalKey, isoDate);
   if (form.entryKelas && teacher && teacher.class && teacher.class !== '-') {
     params.set(form.entryKelas, normalizeFormClassName(teacher.class));
   }
@@ -187,7 +191,13 @@ export function sortAndNormalizeForms(formsList) {
 
   const normalized = list.map(f => {
     if (f.id === "form_absensi_piket") {
-      return { ...f, baseUrl: canonicalPiketUrl };
+      return { 
+        ...f, 
+        baseUrl: canonicalPiketUrl,
+        entryGuru: "entry.227643322",
+        entryNip: "entry.1591970773",
+        entryTanggal: "entry.965224728"
+      };
     }
     if (f.id === "form_wali_kelas" || f.id === "form_guru_wali") {
       return { ...f, baseUrl: canonicalWaliUrl };

@@ -782,9 +782,9 @@ export const INITIAL_FORMS = [
     icon: "fa-solid fa-user-clock",
     description: "Laporan presensi dan pemantauan ketertiban KBM harian oleh Guru Piket.",
     baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform",
-    entryGuru: "entry.1599393498",
-    entryNip: "entry.65154558",
-    entryTanggal: "entry.1708105874",
+    entryGuru: "entry.227643322",
+    entryNip: "entry.1591970773",
+    entryTanggal: "entry.965224728",
     isActive: true,
     orderIndex: 3
   },
