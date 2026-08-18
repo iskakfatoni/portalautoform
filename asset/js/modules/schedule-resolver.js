@@ -177,6 +177,15 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 }
 
 export function sortAndNormalizeForms(formsList) {
-  if (!formsList || formsList.length === 0) return [];
-  return [...formsList].sort((a, b) => (a.orderIndex || 99) - (b.orderIndex || 99));
+  const list = (!formsList || formsList.length === 0) ? INITIAL_FORMS : formsList;
+  const canonicalPiketUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfrm87oC00zamhQQBP4LS5BcwxSHa97M9plvLpYUHQ7dR-ybQ/viewform";
+
+  const normalized = list.map(f => {
+    if (f.id === "form_absensi_piket" && (!f.baseUrl || f.baseUrl.includes("1FAIpQLSeVYQG1tPodad"))) {
+      return { ...f, baseUrl: canonicalPiketUrl };
+    }
+    return f;
+  });
+
+  return [...normalized].sort((a, b) => (a.orderIndex || 99) - (b.orderIndex || 99));
 }
