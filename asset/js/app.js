@@ -46,8 +46,7 @@ import {
   renderUserPortal,
   renderTeachersTable,
   renderFormsTable,
-  renderScheduleTable,
-  populateGuruSelect
+  renderScheduleTable
 } from './modules/ui-renderers.js';
 
 // Helper wrappers to preserve signatures
