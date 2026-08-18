@@ -208,10 +208,15 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 
   // 4. Form Absensi Guru Piket & Formulir Standar Lainnya
   const isPiket = form.id === "form_absensi_piket" || (form.name && form.name.toLowerCase().includes("piket")) || form.category === "Piket";
+  const isGuruWali = form.id === "form_guru_wali" || (form.name && form.name.toLowerCase().includes("guru wali")) || form.category === "Guru Wali";
+  const canonicalGuruWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeVYQG1tPodad-cUyHW5Mzx3CmO3L8GOx8AzWXajJqYkqbkBg/viewform";
   
-  const targetUrl = isPiket 
-    ? "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform"
-    : cleanFormUrl(form.baseUrl);
+  let targetUrl = cleanFormUrl(form.baseUrl);
+  if (isPiket) {
+    targetUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform";
+  } else if (isGuruWali) {
+    targetUrl = canonicalGuruWaliUrl;
+  }
 
   const entryGuruKey = isPiket ? "entry.227643322" : form.entryGuru;
   const entryNipKey = isPiket ? "entry.1591970773" : form.entryNip;
@@ -233,6 +238,7 @@ export function sortAndNormalizeForms(formsList) {
   const list = formsList || [];
   const canonicalPiketUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform";
   const canonicalWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform";
+  const canonicalGuruWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeVYQG1tPodad-cUyHW5Mzx3CmO3L8GOx8AzWXajJqYkqbkBg/viewform";
 
   const normalized = list.map(f => {
     const isPiket = f.id === "form_absensi_piket" || (f.name && f.name.toLowerCase().includes("piket")) || f.category === "Piket";
@@ -256,8 +262,12 @@ export function sortAndNormalizeForms(formsList) {
         entryBulan: "entry.73505426"
       };
     }
-    if (f.id === "form_guru_wali") {
-      return { ...f, baseUrl: canonicalWaliUrl };
+    const isGuruWali = f.id === "form_guru_wali" || (f.name && f.name.toLowerCase().includes("guru wali")) || f.category === "Guru Wali";
+    if (isGuruWali) {
+      return { 
+        ...f, 
+        baseUrl: canonicalGuruWaliUrl
+      };
     }
     return f;
   });
