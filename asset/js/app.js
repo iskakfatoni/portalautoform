@@ -46,7 +46,7 @@ const INITIAL_TEACHERS = [
     "nip": "196709041997031005",
     "class": "X TEI 2",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/ekQJWbDbi72DSNHX9"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSez4gjTar2bPbopGm6ErVaBlugek0rGtLocS5azfCCp0MDSIA/viewform"
   },
   {
     "orderIndex": 4,
@@ -70,7 +70,7 @@ const INITIAL_TEACHERS = [
     "nip": "197003282008012013",
     "class": "X TPM 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/FzjMqjr2bhYB4mFGA"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfb21fBd9nBHkgM2MBTbSNxfeTgWiXbFL43E9QIZX-zGLzq0g/viewform"
   },
   {
     "orderIndex": 7,
@@ -86,7 +86,7 @@ const INITIAL_TEACHERS = [
     "nip": "196702142008012009",
     "class": "X TKR1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/hpaJmjc4TSuY21187"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSe-IzLFr71Gdhgd06mjpg2ToTRv1yEa_u8WYc9JsSpikG-NuA/viewform"
   },
   {
     "orderIndex": 9,
@@ -94,7 +94,7 @@ const INITIAL_TEACHERS = [
     "nip": "196908112007012019",
     "class": "X TKR2",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/zCXw2UY7hgtbguuc6"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSf3zl2VpfYKhir9CPBloLYg_xU95VEOzo28tGm9RxY8hWf_8Q/viewform"
   },
   {
     "orderIndex": 10,
@@ -102,7 +102,7 @@ const INITIAL_TEACHERS = [
     "nip": "197803262009011007",
     "class": "X TBKR",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/8SMDhw8YpsNPPHPK7"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdEgJQrGVluy9utuyyeyZ7psIgxX5H9-OTYUG63if-14TLXNg/viewform"
   },
   {
     "orderIndex": 11,
@@ -110,7 +110,7 @@ const INITIAL_TEACHERS = [
     "nip": "197811142009012007",
     "class": "X TSM 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/sZ2Rff4sL9N4FTrh9"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSeYIRHhpNjh1FmGBMMlPQPwu6jnRfYLe__qCNtcIES7ZefQvQ/viewform"
   },
   {
     "orderIndex": 12,
@@ -150,7 +150,7 @@ const INITIAL_TEACHERS = [
     "nip": "196904012007011025",
     "class": "XI TAV",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/ghNaoJYp7o2SbkjS8"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdYaU-G7gAyHPvwtYTw67xI_BcR43imBjiP3RB58jOjnU1XeQ/viewform"
   },
   {
     "orderIndex": 17,
@@ -158,7 +158,7 @@ const INITIAL_TEACHERS = [
     "nip": "196905132008012023",
     "class": "XI TEI 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/bPxWzjgFDES2StGo6"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSd2bLbWa9Pca9QT7JTzZAnSSDZOakUabHJxB_JnNT3CQEv4gA/viewform"
   },
   {
     "orderIndex": 18,
@@ -174,7 +174,7 @@ const INITIAL_TEACHERS = [
     "nip": "197102162008011009",
     "class": "XI TPL 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/aaS7YNQQ97713C18A"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSd4Etrlv7kK9gUfKVu1OwwyBhjLAn4-l3PArWhzLxF13MmmVw/viewform"
   },
   {
     "orderIndex": 20,
@@ -182,7 +182,7 @@ const INITIAL_TEACHERS = [
     "nip": "197208052007012020",
     "class": "XI TPL 2",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/6YPzECievjrGJZBnA"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLScZ2l8R4TTNeJdfXVZvYAgc3WGgT9QtEVz0-ANUsebuRgsWsQ/viewform"
   },
   {
     "orderIndex": 21,
@@ -190,7 +190,7 @@ const INITIAL_TEACHERS = [
     "nip": "197511052003121004",
     "class": "XI TPM 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/2mog9vghqCw6TSTw7"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdcvHzA1p4OhUC9iXA97o8okqRsjziPMeWoPw6g-Nvt7Pr9jg/viewform"
   },
   {
     "orderIndex": 22,
@@ -214,7 +214,7 @@ const INITIAL_TEACHERS = [
     "nip": "197509262008011011",
     "class": "XI TKR2",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/DSDoMKgI8XxbcPr78"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdoHRTHs-yCXOAaQukleNcx5jWI79dOK6qbeeCW4p45bJ9CLg/viewform"
   },
   {
     "orderIndex": 25,
@@ -222,7 +222,7 @@ const INITIAL_TEACHERS = [
     "nip": "197602072010011006",
     "class": "XI TBKR",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/jVwhLYXebas1GSZQJ6"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSftHQdc5-VZ5uwLLimFvRnkwycT7Ys50sjgRzMN-ALHGSjCqA/viewform"
   },
   {
     "orderIndex": 26,
@@ -238,7 +238,7 @@ const INITIAL_TEACHERS = [
     "nip": "198010032010011010",
     "class": "XI TSM 2",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/r3mekFxufrTcJjgRA"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSfNEYg6DAPuUemLNfKalqh5_nN6m2oxlOxSvPG1Fu55a4gqNA/viewform"
   },
   {
     "orderIndex": 28,
@@ -270,7 +270,7 @@ const INITIAL_TEACHERS = [
     "nip": "198301122009011006",
     "class": "XII TAV",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/PSXtPwi7yQN3Mfi8"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdRlmK9kl1qIAOcGpf1Uu18upIQ0GWK8VkTv12k_6AEAERRMQ/viewform"
   },
   {
     "orderIndex": 32,
@@ -286,7 +286,7 @@ const INITIAL_TEACHERS = [
     "nip": "198209292010011011",
     "class": "XII TPL 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/ESlazXu6aQ3PklsD9"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdPW1l4LaclpGdRqS2jqaCtnP9mivQff9TM2a9if71auoCj6g/viewform"
   },
   {
     "orderIndex": 34,
@@ -294,7 +294,7 @@ const INITIAL_TEACHERS = [
     "nip": "198212022014062003",
     "class": "XII TPL 2",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/KwfitQjMYbtsnr4UZV6"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSejtfmzSD3f24E8Z4AXVPgC0RTs8brRuZ_KCxV9-lmsq4C5iQ/viewform"
   },
   {
     "orderIndex": 35,
@@ -302,7 +302,7 @@ const INITIAL_TEACHERS = [
     "nip": "198403262010011008",
     "class": "XII TPM 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/DStwfQQGe3W3gc73A"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdaT-LhGEwSzPtm9G3LL6KRs-gFmbNF2uiIykR7J7HDmdC2uQ/viewform"
   },
   {
     "orderIndex": 36,
@@ -310,7 +310,7 @@ const INITIAL_TEACHERS = [
     "nip": "198504032010012014",
     "class": "XII TPM 2",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/8Z33XXUnWmhZCY9S9"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSdFjcTg73409mYsq9RTVwH8IBBBz5ya0_y6K1t74WjfpPWMhA/viewform"
   },
   {
     "orderIndex": 37,

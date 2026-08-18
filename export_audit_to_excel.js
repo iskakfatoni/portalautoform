@@ -75,9 +75,9 @@ ws1['!cols'] = [
   { wch: 30 },  // Status
   { wch: 70 }   // Link Baru
 ];
-XLSX.utils.book_append_sheet(workbook, ws1, "54 Guru Perlu Update");
+XLSX.utils.book_append_sheet(workbook, ws1, `${failedTeachers.length} Guru Perlu Update`);
 
-// Sheet 2: 38 Guru Valid
+// Sheet 2: Guru Valid
 const ws2 = XLSX.utils.json_to_sheet(validTeachers);
 ws2['!cols'] = [
   { wch: 6 },   // No
@@ -88,9 +88,9 @@ ws2['!cols'] = [
   { wch: 75 },  // URL Panjang Valid
   { wch: 25 }   // Status
 ];
-XLSX.utils.book_append_sheet(workbook, ws2, "38 Guru Link Valid");
+XLSX.utils.book_append_sheet(workbook, ws2, `${validTeachers.length} Guru Link Valid`);
 
-// Sheet 3: Master 92 Guru
+// Sheet 3: Master Seluruh Guru
 const ws3 = XLSX.utils.json_to_sheet(allTeachers);
 ws3['!cols'] = [
   { wch: 6 },   // No
@@ -102,7 +102,7 @@ ws3['!cols'] = [
   { wch: 25 },  // Format Link
   { wch: 35 }   // Status Autofill
 ];
-XLSX.utils.book_append_sheet(workbook, ws3, "Master 92 Guru Lengkap");
+XLSX.utils.book_append_sheet(workbook, ws3, `Master ${allTeachers.length} Guru Lengkap`);
 
 // Simpan file Excel
 const exportFileName = 'daftar_guru_status_link_google_form.xlsx';
@@ -112,6 +112,7 @@ XLSX.writeFile(workbook, exportPath);
 console.log(`\n🎉 Berhasil membuat file Excel!`);
 console.log(`📁 Lokasi file: ${exportPath}`);
 console.log(`📊 Ringkasan:`);
-console.log(`   - Sheet 1: 54 Guru Perlu Update Link`);
-console.log(`   - Sheet 2: 38 Guru Link Valid`);
-console.log(`   - Sheet 3: Master 92 Guru Lengkap`);
+console.log(`   - Sheet 1: ${failedTeachers.length} Guru Perlu Update Link`);
+console.log(`   - Sheet 2: ${validTeachers.length} Guru Link Valid`);
+console.log(`   - Sheet 3: Master ${allTeachers.length} Guru Lengkap`);
+
