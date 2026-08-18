@@ -21,12 +21,6 @@ import {
 } from './firebase-config.js';
 
 import {
-  INITIAL_TEACHERS,
-  INITIAL_FORMS,
-  INITIAL_SCHEDULES
-} from './modules/initial-data.js';
-
-import {
   formatTimeString
 } from './modules/formatters.js';
 
@@ -62,17 +56,11 @@ function generateFormUrlForTeacher(form, teacher) {
   return generateFormUrlForTeacherModule(form, teacher, new Date(), currentSchedules);
 }
 
-// State Aplikasi
-let currentTeachers = [...INITIAL_TEACHERS];
-let currentForms = [...INITIAL_FORMS];
-let currentSchedules = [...INITIAL_SCHEDULES];
-let activeTeacher = {
-  name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-  nip: "198109092022211004",
-  class: "XII TEI 2",
-  role: "Walikelas",
-  journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
-};
+// State Aplikasi (100% Murni Dimuat Real-Time dari Cloud Firestore)
+let currentTeachers = [];
+let currentForms = [];
+let currentSchedules = [];
+let activeTeacher = null;
 let currentUser = null;
 
 // Inisialisasi Saat Halaman Dimuat
@@ -433,55 +421,6 @@ async function handleAdminLoginState(email, displayName) {
   showToast(`Selamat datang Admin (${email})!`);
 
   await fetchFirestoreData();
-  syncCanonicalFormsToFirestore();
-  syncCanonicalTeachersToFirestore();
-}
-
-async function syncCanonicalFormsToFirestore() {
-  const activeDb = getDb();
-  if (!activeDb || !currentUser || !isAuthorizedAdminEmail(currentUser.email)) return;
-  try {
-    for (const form of INITIAL_FORMS) {
-      await setDoc(doc(activeDb, "forms", form.id), {
-        name: form.name,
-        category: form.category,
-        icon: form.icon,
-        description: form.description,
-        baseUrl: form.baseUrl,
-        entryGuru: form.entryGuru || "",
-        entryNip: form.entryNip || "",
-        entryTanggal: form.entryTanggal || "",
-        entryJamKe: form.entryJamKe || "",
-        entryKelas: form.entryKelas || "",
-        entryMapel: form.entryMapel || "",
-        isActive: form.isActive !== false,
-        orderIndex: form.orderIndex,
-        statusBadge: form.statusBadge
-      }, { merge: true });
-    }
-  } catch (err) {
-    console.warn("Sinkronisasi formulir ke Firestore dilewati:", err);
-  }
-}
-
-async function syncCanonicalTeachersToFirestore() {
-  const activeDb = getDb();
-  if (!activeDb || !currentUser || !isAuthorizedAdminEmail(currentUser.email)) return;
-  try {
-    const batch = writeBatch(activeDb);
-    let count = 0;
-
-    INITIAL_TEACHERS.forEach(t => {
-      const docId = t.nip && t.nip !== '-' ? t.nip : t.name.replace(/[^a-zA-Z0-9]/g, '_');
-      const ref = doc(activeDb, "teachers", docId);
-      batch.set(ref, t, { merge: true });
-      count++;
-    });
-
-    await batch.commit();
-  } catch (err) {
-    console.warn("⚠️ Gagal sinkronisasi data guru ke Firestore:", err);
-  }
 }
 
 function handleAdminLogoutState() {
@@ -741,29 +680,9 @@ async function deleteFormHandler(formId) {
 }
 
 async function seedMasterTeachersToFirestore() {
-  if (!confirm("Upload 92 data guru bawaan ke Firestore Cloud? Data yang sudah ada dengan nama yang sama akan diperbarui.")) return;
-
-  showToast("Mengunggah master data guru ke Firestore...");
-  currentTeachers = [...INITIAL_TEACHERS];
-
-  if (db && isFirebaseActive) {
-    try {
-      const batch = writeBatch(db);
-      INITIAL_TEACHERS.forEach(t => {
-        const docId = t.nip && t.nip !== '-' ? t.nip : t.name.replace(/[^a-zA-Z0-9]/g, '_');
-        const ref = doc(db, "teachers", docId);
-        batch.set(ref, t);
-      });
-      await batch.commit();
-      showToast("🚀 92 Master Data Guru berhasil diunggah ke Cloud Firestore!");
-    } catch (err) {
-      console.error("Gagal batch upload:", err);
-      showToast("Gagal mengunggah ke Firestore. Pastikan izin Firestore Rules sudah diatur.");
-    }
-  } else {
-    showToast("92 Master Guru dimuat ke penyimpanan lokal browser.");
-  }
-
+  showToast("Memuat ulang data master dari Cloud Firestore...");
+  await fetchFirestoreData();
+  showToast("✅ Data Cloud Firestore berhasil disinkronkan ke layar!");
   renderAdminTables();
   populateGuruSelect(document.getElementById('portal-guru-select'));
 }

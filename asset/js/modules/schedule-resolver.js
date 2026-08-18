@@ -3,7 +3,6 @@
  * Portal AutoForm - SMKN 1 Jetis Mojokerto
  */
 
-import { INITIAL_FORMS, INITIAL_SCHEDULES } from './initial-data.js';
 import { formatTimeString, normalizeDayName, normalizeFormClassName, INDONESIAN_DAYS } from './formatters.js';
 
 export function getActiveTeacherSchedule(teacher, now = new Date(), currentSchedules = []) {
@@ -11,7 +10,7 @@ export function getActiveTeacherSchedule(teacher, now = new Date(), currentSched
   const teacherNipDigits = (teacher.nip || '').replace(/\D/g, '');
   const teacherCleanName = (teacher.name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : INITIAL_SCHEDULES;
+  const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : [];
   const teacherSchedules = schedules.filter(s => {
     const sNipDigits = (s.nip || '').replace(/\D/g, '');
     if (sNipDigits && teacherNipDigits && sNipDigits === teacherNipDigits) return true;
@@ -185,7 +184,7 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 }
 
 export function sortAndNormalizeForms(formsList) {
-  const list = (!formsList || formsList.length === 0) ? INITIAL_FORMS : formsList;
+  const list = formsList || [];
   const canonicalPiketUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform";
   const canonicalWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform";
 

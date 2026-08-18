@@ -3,19 +3,15 @@
  * PORTAL:AutoForm - SMKN 1 Jetis Mojokerto
  */
 
-import { INITIAL_TEACHERS, INITIAL_FORMS } from './initial-data.js';
 import { normalizeDayName, formatTimeString } from './formatters.js';
 import { doc, setDoc, writeBatch } from '../firebase-config.js';
 
 export function sortTeachersByMasterOrder(teachers) {
-  const masterNames = INITIAL_TEACHERS.map(t => t.name.toLowerCase());
   return [...teachers].sort((a, b) => {
-    const idxA = masterNames.indexOf(a.name.toLowerCase());
-    const idxB = masterNames.indexOf(b.name.toLowerCase());
-    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-    if (idxA !== -1) return -1;
-    if (idxB !== -1) return 1;
-    return (a.orderIndex || 999) - (b.orderIndex || 999);
+    const orderA = (a.orderIndex !== undefined && a.orderIndex !== null) ? a.orderIndex : 999;
+    const orderB = (b.orderIndex !== undefined && b.orderIndex !== null) ? b.orderIndex : 999;
+    if (orderA !== orderB) return orderA - orderB;
+    return (a.name || '').localeCompare(b.name || '');
   });
 }
 
@@ -34,7 +30,7 @@ export function exportTeachersToExcel(currentTeachers, currentForms, showToast, 
     return;
   }
 
-  const defaultForm = currentForms[0] || INITIAL_FORMS[0];
+  const defaultForm = currentForms[0] || null;
   const sortedTeachers = sortTeachersByMasterOrder(currentTeachers);
 
   try {
