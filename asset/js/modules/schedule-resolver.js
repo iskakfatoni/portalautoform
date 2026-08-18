@@ -177,12 +177,16 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 }
 
 export function sortAndNormalizeForms(formsList) {
-  if (!formsList || formsList.length === 0) return [];
+  const list = (!formsList || formsList.length === 0) ? INITIAL_FORMS : formsList;
   const canonicalPiketUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform";
+  const canonicalWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform";
 
-  const normalized = formsList.map(f => {
-    if (f.id === "form_absensi_piket" && (!f.baseUrl || f.baseUrl.includes("1FAIpQLSeVYQG1tPodad") || f.baseUrl.includes("1FAIpQLSfrm87oC00"))) {
+  const normalized = list.map(f => {
+    if (f.id === "form_absensi_piket") {
       return { ...f, baseUrl: canonicalPiketUrl };
+    }
+    if (f.id === "form_wali_kelas" || f.id === "form_guru_wali") {
+      return { ...f, baseUrl: canonicalWaliUrl };
     }
     return f;
   });
