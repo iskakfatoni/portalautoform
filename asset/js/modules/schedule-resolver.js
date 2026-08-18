@@ -169,10 +169,14 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
     return `${targetUrl}?${params.toString()}`;
   }
 
-  // 3. Formulir Standar Lainnya
+  // 3. Form Absensi Guru Piket & Formulir Standar Lainnya
   const targetUrl = cleanFormUrl(form.baseUrl);
   if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
   if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
+  if (form.entryTanggal) params.set(form.entryTanggal, isoDate);
+  if (form.entryKelas && teacher && teacher.class && teacher.class !== '-') {
+    params.set(form.entryKelas, normalizeFormClassName(teacher.class));
+  }
   return `${targetUrl}?${params.toString()}`;
 }
 
