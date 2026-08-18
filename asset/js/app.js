@@ -888,16 +888,7 @@ function normalizeDayName(dayStr) {
 function formatTimeString(timeStr) {
   if (timeStr === undefined || timeStr === null || timeStr === '') return '';
   
-  // Jika timeStr adalah angka desimal dari Excel (misal 0.2916666666666667 untuk 07:00)
-  if (typeof timeStr === 'number' || (!isNaN(timeStr) && !String(timeStr).includes(':'))) {
-    const num = parseFloat(timeStr);
-    if (num >= 0 && num < 1) {
-      const totalMinutes = Math.round(num * 24 * 60);
-      const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
-      const mm = String(totalMinutes % 60).padStart(2, '0');
-      return `${hh}:${mm}`;
-    }
-  }
+  let s = String(timeStr).trim();
 
   // Jika berupa objek Date
   if (timeStr instanceof Date) {
@@ -906,13 +897,38 @@ function formatTimeString(timeStr) {
     return `${hh}:${mm}`;
   }
 
-  let s = String(timeStr).trim().replace(/\./g, ':');
-  const parts = s.split(':');
-  if (parts.length >= 2) {
-    const hh = parts[0].trim().padStart(2, '0');
-    const mm = parts[1].trim().padStart(2, '0');
+  // Cek string dengan titik/titik dua (misal "00:2916666666666667" atau "07:00" atau "7.00")
+  s = s.replace(/\./g, ':');
+  if (s.includes(':')) {
+    const parts = s.split(':');
+    if (parts.length >= 2) {
+      const hhStr = parts[0].trim();
+      const mmStr = parts[1].trim();
+
+      // Kasus khusus: Angka pecahan desimal Excel yang terlanjur diubah menjadi "00:2916666666666667"
+      if (mmStr.length > 3 && !isNaN(mmStr)) {
+        const fraction = parseFloat(`0.${mmStr}`);
+        const totalMinutes = Math.round(fraction * 24 * 60);
+        const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+        const mm = String(totalMinutes % 60).padStart(2, '0');
+        return `${hh}:${mm}`;
+      }
+
+      const hh = String(parseInt(hhStr, 10) || 0).padStart(2, '0');
+      const mm = String(parseInt(mmStr, 10) || 0).padStart(2, '0');
+      return `${hh}:${mm}`;
+    }
+  }
+
+  // Jika berupa angka desimal Excel murni (misal 0.2916666666666667 untuk 07:00)
+  const num = parseFloat(s);
+  if (!isNaN(num) && num >= 0 && num < 1) {
+    const totalMinutes = Math.round(num * 24 * 60);
+    const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+    const mm = String(totalMinutes % 60).padStart(2, '0');
     return `${hh}:${mm}`;
   }
+
   return s;
 }
 
@@ -1390,7 +1406,12 @@ async function fetchFirestoreData() {
     if (!schedulesSnapshot.empty) {
       const fetchedSchedules = [];
       schedulesSnapshot.forEach(doc => {
-        fetchedSchedules.push(doc.data());
+        const item = doc.data();
+        fetchedSchedules.push({
+          ...item,
+          jamMulai: formatTimeString(item.jamMulai),
+          jamSelesai: formatTimeString(item.jamSelesai)
+        });
       });
       currentSchedules = fetchedSchedules;
       console.log(`[Firestore] ✅ ${fetchedSchedules.length} jadwal berhasil dimuat.`);
