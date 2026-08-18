@@ -177,11 +177,11 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 }
 
 export function sortAndNormalizeForms(formsList) {
-  const list = (!formsList || formsList.length === 0) ? INITIAL_FORMS : formsList;
+  if (!formsList || formsList.length === 0) return [];
   const canonicalPiketUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform";
 
-  const normalized = list.map(f => {
-    if (f.id === "form_absensi_piket") {
+  const normalized = formsList.map(f => {
+    if (f.id === "form_absensi_piket" && (!f.baseUrl || f.baseUrl.includes("1FAIpQLSeVYQG1tPodad") || f.baseUrl.includes("1FAIpQLSfrm87oC00"))) {
       return { ...f, baseUrl: canonicalPiketUrl };
     }
     return f;

@@ -77,6 +77,11 @@ let currentUser = null;
 
 // Inisialisasi Saat Halaman Dimuat
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!navigator.onLine) {
+    window.location.href = 'offline.html';
+    return;
+  }
+
   initTheme('theme-toggle-btn');
   initNavigation();
   initModals();

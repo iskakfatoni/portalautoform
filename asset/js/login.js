@@ -21,6 +21,11 @@ import { isAuthorizedAdminEmail } from './modules/auth-manager.js';
 let teachersData = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (!navigator.onLine) {
+    window.location.href = 'offline.html';
+    return;
+  }
+
   initTheme('theme-toggle-btn');
   await loadSavedTeachers();
   initLoginTabs();
