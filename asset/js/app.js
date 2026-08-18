@@ -584,9 +584,14 @@ async function deleteScheduleHandler(index) {
 async function saveTeacherHandler(teacherData) {
   const existingIdx = currentTeachers.findIndex(t => t.name === teacherData.name);
   if (existingIdx >= 0) {
-    currentTeachers[existingIdx] = teacherData;
+    currentTeachers[existingIdx] = { ...currentTeachers[existingIdx], ...teacherData };
   } else {
     currentTeachers.unshift(teacherData);
+  }
+
+  if (activeTeacher && activeTeacher.name === teacherData.name) {
+    activeTeacher = { ...activeTeacher, ...teacherData };
+    renderUserPortalApp();
   }
 
   try {
@@ -904,9 +909,10 @@ function initModals() {
       const name = document.getElementById('edit-teacher-name').value.trim();
       const nip = document.getElementById('edit-teacher-nip').value.trim();
       const role = document.getElementById('edit-teacher-role').value;
+      const teacherClass = document.getElementById('edit-teacher-class').value;
       const journalFormUrl = document.getElementById('edit-teacher-journal-url').value.trim();
 
-      await saveTeacherHandler({ name, nip, role, journalFormUrl });
+      await saveTeacherHandler({ name, nip, role, class: teacherClass, journalFormUrl });
       modalTeacher.classList.add('hidden');
     });
   }
@@ -990,6 +996,7 @@ function openTeacherModal(teacher = null) {
   const nameInp = document.getElementById('edit-teacher-name');
   const nipInp = document.getElementById('edit-teacher-nip');
   const roleInp = document.getElementById('edit-teacher-role');
+  const classInp = document.getElementById('edit-teacher-class');
   const journalInp = document.getElementById('edit-teacher-journal-url');
 
   if (teacher) {
@@ -998,6 +1005,7 @@ function openTeacherModal(teacher = null) {
     nameInp.readOnly = true;
     nipInp.value = teacher.nip && teacher.nip !== '-' ? teacher.nip : '';
     roleInp.value = teacher.role || 'Walikelas';
+    if (classInp) classInp.value = teacher.class || '-';
     if (journalInp) journalInp.value = teacher.journalFormUrl || '';
   } else {
     title.innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Data Guru`;
@@ -1005,6 +1013,7 @@ function openTeacherModal(teacher = null) {
     nameInp.readOnly = false;
     nipInp.value = '';
     roleInp.value = 'Walikelas';
+    if (classInp) classInp.value = '-';
     if (journalInp) journalInp.value = '';
   }
   modal.classList.remove('hidden');

@@ -74,7 +74,18 @@ export async function fetchCollection(collectionName) {
 // 1. Fetch Teachers (Master Guru Cloud Firestore)
 export async function fetchTeachers() {
   const list = await fetchCollection('teachers');
-  return list.sort((a, b) => {
+  const normalizedList = list.map(t => {
+    if (t.nip === "198109092022211004" || (t.name && t.name.includes("ISKAK FATONI"))) {
+      return {
+        ...t,
+        class: (t.class && t.class !== "XII TEI 2") ? t.class : "XI TEI 2",
+        role: t.role || "Walikelas"
+      };
+    }
+    return t;
+  });
+
+  return normalizedList.sort((a, b) => {
     const orderA = (a.orderIndex !== undefined && a.orderIndex !== null) ? a.orderIndex : 999;
     const orderB = (b.orderIndex !== undefined && b.orderIndex !== null) ? b.orderIndex : 999;
     if (orderA !== orderB) return orderA - orderB;

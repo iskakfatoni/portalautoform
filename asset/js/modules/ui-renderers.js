@@ -83,7 +83,7 @@ export function renderTeachersTable(currentTeachers, onEditTeacher, onDeleteTeac
         <td>${idx + 1}</td>
         <td><strong>${t.name}</strong></td>
         <td class="font-mono">${t.nip || '-'}</td>
-        <td>${t.role || 'Guru'}</td>
+        <td>${t.role || 'Guru'}${t.class && t.class !== '-' ? ` <span class="pill-badge pill-auto" style="margin-left: 4px; font-size: 0.75rem;">${t.class}</span>` : ''}</td>
         <td>${journalStatusBadge}</td>
         <td>
           <div class="action-btns-row">
