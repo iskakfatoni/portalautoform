@@ -22,7 +22,7 @@ let teachersData = [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!navigator.onLine) {
-    window.location.href = 'offline.html';
+    window.location.href = 'asset/pages/offline.html';
     return;
   }
 
