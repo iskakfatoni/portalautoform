@@ -3,7 +3,15 @@
  * Portal AutoForm - SMKN 1 Jetis Mojokerto
  */
 
-import { formatTimeString, normalizeDayName, normalizeFormClassName, formatSpacedNip, INDONESIAN_DAYS } from './formatters.js';
+import { 
+  formatTimeString, 
+  normalizeDayName, 
+  normalizeFormClassName, 
+  normalizeWaliClassName,
+  getCurrentMonthNameUpper,
+  formatSpacedNip, 
+  INDONESIAN_DAYS 
+} from './formatters.js';
 
 export function getActiveTeacherSchedule(teacher, now = new Date(), currentSchedules = []) {
   if (!teacher) return null;
@@ -168,7 +176,37 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
     return `${targetUrl}?${params.toString()}`;
   }
 
-  // 3. Form Absensi Guru Piket & Formulir Standar Lainnya
+  // 3. Form Wali Kelas / Pengumpulan Bulanan Walikelas
+  const isWali = form.id === "pengumpulan_bulanan_walikelas" || form.id === "form_wali_kelas" || (form.name && form.name.toLowerCase().includes("wali kelas"));
+  if (isWali) {
+    const canonicalWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform";
+    const targetUrl = cleanFormUrl(form.baseUrl || canonicalWaliUrl);
+
+    const entryGuruKey = form.entryGuru || "entry.1599393498";
+    const entryNipKey = form.entryNip || "entry.65154558";
+    const entryKelasKey = form.entryKelas || "entry.591543822";
+    const entryBulanKey = form.entryBulan || "entry.73505426";
+
+    // 1. Nama Guru (Dropdown)
+    if (entryGuruKey && teacher && teacher.name) params.set(entryGuruKey, teacher.name);
+
+    // 2. NIP (Teks Bebas)
+    if (entryNipKey && teacher && teacher.nip && teacher.nip !== '-') params.set(entryNipKey, teacher.nip);
+
+    // 3. Kelas Binaan Walikelas (Dropdown)
+    if (entryKelasKey && teacher && teacher.class && teacher.class !== '-') {
+      params.set(entryKelasKey, normalizeWaliClassName(teacher.class));
+    }
+
+    // 4. Bulan Berjalan (Dropdown)
+    if (entryBulanKey) {
+      params.set(entryBulanKey, getCurrentMonthNameUpper(now));
+    }
+
+    return `${targetUrl}?${params.toString()}`;
+  }
+
+  // 4. Form Absensi Guru Piket & Formulir Standar Lainnya
   const isPiket = form.id === "form_absensi_piket" || (form.name && form.name.toLowerCase().includes("piket")) || form.category === "Piket";
   
   const targetUrl = isPiket 
@@ -207,7 +245,18 @@ export function sortAndNormalizeForms(formsList) {
         entryTanggal: "entry.965224728"
       };
     }
-    if (f.id === "form_wali_kelas" || f.id === "form_guru_wali" || f.id === "pengumpulan_bulanan_walikelas") {
+    const isWali = f.id === "form_wali_kelas" || f.id === "pengumpulan_bulanan_walikelas" || (f.name && f.name.toLowerCase().includes("wali kelas"));
+    if (isWali) {
+      return { 
+        ...f, 
+        baseUrl: canonicalWaliUrl,
+        entryGuru: "entry.1599393498",
+        entryNip: "entry.65154558",
+        entryKelas: "entry.591543822",
+        entryBulan: "entry.73505426"
+      };
+    }
+    if (f.id === "form_guru_wali") {
       return { ...f, baseUrl: canonicalWaliUrl };
     }
     return f;
