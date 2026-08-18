@@ -27,9 +27,7 @@ import {
 import {
   INITIAL_TEACHERS,
   INITIAL_FORMS,
-  INITIAL_SCHEDULES,
-  FORM_CLASS_OPTIONS,
-  ALL_CLASSES
+  INITIAL_SCHEDULES
 } from './modules/initial-data.js';
 
 import {
@@ -75,9 +73,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initModals();
   initLiveClock();
   initImportExport();
-  
-  // Setup dropdown kelas di modal
-  populateClassDropdowns();
 
   // Bersihkan cache lokal usang agar data 100% murni memori & Cloud Firestore
   localStorage.removeItem('portal_teachers_data');
@@ -1701,12 +1696,7 @@ function openFormModal(form = null) {
   modal.classList.remove('hidden');
 }
 
-function populateClassDropdowns() {
-  const editClassSelect = document.getElementById('edit-teacher-class');
-  if (editClassSelect) {
-    editClassSelect.innerHTML = ALL_CLASSES.map(c => `<option value="${c}">${c}</option>`).join('');
-  }
-}
+
 
 /* ==========================================================================
    9. Helper Utilities (Toast, Clipboard, Theme, Clock)

@@ -3,16 +3,11 @@
  * Portal AutoForm - SMKN 1 Jetis Mojokerto
  */
 
-import { FORM_CLASS_OPTIONS } from './initial-data.js';
-
 export const INDONESIAN_DAYS = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 
 export function normalizeFormClassName(rawClass) {
   if (!rawClass || rawClass === '-') return '';
-  const clean = rawClass.trim().replace(/\s+/g, ' ');
-  const exact = FORM_CLASS_OPTIONS.find(opt => opt.replace(/\s+/g, ' ').toUpperCase() === clean.toUpperCase());
-  if (exact) return exact;
-
+  const clean = String(rawClass).trim().replace(/\s+/g, ' ');
   if (clean.startsWith('XII ')) return clean.replace('XII ', 'XII  ');
   if (clean.startsWith('XI ')) return clean.replace('XI ', 'XI  ');
   if (clean.startsWith('X ')) return clean.replace('X ', 'X  ');
