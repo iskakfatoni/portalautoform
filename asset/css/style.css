@@ -3016,12 +3016,21 @@ body.landing-page .landing-content-centered {
 }
 
 .landing-title {
-  font-size: 1.6rem;
+  font-size: 1.55rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text-primary);
   margin: 0;
   line-height: 1.25;
+}
+
+.landing-author {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  font-weight: 500;
+  margin: 0.15rem 0 0;
+  opacity: 0.8;
 }
 
 .landing-nip-form {
