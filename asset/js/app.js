@@ -342,7 +342,7 @@ const INITIAL_TEACHERS = [
     "nip": "199311072019031004",
     "class": "XII TSM 1",
     "role": "Walikelas",
-    "journalFormUrl": "https://forms.gle/eSTVKcrx2NqqFGR28"
+    "journalFormUrl": "https://docs.google.com/forms/d/e/1FAIpQLSczNF2YAQXf9165kZ-FthvzailwmMrM-uSTecJzWHq0JCEldQ/viewform"
   },
   {
     "orderIndex": 41,
