@@ -910,9 +910,10 @@ function initModals() {
       const nip = document.getElementById('edit-teacher-nip').value.trim();
       const role = document.getElementById('edit-teacher-role').value;
       const teacherClass = document.getElementById('edit-teacher-class').value;
+      const guruWaliClass = document.getElementById('edit-teacher-guru-wali-class') ? document.getElementById('edit-teacher-guru-wali-class').value : '-';
       const journalFormUrl = document.getElementById('edit-teacher-journal-url').value.trim();
 
-      await saveTeacherHandler({ name, nip, role, class: teacherClass, journalFormUrl });
+      await saveTeacherHandler({ name, nip, role, class: teacherClass, guruWaliClass, journalFormUrl });
       modalTeacher.classList.add('hidden');
     });
   }
@@ -997,6 +998,7 @@ function openTeacherModal(teacher = null) {
   const nipInp = document.getElementById('edit-teacher-nip');
   const roleInp = document.getElementById('edit-teacher-role');
   const classInp = document.getElementById('edit-teacher-class');
+  const guruWaliClassInp = document.getElementById('edit-teacher-guru-wali-class');
   const journalInp = document.getElementById('edit-teacher-journal-url');
 
   if (teacher) {
@@ -1006,6 +1008,7 @@ function openTeacherModal(teacher = null) {
     nipInp.value = teacher.nip && teacher.nip !== '-' ? teacher.nip : '';
     roleInp.value = teacher.role || 'Walikelas';
     if (classInp) classInp.value = teacher.class || '-';
+    if (guruWaliClassInp) guruWaliClassInp.value = teacher.guruWaliClass || '-';
     if (journalInp) journalInp.value = teacher.journalFormUrl || '';
   } else {
     title.innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Data Guru`;
@@ -1014,6 +1017,7 @@ function openTeacherModal(teacher = null) {
     nipInp.value = '';
     roleInp.value = 'Walikelas';
     if (classInp) classInp.value = '-';
+    if (guruWaliClassInp) guruWaliClassInp.value = '-';
     if (journalInp) journalInp.value = '';
   }
   modal.classList.remove('hidden');

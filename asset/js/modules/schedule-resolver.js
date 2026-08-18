@@ -206,17 +206,45 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
     return `${targetUrl}?${params.toString()}`;
   }
 
-  // 4. Form Absensi Guru Piket & Formulir Standar Lainnya
-  const isPiket = form.id === "form_absensi_piket" || (form.name && form.name.toLowerCase().includes("piket")) || form.category === "Piket";
+  // 4. Form Guru Wali / Pengumpulan Bulanan Guru Wali
   const isGuruWali = form.id === "form_guru_wali" || (form.name && form.name.toLowerCase().includes("guru wali")) || form.category === "Guru Wali";
-  const canonicalGuruWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeVYQG1tPodad-cUyHW5Mzx3CmO3L8GOx8AzWXajJqYkqbkBg/viewform";
-  
-  let targetUrl = cleanFormUrl(form.baseUrl);
-  if (isPiket) {
-    targetUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform";
-  } else if (isGuruWali) {
-    targetUrl = canonicalGuruWaliUrl;
+  if (isGuruWali) {
+    const canonicalGuruWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeVYQG1tPodad-cUyHW5Mzx3CmO3L8GOx8AzWXajJqYkqbkBg/viewform";
+    const targetUrl = cleanFormUrl(form.baseUrl || canonicalGuruWaliUrl);
+
+    const entryGuruKey = form.entryGuru || "entry.1599393498";
+    const entryNipKey = form.entryNip || "entry.65154558";
+    const entryKelasKey = form.entryKelas || "entry.591543822";
+    const entryBulanKey = form.entryBulan || "entry.73505426";
+
+    // 1. Nama Guru (Dropdown)
+    if (entryGuruKey && teacher && teacher.name) params.set(entryGuruKey, teacher.name);
+
+    // 2. NIP (Teks Bebas)
+    if (entryNipKey && teacher && teacher.nip && teacher.nip !== '-') params.set(entryNipKey, teacher.nip);
+
+    // 3. Kelas Binaan Guru Wali (Dropdown) - Mengambil dari guruWaliClass
+    const waliClass = (teacher && teacher.guruWaliClass && teacher.guruWaliClass !== '-') 
+      ? teacher.guruWaliClass 
+      : (teacher ? teacher.class : '');
+    if (entryKelasKey && waliClass && waliClass !== '-') {
+      params.set(entryKelasKey, normalizeWaliClassName(waliClass));
+    }
+
+    // 4. Bulan Berjalan (Dropdown)
+    if (entryBulanKey) {
+      params.set(entryBulanKey, getCurrentMonthNameUpper(now));
+    }
+
+    return `${targetUrl}?${params.toString()}`;
   }
+
+  // 5. Form Absensi Guru Piket & Formulir Standar Lainnya
+  const isPiket = form.id === "form_absensi_piket" || (form.name && form.name.toLowerCase().includes("piket")) || form.category === "Piket";
+  
+  const targetUrl = isPiket 
+    ? "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform"
+    : cleanFormUrl(form.baseUrl);
 
   const entryGuruKey = isPiket ? "entry.227643322" : form.entryGuru;
   const entryNipKey = isPiket ? "entry.1591970773" : form.entryNip;
@@ -266,7 +294,11 @@ export function sortAndNormalizeForms(formsList) {
     if (isGuruWali) {
       return { 
         ...f, 
-        baseUrl: canonicalGuruWaliUrl
+        baseUrl: canonicalGuruWaliUrl,
+        entryGuru: "entry.1599393498",
+        entryNip: "entry.65154558",
+        entryKelas: "entry.591543822",
+        entryBulan: "entry.73505426"
       };
     }
     return f;

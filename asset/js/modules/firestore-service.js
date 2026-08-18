@@ -79,6 +79,7 @@ export async function fetchTeachers() {
       return {
         ...t,
         class: (t.class && t.class !== "XII TEI 2") ? t.class : "XI TEI 2",
+        guruWaliClass: t.guruWaliClass || "XI TEI 1",
         role: t.role || "Walikelas"
       };
     }
