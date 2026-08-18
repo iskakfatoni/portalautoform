@@ -3,7 +3,7 @@
  * Portal AutoForm - SMKN 1 Jetis Mojokerto
  */
 
-import { formatTimeString, normalizeDayName, normalizeFormClassName, INDONESIAN_DAYS } from './formatters.js';
+import { formatTimeString, normalizeDayName, normalizeFormClassName, formatSpacedNip, INDONESIAN_DAYS } from './formatters.js';
 
 export function getActiveTeacherSchedule(teacher, now = new Date(), currentSchedules = []) {
   if (!teacher) return null;
@@ -180,7 +180,10 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
   const entryTanggalKey = isPiket ? "entry.965224728" : form.entryTanggal;
 
   if (entryGuruKey && teacher && teacher.name) params.set(entryGuruKey, teacher.name);
-  if (entryNipKey && teacher && teacher.nip && teacher.nip !== '-') params.set(entryNipKey, teacher.nip);
+  if (entryNipKey && teacher && teacher.nip && teacher.nip !== '-') {
+    const finalNip = isPiket ? formatSpacedNip(teacher.nip) : teacher.nip;
+    params.set(entryNipKey, finalNip);
+  }
   if (entryTanggalKey) params.set(entryTanggalKey, isoDate);
   if (form.entryKelas && teacher && teacher.class && teacher.class !== '-') {
     params.set(form.entryKelas, normalizeFormClassName(teacher.class));

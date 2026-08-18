@@ -73,3 +73,12 @@ export function formatTimeString(timeStr) {
 
   return s;
 }
+
+export function formatSpacedNip(nip) {
+  if (!nip || nip === '-') return '';
+  const digits = String(nip).replace(/\D/g, '');
+  if (digits.length === 18) {
+    return digits.replace(/^(\d{8})(\d{6})(\d{1})(\d{3})$/, '$1 $2 $3 $4');
+  }
+  return nip;
+}
