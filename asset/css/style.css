@@ -3032,42 +3032,47 @@ body.landing-page .landing-content-centered {
 }
 
 .landing-input-box {
-  position: relative;
   width: 100%;
   display: flex;
   align-items: center;
+  gap: 12px;
+  background: var(--bg-glass);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1.25rem;
+  transition: border-color var(--transition-smooth), box-shadow var(--transition-smooth), background-color var(--transition-smooth);
+}
+
+.landing-input-box:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 16px var(--accent-glow);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .input-box-icon {
-  position: absolute;
-  left: 1.15rem;
   color: var(--text-muted);
-  font-size: 1.15rem;
+  font-size: 1.2rem;
+  flex-shrink: 0;
   pointer-events: none;
   transition: color var(--transition-fast);
 }
 
-.landing-nip-input {
-  width: 100%;
-  padding: 0.95rem 1.1rem 0.95rem 3.1rem;
-  font-size: 1.05rem;
-  border-radius: var(--radius-md);
-  background: var(--bg-glass);
-  border: 1.5px solid var(--border-color);
-  color: var(--text-primary);
-  outline: none;
-  transition: all var(--transition-smooth);
-  letter-spacing: 0.04em;
-}
-
-.landing-nip-input:focus {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 4px var(--accent-glow);
-  background: rgba(255, 255, 255, 0.06);
-}
-
 .landing-input-box:focus-within .input-box-icon {
   color: var(--accent-primary);
+}
+
+.landing-nip-input {
+  flex: 1;
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 0;
 }
 
 .btn-landing-submit,
@@ -3153,9 +3158,12 @@ body.landing-page .landing-content-centered {
     font-size: 1.3rem;
   }
 
+  .landing-input-box {
+    padding: 0.75rem 1rem;
+  }
+
   .landing-nip-input {
     font-size: 0.95rem;
-    padding: 0.85rem 1rem 0.85rem 2.85rem;
   }
 
   .btn-landing-submit,
