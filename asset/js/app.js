@@ -1,5 +1,5 @@
 /**
- * PORTAL:AutoForm - Multi-User Cloud Application
+ * PORTAL:AutoForm - Multi-User Cloud Application (Refactored Modular Engine)
  * Integrasi Firebase Auth, Cloud Firestore, Personal URL Routing (?nip=...), dan Import/Export Engine
  */
 
@@ -8,9 +8,7 @@ import {
   auth,
   db,
   getDb,
-  googleProvider,
   isFirebaseActive,
-  signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
@@ -22,8 +20,6 @@ import {
   writeBatch
 } from './firebase-config.js';
 
-
-
 import {
   INITIAL_TEACHERS,
   INITIAL_FORMS,
@@ -31,10 +27,7 @@ import {
 } from './modules/initial-data.js';
 
 import {
-  normalizeFormClassName,
-  normalizeDayName,
-  formatTimeString,
-  INDONESIAN_DAYS
+  formatTimeString
 } from './modules/formatters.js';
 
 import {
@@ -42,6 +35,23 @@ import {
   generateFormUrlForTeacher as generateFormUrlForTeacherModule,
   sortAndNormalizeForms
 } from './modules/schedule-resolver.js';
+
+import { initTheme } from './modules/theme-manager.js';
+import { isAuthorizedAdminEmail } from './modules/auth-manager.js';
+import {
+  exportTeachersToExcel as exportExcelService,
+  exportTeachersToJSON as exportJSONService,
+  processImportedExcelRows,
+  processImportedScheduleRows,
+  getPersonalPortalUrl
+} from './modules/excel-service.js';
+
+import {
+  renderUserPortal,
+  renderTeachersTable,
+  renderFormsTable,
+  renderScheduleTable
+} from './modules/ui-renderers.js';
 
 // Helper wrappers to preserve signatures
 function getActiveTeacherSchedule(teacher, now = new Date()) {
@@ -64,11 +74,10 @@ let activeTeacher = {
   journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
 };
 let currentUser = null;
-const ADMIN_EMAIL = "iskakfatoni@gmail.com";
 
 // Inisialisasi Saat Halaman Dimuat
 document.addEventListener('DOMContentLoaded', async () => {
-  initTheme();
+  initTheme('theme-toggle-btn');
   initNavigation();
   initModals();
   initLiveClock();
@@ -79,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   localStorage.removeItem('portal_forms_data');
   localStorage.removeItem('portal_schedule_data');
 
-  // Setup Portal Guru (Attach MASUK button and NIP listeners immediately!)
+  // Setup Portal Guru
   setupUserPortal();
 
   // Setup Form Builder
@@ -97,7 +106,6 @@ document.addEventListener('DOMContentLoaded', async () => {
    ========================================================================== */
 
 function initNavigation() {
-  // Main Tab Navigation
   document.querySelectorAll('.nav-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-target');
@@ -111,12 +119,11 @@ function initNavigation() {
       if (targetId === 'tab-admin') {
         renderAdminTables();
       } else if (targetId === 'tab-portal') {
-        renderUserPortal();
+        renderUserPortalApp();
       }
     });
   });
 
-  // Admin Subtabs Navigation
   document.querySelectorAll('.admin-subtab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-subtarget');
@@ -128,24 +135,22 @@ function initNavigation() {
       });
 
       if (targetId === 'subtab-schedule') {
-        renderScheduleTable();
+        renderScheduleTableApp();
       } else if (targetId === 'subtab-forms') {
-        renderFormsTable();
+        renderFormsTableApp();
       } else if (targetId === 'subtab-teachers') {
-        renderTeachersTable();
+        renderTeachersTableApp();
       }
     });
   });
 
-  // Admin Schedule Search Listener
   const scheduleSearchInput = document.getElementById('admin-schedule-search');
   if (scheduleSearchInput) {
     scheduleSearchInput.addEventListener('input', (e) => {
-      renderScheduleTable(e.target.value.trim());
+      renderScheduleTableApp(e.target.value.trim());
     });
   }
 
-  // Tombol Admin di Header
   const btnAdminHeader = document.getElementById('btn-show-login-modal');
   if (btnAdminHeader) {
     btnAdminHeader.addEventListener('click', (e) => {
@@ -154,7 +159,6 @@ function initNavigation() {
     });
   }
 
-  // Profil Admin di Header
   const adminProfile = document.getElementById('admin-user-profile');
   if (adminProfile) {
     adminProfile.addEventListener('click', (e) => {
@@ -164,7 +168,6 @@ function initNavigation() {
     });
   }
 
-  // Logout Button in Portal Header
   const btnPortalLogout = document.getElementById('btn-portal-logout');
   if (btnPortalLogout) {
     btnPortalLogout.addEventListener('click', async () => {
@@ -177,7 +180,6 @@ function initNavigation() {
     });
   }
 
-  // Tombol Kembali ke Portal Guru di dalam Admin Dashboard
   const btnBackPortal = document.getElementById('btn-admin-back-to-portal');
   if (btnBackPortal) {
     btnBackPortal.addEventListener('click', (e) => {
@@ -186,19 +188,10 @@ function initNavigation() {
     });
   }
 
-  // Admin Search Guru
   const adminSearch = document.getElementById('admin-teacher-search');
   if (adminSearch) {
     adminSearch.addEventListener('input', () => {
-      renderTeachersTable(adminSearch.value.trim());
-    });
-  }
-
-  // Admin Search Jadwal Mengajar
-  const adminSchedSearch = document.getElementById('admin-schedule-search');
-  if (adminSchedSearch) {
-    adminSchedSearch.addEventListener('input', () => {
-      renderScheduleTable(adminSchedSearch.value.trim());
+      renderTeachersTableApp(adminSearch.value.trim());
     });
   }
 }
@@ -248,13 +241,11 @@ function checkUrlParamsForTeacher() {
   const adminParam = params.get('admin');
   const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
 
-  // Jika URL mengarah ke admin mode
   if (adminParam === 'true') {
     switchToAdminPanel();
     return;
   }
 
-  // 1. Cek dari URL Query Parameter (?nip=...)
   if (nipParam && nipParam !== '-') {
     const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
     const found = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanNip);
@@ -266,7 +257,6 @@ function checkUrlParamsForTeacher() {
     }
   }
 
-  // 2. Cek dari Sesi Tersimpan di Browser Guru (LocalStorage)
   const savedNip = localStorage.getItem('portal_logged_nip');
   if (savedNip && savedNip !== '-') {
     const cleanSavedNip = savedNip.replace(/[\s\.\-]+/g, '');
@@ -280,14 +270,12 @@ function checkUrlParamsForTeacher() {
     }
   }
 
-  // 3. Cek apakah ada sesi admin di sessionStorage
   const demoAdmin = sessionStorage.getItem('portal_demo_admin');
   if (demoAdmin) {
     switchToAdminPanel();
     return;
   }
 
-  // 4. Default Fallback: Tampilkan guru pertama / default jika tidak ada parameter agar dashboard selalu terisi
   const defaultTeacher = teachersList.find(t => t.nip === "198109092022211004") || teachersList[0];
   if (defaultTeacher) {
     showPortalView(defaultTeacher);
@@ -298,7 +286,6 @@ function showPortalView(teacher) {
   if (!teacher) return;
   activeTeacher = teacher;
   
-  // Update profil banner
   const nameEl = document.getElementById('active-teacher-name');
   const nipEl = document.getElementById('active-teacher-nip');
   const classEl = document.getElementById('active-teacher-class');
@@ -309,15 +296,7 @@ function showPortalView(teacher) {
   if (classEl) classEl.textContent = teacher.class || '-';
   if (roleEl) roleEl.textContent = teacher.role || 'Guru';
 
-  renderUserPortal();
-}
-
-function getPersonalPortalUrl(teacher) {
-  const base = window.location.origin + window.location.pathname;
-  if (teacher.nip && teacher.nip !== '-') {
-    return `${base}?nip=${encodeURIComponent(teacher.nip.replace(/[\s\.\-]+/g, ''))}`;
-  }
-  return `${base}?nip=${encodeURIComponent(teacher.name)}`;
+  renderUserPortalApp();
 }
 
 /* ==========================================================================
@@ -335,7 +314,6 @@ function setupFirebaseConnection() {
     if (cloudBadgeText) cloudBadgeText.textContent = "Firebase Online";
     if (statDbStatus) statDbStatus.textContent = "Firebase Cloud";
 
-    // Listener Auth Firebase
     onAuthStateChanged(auth, (user) => {
       if (user) {
         handleAdminLoginState(user.email, user.displayName);
@@ -344,14 +322,12 @@ function setupFirebaseConnection() {
       }
     });
 
-    // Ambil data Firestore
     fetchFirestoreData();
   } else {
     if (cloudBadgeDot) cloudBadgeDot.classList.remove('online');
     if (cloudBadgeText) cloudBadgeText.textContent = "Mode Demo Lokal";
     if (statDbStatus) statDbStatus.textContent = "Lokal (Offline)";
 
-    // Cek demo session di sessionStorage
     const demoAdmin = sessionStorage.getItem('portal_demo_admin');
     if (demoAdmin) {
       handleAdminLoginState(demoAdmin, "Administrator");
@@ -365,42 +341,30 @@ function setupFirebaseConnection() {
 
 async function fetchFirestoreData() {
   const activeDb = getDb();
-  if (!activeDb) {
-    console.warn("⚠️ activeDb belum tersedia saat fetchFirestoreData dipanggil.");
-    return;
-  }
+  if (!activeDb) return;
 
-  // 1. Fetch Teachers
   try {
     const teachersSnapshot = await getDocs(collection(activeDb, "teachers"));
     if (!teachersSnapshot.empty) {
       const fetched = [];
-      teachersSnapshot.forEach(doc => {
-        fetched.push(doc.data());
-      });
+      teachersSnapshot.forEach(doc => fetched.push(doc.data()));
       currentTeachers = fetched;
-      console.log(`[Firestore] ✅ ${fetched.length} guru berhasil dimuat.`);
     }
   } catch (err) {
     console.error("❌ Error membaca koleksi 'teachers':", err);
   }
 
-  // 2. Fetch Forms (Sinkronisasi dan Kunci Urutan Resmi)
   try {
     const formsSnapshot = await getDocs(collection(activeDb, "forms"));
     if (!formsSnapshot.empty) {
       const fetchedForms = [];
-      formsSnapshot.forEach(doc => {
-        fetchedForms.push({ id: doc.id, ...doc.data() });
-      });
+      formsSnapshot.forEach(doc => fetchedForms.push({ id: doc.id, ...doc.data() }));
       currentForms = sortAndNormalizeForms(fetchedForms);
-      console.log(`[Firestore] ✅ ${fetchedForms.length} formulir berhasil dimuat.`);
     }
   } catch (err) {
     console.error("❌ Error membaca koleksi 'forms':", err);
   }
 
-  // 3. Fetch Schedules (Sinkronisasi Jadwal Mengajar ke Semua Device / APK)
   try {
     const schedulesSnapshot = await getDocs(collection(activeDb, "schedules"));
     if (!schedulesSnapshot.empty) {
@@ -414,21 +378,17 @@ async function fetchFirestoreData() {
         });
       });
       currentSchedules = fetchedSchedules;
-      console.log(`[Firestore] ✅ ${fetchedSchedules.length} jadwal berhasil dimuat.`);
-    } else {
-      console.warn("[Firestore] ⚠️ Koleksi 'schedules' di Firestore kosong (0 dokumen).");
     }
   } catch (err) {
     console.error("❌ Error membaca koleksi 'schedules':", err);
   }
 
-  // Re-check URL parameter and re-render forms with canonical order
   const adminTab = document.getElementById('tab-admin');
   if (adminTab && adminTab.classList.contains('active')) {
     renderAdminTables();
   } else {
     checkUrlParamsForTeacher();
-    renderUserPortal();
+    renderUserPortalApp();
     renderAdminTables();
   }
 }
@@ -437,18 +397,8 @@ async function fetchFirestoreData() {
    3. Auth & Strict Admin Security
    ========================================================================== */
 
-const AUTHORIZED_ADMIN_EMAILS = [
-  "iskakfatoni@gmail.com"
-];
-
-function isAuthorizedAdminEmail(email) {
-  if (!email) return false;
-  return AUTHORIZED_ADMIN_EMAILS.some(adminEmail => adminEmail.toLowerCase() === String(email).trim().toLowerCase());
-}
-
 async function handleAdminLoginState(email, displayName) {
   if (!email || !isAuthorizedAdminEmail(email)) {
-    console.warn("Percobaan akses akun non-admin:", email);
     if (auth && isFirebaseActive) {
       try { await signOut(auth); } catch (e) {}
     }
@@ -465,7 +415,6 @@ async function handleAdminLoginState(email, displayName) {
   const authBtn = document.getElementById('btn-show-login-modal');
   const userProfile = document.getElementById('admin-user-profile');
   const emailDisplay = document.getElementById('admin-user-email');
-
   const adminLockedView = document.getElementById('admin-locked-view');
   const adminDashboardView = document.getElementById('admin-dashboard-view');
 
@@ -478,13 +427,8 @@ async function handleAdminLoginState(email, displayName) {
   renderAdminTables();
   showToast(`Selamat datang Admin (${email})!`);
 
-  // Ambil data Firestore terbaru setelah autentikasi admin berhasil
   await fetchFirestoreData();
-
-  // Auto-sync urutan & nama resmi formulir ke Cloud Firestore
   syncCanonicalFormsToFirestore();
-
-  // Auto-sync data guru & Long URL Google Form ke Cloud Firestore
   syncCanonicalTeachersToFirestore();
 }
 
@@ -510,7 +454,6 @@ async function syncCanonicalFormsToFirestore() {
         statusBadge: form.statusBadge
       }, { merge: true });
     }
-    console.log("Urutan & teks resmi formulir berhasil diperbarui di Cloud Firestore.");
   } catch (err) {
     console.warn("Sinkronisasi formulir ke Firestore dilewati:", err);
   }
@@ -531,7 +474,6 @@ async function syncCanonicalTeachersToFirestore() {
     });
 
     await batch.commit();
-    console.log("🔥 [Firestore] Berhasil menyimpan " + count + " Master Data Guru & Long URL ke Cloud Firestore!");
   } catch (err) {
     console.warn("⚠️ Gagal sinkronisasi data guru ke Firestore:", err);
   }
@@ -561,9 +503,7 @@ function setupUserPortal() {
   const landingError = document.getElementById('landing-nip-error');
   const btnLandingGo = document.getElementById('btn-landing-go');
   const btnBackToLanding = document.getElementById('btn-back-to-landing-nip');
-  const btnLandingAdmin = document.getElementById('btn-landing-admin-gate');
 
-  // Core NIP Verification Logic
   const processLandingNipSubmit = (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!landingNipInput) return;
@@ -580,17 +520,14 @@ function setupUserPortal() {
       return;
     }
 
-    // Pastikan master data tersedia (fallback ke INITIAL_TEACHERS jika currentTeachers kosong)
     const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : INITIAL_TEACHERS;
 
-    // 1. Cari guru berdasarkan NIP (membersihkan format spasi/tanda baca)
     let found = teachersList.find(t => {
       if (!t.nip || t.nip === '-') return false;
       const teacherCleanNip = String(t.nip).trim().replace(/[\s\.\-]+/g, '');
       return teacherCleanNip === cleanVal;
     });
 
-    // 2. Fallback cerdas: jika tidak ditemukan dengan NIP, cari berdasarkan nama guru (jika guru mengetik nama)
     if (!found) {
       const searchName = rawVal.trim().toLowerCase();
       if (searchName.length >= 3) {
@@ -600,16 +537,11 @@ function setupUserPortal() {
 
     if (found) {
       if (landingError) landingError.classList.add('hidden');
-      
-      // Simpan sesi NIP di LocalStorage agar tidak perlu ketik berulang kali
       localStorage.setItem('portal_logged_nip', found.nip);
-
-      // Update URL query tanpa reload browser
       const cleanTeacherNip = String(found.nip).trim().replace(/[\s\.\-]+/g, '');
       const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanTeacherNip)}`;
       window.history.pushState({ nip: found.nip }, '', newUrl);
       
-      // Buka Layar 2 (Dashboard Link Formulir)
       showPortalView(found);
       showToast(`Selamat datang, ${found.name}!`);
     } else {
@@ -621,101 +553,29 @@ function setupUserPortal() {
     }
   };
 
-  // Event Listeners untuk Form Submit, Klik Tombol MASUK, dan Tekan Enter
-  if (formLandingNip) {
-    formLandingNip.addEventListener('submit', processLandingNipSubmit);
-  }
-  if (btnLandingGo) {
-    btnLandingGo.addEventListener('click', processLandingNipSubmit);
-  }
+  if (formLandingNip) formLandingNip.addEventListener('submit', processLandingNipSubmit);
+  if (btnLandingGo) btnLandingGo.addEventListener('click', processLandingNipSubmit);
   if (landingNipInput) {
     landingNipInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        processLandingNipSubmit(e);
-      }
+      if (e.key === 'Enter') processLandingNipSubmit(e);
     });
   }
 
-  // 2. Tombol Theme Toggle di Landing Page
-  const btnLandingTheme = document.getElementById('btn-landing-theme-toggle');
-  if (btnLandingTheme) {
-    btnLandingTheme.addEventListener('click', () => {
-      const isDark = document.body.classList.contains('dark-mode');
-      document.body.classList.toggle('dark-mode', !isDark);
-      document.body.classList.toggle('light-mode', isDark);
-      localStorage.setItem('portal_theme', isDark ? 'light' : 'dark');
-    });
-  }
-
-  // 3. Tombol "Ganti NIP / Keluar" di Layar 2
   if (btnBackToLanding) {
     btnBackToLanding.addEventListener('click', () => {
       localStorage.removeItem('portal_logged_nip');
       window.history.pushState({}, '', window.location.pathname);
-      showLandingView();
       showToast('Sesi NIP ditutup. Silakan masukkan NIP lain.');
     });
   }
 }
 
-function setActiveTeacher(teacher) {
-  showPortalView(teacher);
-}
-
-
-
-function renderUserPortal() {
-  const container = document.getElementById('portal-forms-grid');
-  const weekendBanner = document.getElementById('weekend-holiday-banner');
-  if (!container) return;
-
-  // Cek Hari Sabtu / Minggu (0 = Minggu, 6 = Sabtu)
-  const now = new Date();
-  const dayIndex = now.getDay();
-  const isWeekend = dayIndex === 0 || dayIndex === 6;
-
-  if (weekendBanner) {
-    if (isWeekend) {
-      weekendBanner.classList.remove('hidden');
-    } else {
-      weekendBanner.classList.add('hidden');
-    }
-  }
-
-  const normalized = sortAndNormalizeForms(currentForms);
-  const activeForms = normalized.filter(f => f.isActive !== false);
-
-  if (activeForms.length === 0) {
-    container.innerHTML = `<div class="empty-state"><p>Belum ada formulir aktif yang tersedia.</p></div>`;
-    return;
-  }
-
-  container.innerHTML = activeForms.map((form, idx) => {
-    const generatedUrl = generateFormUrlForTeacher(form, activeTeacher);
-    const formIcon = form.icon || "fa-solid fa-file-signature";
-    const themeIndex = (idx % 5) + 1;
-
-    return `
-      <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="form-direct-card card-theme-${themeIndex}" title="Buka ${form.name}">
-        <div class="form-card-left">
-          <div class="form-card-icon-box">
-            <i class="${formIcon}"></i>
-          </div>
-          <div class="form-card-title-box">
-            <span class="form-card-number">${idx + 1}.</span>
-            <span class="form-card-title">${form.name}</span>
-          </div>
-        </div>
-        <div class="form-card-right-icon">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i>
-        </div>
-      </a>
-    `;
-  }).join('');
+function renderUserPortalApp() {
+  renderUserPortal(currentForms, activeTeacher, generateFormUrlForTeacher);
 }
 
 /* ==========================================================================
-   5. Admin Panel & CRUD
+   5. Admin Panel & CRUD Handlers
    ========================================================================== */
 
 function renderAdminTables() {
@@ -724,71 +584,60 @@ function renderAdminTables() {
   if (statTeachers) statTeachers.textContent = currentTeachers.length;
   if (statForms) statForms.textContent = currentForms.length;
 
-  renderTeachersTable();
-  renderFormsTable();
-  renderScheduleTable();
+  renderTeachersTableApp();
+  renderFormsTableApp();
+  renderScheduleTableApp();
 }
 
-function renderScheduleTable(filterQuery = '') {
-  const tbody = document.getElementById('schedule-table-body');
-  if (!tbody) return;
+function renderTeachersTableApp(filterQuery = '') {
+  renderTeachersTable(
+    currentTeachers,
+    (name) => {
+      const teacher = currentTeachers.find(t => t.name === name);
+      if (teacher) openTeacherModal(teacher);
+    },
+    async (name) => {
+      if (confirm(`Yakin ingin menghapus data guru "${name}"?`)) {
+        await deleteTeacherHandler(name);
+      }
+    },
+    filterQuery
+  );
+}
 
-  const schedules = (currentSchedules && currentSchedules.length > 0) ? currentSchedules : INITIAL_SCHEDULES;
-  let filtered = schedules;
-  if (filterQuery) {
-    const q = filterQuery.toLowerCase();
-    filtered = schedules.filter(s => 
-      (s.hari && s.hari.toLowerCase().includes(q)) ||
-      (s.kelas && s.kelas.toLowerCase().includes(q)) ||
-      (s.mataPelajaran && s.mataPelajaran.toLowerCase().includes(q)) ||
-      (s.name && s.name.toLowerCase().includes(q)) ||
-      (s.nip && s.nip.includes(q))
-    );
-  }
+function renderFormsTableApp() {
+  renderFormsTable(
+    currentForms,
+    (id) => {
+      const form = currentForms.find(f => f.id === id);
+      if (form) openFormModal(form);
+    },
+    async (id) => {
+      if (confirm('Yakin ingin menghapus formulir ini?')) {
+        await deleteFormHandler(id);
+      }
+    }
+  );
+}
 
-  if (filtered.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; color: var(--text-muted); padding: 1.5rem;">Tidak ada jadwal mengajar yang cocok.</td></tr>`;
-    return;
-  }
-
-  tbody.innerHTML = filtered.map((s, idx) => {
-    const timeRange = (s.jamMulai && s.jamSelesai) ? `${s.jamMulai} - ${s.jamSelesai}` : '-';
-    return `
-      <tr>
-        <td>${idx + 1}</td>
-        <td><strong>${s.hari || '-'}</strong></td>
-        <td><span class="badge-class">${s.jamKe || '-'}</span></td>
-        <td class="font-mono">${timeRange}</td>
-        <td><strong>${s.kelas || '-'}</strong></td>
-        <td>${s.mataPelajaran || '-'}</td>
-        <td>${s.name || '-'}</td>
-        <td class="font-mono">${s.nip || '-'}</td>
-        <td>
-          <div class="action-btns-row">
-            <button class="btn-icon-action btn-del btn-del-schedule" data-index="${idx}" title="Hapus Jadwal">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  tbody.querySelectorAll('.btn-del-schedule').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.getAttribute('data-index'), 10);
+function renderScheduleTableApp(filterQuery = '') {
+  renderScheduleTable(
+    currentSchedules,
+    INITIAL_SCHEDULES,
+    (idx) => {
       if (confirm('Yakin ingin menghapus jadwal ini?')) {
         deleteScheduleHandler(idx);
       }
-    });
-  });
+    },
+    filterQuery
+  );
 }
 
 async function deleteScheduleHandler(index) {
   if (currentSchedules && currentSchedules[index]) {
     const item = currentSchedules[index];
     currentSchedules.splice(index, 1);
-    renderScheduleTable();
+    renderScheduleTableApp();
 
     if (db && isFirebaseActive) {
       try {
@@ -807,113 +656,6 @@ async function deleteScheduleHandler(index) {
   }
 }
 
-function renderTeachersTable(filterQuery = '') {
-  const tbody = document.getElementById('teachers-table-body');
-  if (!tbody) return;
-
-  let sorted = sortTeachersByMasterOrder(currentTeachers);
-  let filtered = sorted;
-  if (filterQuery) {
-    const q = filterQuery.toLowerCase();
-    filtered = sorted.filter(t => t.name.toLowerCase().includes(q) || (t.nip && t.nip.includes(q)));
-  }
-
-  tbody.innerHTML = filtered.map((t, idx) => {
-    let journalStatusBadge = '<span class="pill-badge" style="background:rgba(150,150,150,0.15);color:var(--text-muted);font-size:0.75rem;">Default Base</span>';
-    if (t.journalFormUrl) {
-      if (t.journalFormUrl.includes('docs.google.com/forms/d/')) {
-        journalStatusBadge = `<a href="${t.journalFormUrl}" target="_blank" rel="noopener noreferrer" class="pill-badge pill-auto" style="text-decoration:none;font-size:0.75rem;" title="${t.journalFormUrl}"><i class="fa-solid fa-circle-check"></i> URL Panjang</a>`;
-      } else if (t.journalFormUrl.includes('forms.gle/')) {
-        journalStatusBadge = `<span class="pill-badge" style="background:rgba(234,179,8,0.2);color:#eab308;font-size:0.75rem;" title="Shortlink forms.gle tidak mendukung autofill. Silakan edit dan ubah ke URL viewform!"><i class="fa-solid fa-triangle-exclamation"></i> forms.gle</span>`;
-      } else {
-        journalStatusBadge = `<span class="pill-badge pill-auto" style="font-size:0.75rem;">Kustom</span>`;
-      }
-    }
-
-    return `
-      <tr>
-        <td>${idx + 1}</td>
-        <td><strong>${t.name}</strong></td>
-        <td class="font-mono">${t.nip || '-'}</td>
-        <td>${t.role || 'Guru'}</td>
-        <td>${journalStatusBadge}</td>
-        <td>
-          <div class="action-btns-row">
-            <button class="btn-icon-action btn-edit-teacher" data-name="${t.name}" title="Edit Data">
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button class="btn-icon-action btn-del btn-del-teacher" data-name="${t.name}" title="Hapus Guru">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `;
-  }).join('');
-
-  // Attach Edit & Delete Teacher handlers
-  tbody.querySelectorAll('.btn-edit-teacher').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const name = btn.getAttribute('data-name');
-      const teacher = currentTeachers.find(t => t.name === name);
-      if (teacher) openTeacherModal(teacher);
-    });
-  });
-
-  tbody.querySelectorAll('.btn-del-teacher').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const name = btn.getAttribute('data-name');
-      if (confirm(`Yakin ingin menghapus data guru "${name}"?`)) {
-        await deleteTeacherHandler(name);
-      }
-    });
-  });
-}
-
-function renderFormsTable() {
-  const tbody = document.getElementById('forms-table-body');
-  if (!tbody) return;
-
-  tbody.innerHTML = currentForms.map((f) => `
-    <tr>
-      <td><strong>${f.name}</strong></td>
-      <td>${f.category || 'Umum'}</td>
-      <td class="font-mono">${f.entryGuru || '-'}</td>
-      <td class="font-mono">${f.entryNip || '-'}</td>
-      <td><span class="pill-badge pill-auto">${f.isActive !== false ? 'Aktif' : 'Non-Aktif'}</span></td>
-      <td>
-        <div class="action-btns-row">
-          <button class="btn-icon-action btn-edit-form" data-id="${f.id}" title="Edit Form">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-          <button class="btn-icon-action btn-del btn-del-form" data-id="${f.id}" title="Hapus Form">
-            <i class="fa-solid fa-trash"></i>
-          </button>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-
-  // Attach Edit & Delete Form handlers
-  tbody.querySelectorAll('.btn-edit-form').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-id');
-      const form = currentForms.find(f => f.id === id);
-      if (form) openFormModal(form);
-    });
-  });
-
-  tbody.querySelectorAll('.btn-del-form').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const id = btn.getAttribute('data-id');
-      if (confirm('Yakin ingin menghapus formulir ini?')) {
-        await deleteFormHandler(id);
-      }
-    });
-  });
-}
-
-// Teacher Save & Delete Handlers
 async function saveTeacherHandler(teacherData) {
   const existingIdx = currentTeachers.findIndex(t => t.name === teacherData.name);
   if (existingIdx >= 0) {
@@ -956,7 +698,6 @@ async function deleteTeacherHandler(teacherName) {
   showToast(`Data guru "${teacherName}" dihapus.`);
 }
 
-// Form Save & Delete Handlers
 async function saveFormHandler(formData) {
   const existingIdx = currentForms.findIndex(f => f.id === formData.id);
   if (existingIdx >= 0) {
@@ -974,7 +715,7 @@ async function saveFormHandler(formData) {
   }
 
   renderAdminTables();
-  renderUserPortal();
+  renderUserPortalApp();
   showToast(`Formulir "${formData.name}" berhasil disimpan!`);
 }
 
@@ -990,11 +731,10 @@ async function deleteFormHandler(formId) {
   }
 
   renderAdminTables();
-  renderUserPortal();
+  renderUserPortalApp();
   showToast("Formulir telah dihapus.");
 }
 
-// 🚀 Seed 94 Master Teachers to Firestore
 async function seedMasterTeachersToFirestore() {
   if (!confirm("Upload 94 data guru bawaan ke Firestore Cloud? Data yang sudah ada dengan nama yang sama akan diperbarui.")) return;
 
@@ -1027,92 +767,14 @@ async function seedMasterTeachersToFirestore() {
    6. Impor & Ekspor Excel (.xlsx / .xls / JSON)
    ========================================================================== */
 
-function sortTeachersByMasterOrder(teachers) {
-  const masterNames = INITIAL_TEACHERS.map(t => t.name.toLowerCase());
-  return [...teachers].sort((a, b) => {
-    const idxA = masterNames.indexOf(a.name.toLowerCase());
-    const idxB = masterNames.indexOf(b.name.toLowerCase());
-    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-    if (idxA !== -1) return -1;
-    if (idxB !== -1) return 1;
-    return (a.orderIndex || 999) - (b.orderIndex || 999);
-  });
-}
-
 export function exportTeachersToExcel() {
-  const xlsxLib = window.XLSX;
-  if (!xlsxLib) {
-    showToast("Library Excel sedang dimuat, silakan coba 1 detik lagi.");
-    return;
-  }
-
-  const defaultForm = currentForms[0] || INITIAL_FORMS[0];
-  const sortedTeachers = sortTeachersByMasterOrder(currentTeachers);
-
-  try {
-    const excelData = sortedTeachers.map((t, idx) => ({
-      "No": idx + 1,
-      "Nama Guru": t.name,
-      "NIP": t.nip || "-",
-      "Peran": t.role || "Guru",
-      "URL Jurnal Pribadi": t.journalFormUrl || "",
-      "Link Portal Guru": getPersonalPortalUrl(t),
-      "Link Form Walikelas": defaultForm ? generateFormUrlForTeacher(defaultForm, t) : ""
-    }));
-
-    const worksheet = xlsxLib.utils.json_to_sheet(excelData);
-    
-    // Lebar kolom rapi di Excel
-    worksheet["!cols"] = [
-      { wch: 6 },
-      { wch: 36 },
-      { wch: 22 },
-      { wch: 16 },
-      { wch: 45 },
-      { wch: 55 },
-      { wch: 55 }
-    ];
-
-    const workbook = xlsxLib.utils.book_new();
-    xlsxLib.utils.book_append_sheet(workbook, worksheet, "Data Guru & Link");
-    
-    xlsxLib.writeFile(workbook, "data_link_guru_portal_autoform.xlsx");
-    showToast("File Excel (.xlsx) berhasil diunduh dengan urutan database!");
-  } catch (err) {
-    console.error("Gagal export Excel .xlsx:", err);
-    showToast("Gagal export Excel: " + err.message);
-  }
+  exportExcelService(currentTeachers, currentForms, showToast, generateFormUrlForTeacher);
 }
 
 export function exportTeachersToJSON() {
-  const exportData = {
-    generatedAt: new Date().toISOString(),
-    totalTeachers: currentTeachers.length,
-    teachers: currentTeachers.map(t => ({
-      ...t,
-      personalPortalUrl: getPersonalPortalUrl(t)
-    }))
-  };
-  const jsonBlob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
-  downloadBlob(jsonBlob, "data_guru_portal_autoform.json");
-  showToast("File JSON berhasil diunduh!");
+  exportJSONService(currentTeachers, showToast);
 }
 
-function downloadBlob(blob, fileName) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = fileName;
-  link.style.display = 'none';
-  document.body.appendChild(link);
-  link.click();
-  setTimeout(() => {
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, 200);
-}
-
-// Expose to window for direct HTML onclick access
 window.exportTeachersToExcel = exportTeachersToExcel;
 window.exportTeachersToJSON = exportTeachersToJSON;
 
@@ -1120,7 +782,6 @@ function initImportExport() {
   const inputFileExcel = document.getElementById('input-file-excel');
   const statusDiv = document.getElementById('import-preview-status');
 
-  // Global click delegation for export & sync buttons
   document.addEventListener('click', (e) => {
     if (e.target.closest('#btn-do-export-excel') || e.target.closest('#btn-export-teachers-quick') || e.target.closest('#btn-export-excel')) {
       e.preventDefault();
@@ -1156,7 +817,11 @@ function initImportExport() {
           const workbook = xlsxLib.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
           const rows = xlsxLib.utils.sheet_to_json(firstSheet, { header: 1 });
-          await processImportedExcelRows(rows, statusDiv);
+          await processImportedExcelRows(rows, currentTeachers, getDb, isFirebaseActive, showToast, (updated) => {
+            currentTeachers = updated;
+            renderAdminTables();
+            populateGuruSelect(document.getElementById('portal-guru-select'));
+          }, statusDiv);
         } catch (err) {
           console.error("Gagal membaca file Excel:", err);
           if (statusDiv) statusDiv.textContent = `❌ Gagal membaca file Excel: ${err.message}`;
@@ -1166,7 +831,6 @@ function initImportExport() {
     });
   }
 
-  // Impor Jadwal Mengajar Excel / CSV
   const inputImportSchedule = document.getElementById('input-import-schedule-excel');
   if (inputImportSchedule) {
     inputImportSchedule.addEventListener('change', (e) => {
@@ -1186,7 +850,6 @@ function initImportExport() {
           const data = new Uint8Array(event.target.result);
           const workbook = xlsxLib.read(data, { type: 'array' });
           
-          // Cari sheet yang berisi data jadwal
           let targetSheet = workbook.Sheets[workbook.SheetNames[0]];
           for (const name of workbook.SheetNames) {
             if (name.toLowerCase().includes('jadwal')) {
@@ -1196,7 +859,10 @@ function initImportExport() {
           }
 
           const rows = xlsxLib.utils.sheet_to_json(targetSheet, { header: 1, raw: false, dateNF: 'HH:mm' });
-          await processImportedScheduleRows(rows);
+          await processImportedScheduleRows(rows, getDb, showToast, (newSchedules) => {
+            currentSchedules = newSchedules;
+            renderScheduleTableApp();
+          });
         } catch (err) {
           console.error("Gagal membaca file Excel Jadwal:", err);
           showToast(`❌ Gagal membaca file jadwal: ${err.message}`);
@@ -1208,192 +874,8 @@ function initImportExport() {
   }
 }
 
-async function processImportedScheduleRows(rows) {
-  if (!rows || rows.length <= 1) {
-    showToast("❌ File jadwal kosong atau tidak memiliki baris data.");
-    return;
-  }
-
-  // Deteksi letak baris Header secara dinamis (mencari baris yang memiliki kata 'hari', 'kelas', 'mapel', 'jam', dsb)
-  let headerRowIdx = 0;
-  for (let i = 0; i < Math.min(rows.length, 10); i++) {
-    const rowStr = (rows[i] || []).map(c => String(c || '').toLowerCase()).join(' ');
-    if (rowStr.includes('hari') || rowStr.includes('kelas') || rowStr.includes('mapel') || rowStr.includes('jam')) {
-      headerRowIdx = i;
-      break;
-    }
-  }
-
-  const headerRow = (rows[headerRowIdx] || []).map(h => String(h || '').trim().toLowerCase());
-  
-  let nipIdx = headerRow.findIndex(h => h.includes("nip"));
-  let nameIdx = headerRow.findIndex(h => h.includes("nama") || h.includes("guru"));
-  let hariIdx = headerRow.findIndex(h => h.includes("hari"));
-  let jamKeIdx = headerRow.findIndex(h => h.includes("jam_ke") || h.includes("jam ke") || h.includes("sesi"));
-  let jamMulaiIdx = headerRow.findIndex(h => h.includes("jam_mulai") || h.includes("jam mulai") || h.includes("mulai"));
-  let jamSelesaiIdx = headerRow.findIndex(h => h.includes("jam_selesai") || h.includes("jam selesai") || h.includes("selesai"));
-  let kelasIdx = headerRow.findIndex(h => h.includes("kelas"));
-  let mapelIdx = headerRow.findIndex(h => h.includes("mapel") || h.includes("pelajaran"));
-  let ketIdx = headerRow.findIndex(h => h.includes("ket") || h.includes("ruang"));
-
-  if (nipIdx === -1) nipIdx = 0;
-  if (nameIdx === -1) nameIdx = 1;
-  if (hariIdx === -1) hariIdx = 2;
-  if (jamKeIdx === -1) jamKeIdx = 3;
-  if (jamMulaiIdx === -1) jamMulaiIdx = 4;
-  if (jamSelesaiIdx === -1) jamSelesaiIdx = 5;
-  if (kelasIdx === -1) kelasIdx = 6;
-  if (mapelIdx === -1) mapelIdx = 7;
-  if (ketIdx === -1) ketIdx = 8;
-
-  const newSchedules = [];
-  for (let i = headerRowIdx + 1; i < rows.length; i++) {
-    const r = rows[i];
-    if (!r || r.length === 0) continue;
-
-    const nip = String(r[nipIdx] || '').trim();
-    const name = String(r[nameIdx] || '').trim();
-    const rawHari = String(r[hariIdx] || '').trim();
-    const hari = normalizeDayName(rawHari) || rawHari;
-    const jamKe = String(r[jamKeIdx] || '').trim();
-    const jamMulai = formatTimeString(r[jamMulaiIdx] || '');
-    const jamSelesai = formatTimeString(r[jamSelesaiIdx] || '');
-    const kelas = String(r[kelasIdx] || '').trim();
-    const mataPelajaran = String(r[mapelIdx] || '').trim();
-    const keterangan = String(r[ketIdx] || '').trim();
-
-    if (!hari && !kelas && !name) continue;
-
-    newSchedules.push({
-      nip,
-      name,
-      hari,
-      jamKe,
-      jamMulai,
-      jamSelesai,
-      kelas,
-      mataPelajaran,
-      keterangan
-    });
-  }
-
-  if (newSchedules.length > 0) {
-    currentSchedules = newSchedules;
-    renderScheduleTable();
-
-    // Sinkronisasi ke Cloud Firestore dengan batch commit
-    const activeDb = getDb();
-    if (activeDb) {
-      try {
-        const batch = writeBatch(activeDb);
-        newSchedules.forEach((s) => {
-          const cleanNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
-          const cleanName = (s.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-          const cleanHari = (s.hari || '').trim().toLowerCase();
-          const cleanJam = (s.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
-          const cleanKelas = (s.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
-          const docId = `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
-          batch.set(doc(activeDb, "schedules", docId), s);
-        });
-        await batch.commit();
-        console.log("🔥 Berhasil mengunggah", newSchedules.length, "jadwal ke Cloud Firestore!");
-        showToast(`✅ Berhasil mengimpor & sinkron ${newSchedules.length} jadwal ke Cloud Firestore!`);
-      } catch (e) {
-        console.error("Gagal sync jadwal ke Firestore:", e);
-        showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal ke memori! (Cloud sync error: ${e.message})`);
-      }
-    } else {
-      showToast(`✅ Berhasil mengimpor ${newSchedules.length} data jadwal mengajar!`);
-    }
-  } else {
-    showToast("⚠️ Tidak ada data jadwal valid yang terbaca dari file.");
-  }
-}
-
-async function processImportedExcelRows(rows, statusDiv) {
-  if (!rows || rows.length <= 1) {
-    if (statusDiv) statusDiv.textContent = "❌ File Excel kosong atau tidak memiliki baris data.";
-    return;
-  }
-
-  const headerRow = rows[0].map(h => String(h || '').trim().toLowerCase());
-  
-  // Cari index kolom secara dinamis berdasarkan nama header
-  let nameIdx = headerRow.findIndex(h => h.includes("nama"));
-  let nipIdx = headerRow.findIndex(h => h.includes("nip"));
-  let classIdx = headerRow.findIndex(h => h.includes("kelas"));
-  let roleIdx = headerRow.findIndex(h => h.includes("peran") || h.includes("role"));
-  let journalIdx = headerRow.findIndex(h => h.includes("jurnal") || h.includes("journal"));
-
-  // Fallback index default jika header tidak bernama
-  if (nameIdx === -1) nameIdx = 1;
-  if (nipIdx === -1) nipIdx = 2;
-  if (classIdx === -1) classIdx = 3;
-  if (roleIdx === -1) roleIdx = 4;
-  if (journalIdx === -1) journalIdx = 5;
-
-  const importedList = [];
-
-  for (let i = 1; i < rows.length; i++) {
-    const row = rows[i];
-    if (!row || row.length === 0) continue;
-
-    const name = String(row[nameIdx] || '').trim();
-    if (!name) continue;
-
-    const nip = String(row[nipIdx] || '-').trim();
-    const cls = String(row[classIdx] || '-').trim();
-    const role = String(row[roleIdx] || 'Walikelas').trim();
-    const journalFormUrl = String(row[journalIdx] || '').trim();
-
-    importedList.push({
-      name,
-      nip: nip || '-',
-      class: cls || '-',
-      role: role || 'Walikelas',
-      journalFormUrl: journalFormUrl || ''
-    });
-  }
-
-  if (importedList.length === 0) {
-    if (statusDiv) statusDiv.textContent = "❌ Tidak ada data guru valid yang ditemukan di file Excel.";
-    return;
-  }
-
-  // Gabungkan ke currentTeachers
-  importedList.forEach(imported => {
-    const idx = currentTeachers.findIndex(t => t.name.toLowerCase() === imported.name.toLowerCase());
-    if (idx >= 0) {
-      currentTeachers[idx] = { ...currentTeachers[idx], ...imported };
-    } else {
-      currentTeachers.push(imported);
-    }
-  });
-
-  // Sinkronisasi ke Cloud Firestore
-  if (db && isFirebaseActive) {
-    try {
-      const batch = writeBatch(db);
-      importedList.forEach(t => {
-        const docId = t.nip && t.nip !== '-' ? t.nip : t.name.replace(/[^a-zA-Z0-9]/g, '_');
-        batch.set(doc(db, "teachers", docId), t);
-      });
-      await batch.commit();
-      if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--success);">✅ Berhasil mengimpor <strong>${importedList.length} guru</strong> ke Cloud Firestore!</span>`;
-    } catch (e) {
-      if (statusDiv) statusDiv.textContent = `Disimpan lokal (Gagal sync cloud: ${e.message})`;
-    }
-  } else {
-    if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--success);">✅ Berhasil mengimpor <strong>${importedList.length} guru</strong> ke penyimpanan browser!</span>`;
-  }
-
-  renderAdminTables();
-  populateGuruSelect(document.getElementById('portal-guru-select'));
-  showToast(`Impor ${importedList.length} data guru dari Excel berhasil!`);
-}
-
 /* ==========================================================================
-   7. Form Builder (Tab 2)
+   7. Form Builder
    ========================================================================== */
 
 function setupFormBuilder() {
@@ -1407,12 +889,10 @@ function setupFormBuilder() {
   const btnTest = document.getElementById('btn-test-generated-url');
   const btnCopy = document.getElementById('btn-copy-generated-url');
 
-  // Populate Forms
   if (formSelect) {
     formSelect.innerHTML = currentForms.map(f => `<option value="${f.id}">${f.name}</option>`).join('');
   }
 
-  // Populate Gurus
   if (guruSelect) {
     populateGuruSelect(guruSelect);
   }
@@ -1457,7 +937,6 @@ function populateGuruSelect(selectElem) {
    ========================================================================== */
 
 function initModals() {
-  // 1. Admin Email & Password Login Form
   const adminEmailPwdForm = document.getElementById('admin-email-password-form');
   const btnLogout = document.getElementById('btn-admin-logout');
 
@@ -1515,17 +994,12 @@ function initModals() {
     });
   }
 
-  // 2. Teacher Modal
   const modalTeacher = document.getElementById('modal-teacher-form');
   const btnOpenTeacher = document.getElementById('btn-modal-add-teacher');
   const btnCloseTeacher = document.getElementById('btn-close-teacher-modal');
   const formTeacher = document.getElementById('form-manage-teacher');
 
-  if (btnOpenTeacher) {
-    btnOpenTeacher.addEventListener('click', () => {
-      openTeacherModal();
-    });
-  }
+  if (btnOpenTeacher) btnOpenTeacher.addEventListener('click', () => openTeacherModal());
   if (btnCloseTeacher) btnCloseTeacher.addEventListener('click', () => modalTeacher.classList.add('hidden'));
 
   if (formTeacher) {
@@ -1541,7 +1015,6 @@ function initModals() {
     });
   }
 
-  // 3. Form Modal
   const modalForm = document.getElementById('modal-form-manage');
   const btnOpenForm = document.getElementById('btn-modal-add-form');
   const btnCloseForm = document.getElementById('btn-close-form-modal');
@@ -1576,7 +1049,6 @@ function initModals() {
     });
   }
 
-  // 4. Firebase Config Settings Form
   const cfgForm = document.getElementById('firebase-config-form');
   const btnResetCfg = document.getElementById('btn-reset-firebase-config');
 
@@ -1675,10 +1147,8 @@ function openFormModal(form = null) {
   modal.classList.remove('hidden');
 }
 
-
-
 /* ==========================================================================
-   9. Helper Utilities (Toast, Clipboard, Theme, Clock)
+   9. Helper Utilities (Toast, Clipboard, Clock)
    ========================================================================= */
 
 function showToast(message) {
@@ -1712,51 +1182,6 @@ function fallbackCopy(text) {
     showToast('Gagal menyalin tautan.');
   }
   document.body.removeChild(el);
-}
-
-function getPreferredTheme() {
-  const saved = localStorage.getItem('portal_theme');
-  if (saved === 'light' || saved === 'dark') {
-    return saved;
-  }
-  // Auto detect dari pengaturan HP/OS pengguna
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    return 'light';
-  }
-  return 'dark';
-}
-
-function applyTheme(theme) {
-  if (theme === 'light') {
-    document.body.classList.remove('dark-mode');
-    document.body.classList.add('light-mode');
-  } else {
-    document.body.classList.remove('light-mode');
-    document.body.classList.add('dark-mode');
-  }
-}
-
-function initTheme() {
-  applyTheme(getPreferredTheme());
-
-  // Listener perubahan tema HP secara real-time
-  if (window.matchMedia) {
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (!localStorage.getItem('portal_theme')) {
-        applyTheme(e.matches ? 'dark' : 'light');
-      }
-    });
-  }
-
-  const btn = document.getElementById('theme-toggle-btn');
-  if (btn) {
-    btn.addEventListener('click', () => {
-      const isDark = document.body.classList.contains('dark-mode');
-      const newTheme = isDark ? 'light' : 'dark';
-      applyTheme(newTheme);
-      localStorage.setItem('portal_theme', newTheme);
-    });
-  }
 }
 
 function initLiveClock() {

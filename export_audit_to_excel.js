@@ -2,21 +2,25 @@ const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
 
-const appJsPath = path.join(__dirname, 'asset', 'js', 'app.js');
-const appJsContent = fs.readFileSync(appJsPath, 'utf-8');
+const initialDataPath = path.join(__dirname, 'asset', 'js', 'modules', 'initial-data.js');
+let teachers = [];
 
-// Ekstrak data master INITIAL_TEACHERS dari app.js
-const startMarker = 'const INITIAL_TEACHERS = ';
-const endMarker = ';\n\n// Master Data Kelas';
-const startIndex = appJsContent.indexOf(startMarker);
-const endIndex = appJsContent.indexOf(endMarker, startIndex);
-
-if (startIndex === -1 || endIndex === -1) {
-  console.error('Gagal membaca INITIAL_TEACHERS dari app.js');
-  process.exit(1);
+if (fs.existsSync(initialDataPath)) {
+  const content = fs.readFileSync(initialDataPath, 'utf-8');
+  const startMarker = 'export const INITIAL_TEACHERS = ';
+  const startIndex = content.indexOf(startMarker);
+  if (startIndex !== -1) {
+    const jsonStart = content.indexOf('[', startIndex);
+    const jsonEnd = content.indexOf('];', jsonStart);
+    if (jsonStart !== -1 && jsonEnd !== -1) {
+      try {
+        teachers = JSON.parse(content.substring(jsonStart, jsonEnd + 1));
+      } catch (e) {
+        teachers = [];
+      }
+    }
+  }
 }
-
-const teachers = JSON.parse(appJsContent.substring(startIndex + startMarker.length, endIndex));
 
 // 1. Data Sheet 1: 54 Guru yang Perlu Update Link (Shortlink Tidak Aktif)
 const failedTeachers = teachers
