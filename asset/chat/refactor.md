@@ -27,9 +27,10 @@ Refactoring komprehensif ini dilakukan untuk meningkatkan kualitas kode (*code q
 - Menguraikan monolith `app.js` dari **~1.771 baris kode** menjadi file orchestrator yang ringkas, bersih, dan berorientasi modul.
 
 ### 6. Pembersihan HTML & CSS (`index.html`, `portal.html`, `style.css`)
-- Memindahkan *inline CSS* dari `index.html` ke utility class CSS di `style.css`.
-- Merapikan struktur CSS pendukung landing page dan responsivitas.
-
 ---
+
+### 📖 Dokumentasi Arsitektur Lengkap
+Peta struktur direktori lengkap, diagram alur data, mapping parameter Google Forms, dan aturan keamanan database FORM-AutoForm didokumentasikan secara terperinci di:
+👉 [`asset/chat/arsitektur_refactor.md`](./arsitektur_refactor.md)
 
 *Dokumen ini dibuat otomatis sebagai bagian dari histori refactoring proyek PORTAL:AutoForm.*
