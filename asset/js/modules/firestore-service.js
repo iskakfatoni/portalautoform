@@ -142,3 +142,64 @@ export async function deleteFormFromFirestore(formId) {
   await deleteDoc(doc(activeDb, "forms", formId));
   return true;
 }
+
+// 8. Simpan Riwayat Pengisian Form ke Firestore
+export async function saveFormSubmission(nip, formId, formName) {
+  const activeDb = getDb();
+  if (!activeDb) return false;
+
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const dateKey = `${yyyy}-${mm}-${dd}`;
+
+  // ID Dokumen unik per hari per guru per form
+  const docId = `sub_${nip}_${formId}_${dateKey}`;
+
+  const submissionData = {
+    nip,
+    formId,
+    formName,
+    timestamp: now.toISOString(),
+    date: dateKey,
+    status: 'completed'
+  };
+
+  await setDoc(doc(activeDb, "submissions", docId), submissionData, { merge: true });
+  console.log(`✅ [Firestore] Riwayat pengisian disimpan: ${docId}`);
+  return true;
+}
+
+// 9. Cek apakah Form sudah diisi hari ini
+export async function checkFormSubmission(nip, formId) {
+  const activeDb = getDb();
+  if (!activeDb) return null;
+
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const dateKey = `${yyyy}-${mm}-${dd}`;
+
+  const docId = `sub_${nip}_${formId}_${dateKey}`;
+
+  // Fail-safe via REST API jika SDK gagal
+  try {
+    const snap = await getDocs(collection(activeDb, "submissions"));
+    // Sederhananya kita cari yang cocok dengan docId
+    const found = snap.docs.find(d => d.id === docId);
+    if (found) return found.data();
+  } catch (e) {
+    // REST API Fallback
+    const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/submissions/${docId}?key=${apiKey}`;
+    const resp = await fetch(url);
+    if (resp.ok) {
+      const data = await resp.json();
+      return parseFirestoreDoc(data);
+    }
+  }
+
+  return null;
+}

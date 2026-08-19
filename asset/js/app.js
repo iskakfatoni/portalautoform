@@ -19,7 +19,9 @@ import {
   saveTeacherToFirestore,
   deleteTeacherFromFirestore,
   saveFormToFirestore,
-  deleteFormFromFirestore
+  deleteFormFromFirestore,
+  saveFormSubmission,
+  checkFormSubmission
 } from './modules/firestore-service.js';
 
 import {
@@ -501,7 +503,79 @@ function renderUserPortalApp() {
 }
 
 /* ==========================================================================
-   5. Admin Panel & CRUD Handlers
+   5. Form Submission Logic & Android Bridge
+   ========================================================================== */
+
+// Intercept Klik Form untuk Cek Riwayat di Firestore
+window.handleFormClick = async (event, formId, formName, generatedUrl) => {
+  if (event) event.preventDefault();
+
+  if (!activeTeacher || !activeTeacher.nip) {
+    window.open(generatedUrl, '_blank');
+    return;
+  }
+
+  const cleanNip = activeTeacher.nip.replace(/[\s\.\-]+/g, '');
+
+  try {
+    showToast(`⏳ Mengecek riwayat pengisian...`);
+    const history = await checkFormSubmission(cleanNip, formId);
+
+    if (history && history.timestamp) {
+      // Jika sudah pernah isi hari ini, tampilkan modal konfirmasi
+      const modal = document.getElementById('modal-form-confirm');
+      const msgEl = document.getElementById('confirm-modal-msg');
+      const btnYes = document.getElementById('btn-confirm-yes');
+      const btnCancel = document.getElementById('btn-confirm-cancel');
+
+      const ts = new Date(history.timestamp);
+      const formattedDate = ts.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+      const formattedTime = ts.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+      if (msgEl) {
+        msgEl.innerHTML = `Anda sudah mengisi formulir <strong>${formName}</strong> pada <strong>${formattedDate} pukul ${formattedTime} WIB</strong>.<br><br>Apakah Anda ingin mengisi lagi?`;
+      }
+
+      if (btnYes) {
+        btnYes.href = generatedUrl;
+        btnYes.onclick = () => modal.classList.add('hidden');
+      }
+
+      if (btnCancel) {
+        btnCancel.onclick = () => modal.classList.add('hidden');
+      }
+
+      if (modal) modal.classList.remove('hidden');
+    } else {
+      // Jika belum isi, langsung buka
+      window.open(generatedUrl, '_blank');
+    }
+  } catch (err) {
+    console.error("Gagal cek riwayat:", err);
+    window.open(generatedUrl, '_blank');
+  }
+};
+
+// Fungsi yang dipanggil oleh App Android saat Form berhasil dikirim
+window.onFormSubmittedSuccessfully = async (formId) => {
+  console.log(`🚀 [Bridge] Android mendeteksi form success: ${formId}`);
+
+  if (!activeTeacher || !activeTeacher.nip) return;
+
+  const form = currentForms.find(f => f.id === formId || (f.baseUrl && f.baseUrl.includes(formId)));
+  const formName = form ? form.name : "Formulir";
+  const cleanNip = activeTeacher.nip.replace(/[\s\.\-]+/g, '');
+
+  try {
+    await saveFormSubmission(cleanNip, formId, formName);
+    showToast(`✅ Riwayat pengisian ${formName} berhasil dicatat!`);
+  } catch (err) {
+    console.error("Gagal mencatat riwayat pengisian:", err);
+  }
+};
+
+/* ==========================================================================
+   6. Admin Panel & CRUD Handlers
    ========================================================================== */
 
 function renderAdminTables() {

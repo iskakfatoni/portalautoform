@@ -554,6 +554,22 @@
       </div>
     </div>
 
+    <!-- Modal Konfirmasi Sudah Isi Form -->
+    <div id="modal-form-confirm" class="modal-overlay hidden" style="z-index: 2000;">
+      <div class="modal-card" style="max-width: 400px; text-align: center;">
+        <div class="modal-header" style="justify-content: center;">
+          <h3 id="confirm-modal-title" style="color: var(--accent-color);"><i class="fa-solid fa-circle-check"></i> Sudah Terisi</h3>
+        </div>
+        <div class="modal-body" style="padding: 1.5rem;">
+          <p id="confirm-modal-msg" style="margin-bottom: 1.5rem; line-height: 1.5;">Anda sudah mengisi form ini pada (timestamp). Apakah ingin mengisi lagi?</p>
+          <div class="modal-footer" style="display: flex; gap: 10px; justify-content: center;">
+            <button id="btn-confirm-cancel" class="btn btn-secondary">Batal</button>
+            <a id="btn-confirm-yes" href="#" target="_blank" class="btn btn-primary" style="text-decoration: none;">Ya, Isi Lagi</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="toast" role="alert" aria-live="assertive">
       <i class="fa-solid fa-circle-check toast-icon"></i>

@@ -36,8 +36,12 @@ export function renderUserPortal(currentForms, activeTeacher, generateFormUrlFor
     const formIcon = form.icon || "fa-solid fa-file-signature";
     const themeIndex = (idx % 5) + 1;
 
+    // Gunakan onclick untuk intercept pengecekan sudah isi atau belum
     return `
-      <a href="${generatedUrl}" target="_blank" rel="noopener noreferrer" class="form-direct-card card-theme-${themeIndex}" title="Buka ${form.name}">
+      <a href="${generatedUrl}"
+         class="form-direct-card card-theme-${themeIndex}"
+         title="Buka ${form.name}"
+         onclick="if(window.handleFormClick) { window.handleFormClick(event, '${form.id}', '${form.name}', '${generatedUrl}'); return false; }">
         <div class="form-card-left">
           <div class="form-card-icon-box">
             <i class="${formIcon}"></i>
