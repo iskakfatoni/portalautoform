@@ -344,239 +344,28 @@
 
     </main>
 
-    <!-- Modals -->
-    <!-- Modal Add/Edit Guru -->
-    <div id="modal-teacher-form" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3 id="modal-teacher-title"><i class="fa-solid fa-user-plus"></i> Tambah Data Guru Baru</h3>
-          <button class="modal-close-btn" id="btn-close-teacher-modal"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <form id="form-manage-teacher" class="modal-form">
-          <div class="input-group">
-            <label for="edit-teacher-name">Nama Lengkap & Gelar</label>
-            <input type="text" id="edit-teacher-name" class="form-control" required placeholder="Contoh: MUCHAMAD ISKAK FATONI, S.Pd.">
-          </div>
-
-          <div class="input-group">
-            <label for="edit-teacher-nip">NIP (18 Digit)</label>
-            <input type="text" id="edit-teacher-nip" class="form-control font-mono" placeholder="Contoh: 198109092022211004">
-          </div>
-
-          <div class="input-group">
-            <label for="edit-teacher-role">Peran Guru</label>
-            <select id="edit-teacher-role" class="form-control" required>
-              <option value="Walikelas">Walikelas</option>
-              <option value="Guru Pengajar">Guru Pengajar</option>
-              <option value="Guru Piket">Guru Piket</option>
-            </select>
-          </div>
-
-          <div class="input-group">
-            <label for="edit-teacher-class">Kelas Binaan (Khusus Walikelas)</label>
-            <select id="edit-teacher-class" class="form-control">
-              <option value="-">-- Bukan Walikelas / Tidak Ada --</option>
-              <optgroup label="Tingkat X">
-                <option value="X TAV">X TAV</option>
-                <option value="X TEI 1">X TEI 1</option>
-                <option value="X TEI 2">X TEI 2</option>
-                <option value="X TPL 1">X TPL 1</option>
-                <option value="X TPL 2">X TPL 2</option>
-                <option value="X TPM 1">X TPM 1</option>
-                <option value="X TPM 2">X TPM 2</option>
-                <option value="X TKR1">X TKR1</option>
-                <option value="X TKR2">X TKR2</option>
-                <option value="X TBKR">X TBKR</option>
-                <option value="X TSM 1">X TSM 1</option>
-                <option value="X TSM 2">X TSM 2</option>
-                <option value="X DKV 1">X DKV 1</option>
-                <option value="X DKV 2">X DKV 2</option>
-                <option value="X DKV 3">X DKV 3</option>
-              </optgroup>
-              <optgroup label="Tingkat XI">
-                <option value="XI TAV">XI TAV</option>
-                <option value="XI TEI 1">XI TEI 1</option>
-                <option value="XI TEI 2">XI TEI 2</option>
-                <option value="XI TPL 1">XI TPL 1</option>
-                <option value="XI TPL 2">XI TPL 2</option>
-                <option value="XI TPM 1">XI TPM 1</option>
-                <option value="XI TPM 2">XI TPM 2</option>
-                <option value="XI TKR1">XI TKR1</option>
-                <option value="XI TKR2">XI TKR2</option>
-                <option value="XI TBKR">XI TBKR</option>
-                <option value="XI TSM 1">XI TSM 1</option>
-                <option value="XI TSM 2">XI TSM 2</option>
-                <option value="XI DKV 1">XI DKV 1</option>
-                <option value="XI DKV 2">XI DKV 2</option>
-                <option value="XI DKV 3">XI DKV 3</option>
-              </optgroup>
-              <optgroup label="Tingkat XII">
-                <option value="XII TAV">XII TAV</option>
-                <option value="XII TEI 1">XII TEI 1</option>
-                <option value="XII TEI 2">XII TEI 2</option>
-                <option value="XII TPL 1">XII TPL 1</option>
-                <option value="XII TPL 2">XII TPL 2</option>
-                <option value="XII TPM 1">XII TPM 1</option>
-                <option value="XII TPM 2">XII TPM 2</option>
-                <option value="XII TKR1">XII TKR1</option>
-                <option value="XII TKR2">XII TKR2</option>
-                <option value="XII TBKR">XII TBKR</option>
-                <option value="XII TSM 1">XII TSM 1</option>
-                <option value="XII TSM 2">XII TSM 2</option>
-                <option value="XII DKV 1">XII DKV 1</option>
-                <option value="XII DKV 2">XII DKV 2</option>
-                <option value="XII DKV 3">XII DKV 3</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div class="input-group">
-            <label for="edit-teacher-guru-wali-class">Kelas Binaan (Khusus Guru Wali)</label>
-            <select id="edit-teacher-guru-wali-class" class="form-control">
-              <option value="-">-- Bukan Guru Wali / Tidak Ada --</option>
-              <optgroup label="Tingkat X">
-                <option value="X TAV">X TAV</option>
-                <option value="X TEI 1">X TEI 1</option>
-                <option value="X TEI 2">X TEI 2</option>
-                <option value="X TPL 1">X TPL 1</option>
-                <option value="X TPL 2">X TPL 2</option>
-                <option value="X TPM 1">X TPM 1</option>
-                <option value="X TPM 2">X TPM 2</option>
-                <option value="X TKR1">X TKR1</option>
-                <option value="X TKR2">X TKR2</option>
-                <option value="X TBKR">X TBKR</option>
-                <option value="X TSM 1">X TSM 1</option>
-                <option value="X TSM 2">X TSM 2</option>
-                <option value="X DKV 1">X DKV 1</option>
-                <option value="X DKV 2">X DKV 2</option>
-                <option value="X DKV 3">X DKV 3</option>
-              </optgroup>
-              <optgroup label="Tingkat XI">
-                <option value="XI TAV">XI TAV</option>
-                <option value="XI TEI 1">XI TEI 1</option>
-                <option value="XI TEI 2">XI TEI 2</option>
-                <option value="XI TPL 1">XI TPL 1</option>
-                <option value="XI TPL 2">XI TPL 2</option>
-                <option value="XI TPM 1">XI TPM 1</option>
-                <option value="XI TPM 2">XI TPM 2</option>
-                <option value="XI TKR1">XI TKR1</option>
-                <option value="XI TKR2">XI TKR2</option>
-                <option value="XI TBKR">XI TBKR</option>
-                <option value="XI TSM 1">XI TSM 1</option>
-                <option value="XI TSM 2">XI TSM 2</option>
-                <option value="XI DKV 1">XI DKV 1</option>
-                <option value="XI DKV 2">XI DKV 2</option>
-                <option value="XI DKV 3">XI DKV 3</option>
-              </optgroup>
-              <optgroup label="Tingkat XII">
-                <option value="XII TAV">XII TAV</option>
-                <option value="XII TEI 1">XII TEI 1</option>
-                <option value="XII TEI 2">XII TEI 2</option>
-                <option value="XII TPL 1">XII TPL 1</option>
-                <option value="XII TPL 2">XII TPL 2</option>
-                <option value="XII TPM 1">XII TPM 1</option>
-                <option value="XII TPM 2">XII TPM 2</option>
-                <option value="XII TKR1">XII TKR1</option>
-                <option value="XII TKR2">XII TKR2</option>
-                <option value="XII TBKR">XII TBKR</option>
-                <option value="XII TSM 1">XII TSM 1</option>
-                <option value="XII TSM 2">XII TSM 2</option>
-                <option value="XII DKV 1">XII DKV 1</option>
-                <option value="XII DKV 2">XII DKV 2</option>
-                <option value="XII DKV 3">XII DKV 3</option>
-              </optgroup>
-            </select>
-          </div>
-
-          <div class="input-group">
-            <label for="edit-teacher-journal-url">Link Form Jurnal Pribadi (Wajib format URL Panjang /viewform)</label>
-            <input type="url" id="edit-teacher-journal-url" class="form-control font-mono" placeholder="https://docs.google.com/forms/d/e/.../viewform">
-            <small style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; display: block;">
-              💡 <strong>Catatan Autofill:</strong> Wajib gunakan URL Panjang (<code>docs.google.com/forms/d/e/.../viewform</code>). Jika menggunakan shortlink <code>forms.gle</code>, Google akan menghapus parameter autofill saat redirect.
-            </small>
-          </div>
-
-          <div class="input-group">
-            <label for="edit-teacher-pin">Kode Akses / PIN Guru (Default: 12345)</label>
-            <input type="text" id="edit-teacher-pin" class="form-control font-mono" placeholder="PIN Guru (Contoh: 12345)" maxlength="20">
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="btn-cancel-teacher-modal">Batal</button>
-            <button type="submit" class="btn btn-primary">Simpan Data</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <!-- Modal Add/Edit Form -->
-    <div id="modal-form-manage" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3 id="modal-form-title"><i class="fa-solid fa-file-circle-plus"></i> Tambah Formulir Baru</h3>
-          <button class="modal-close-btn" id="btn-close-form-modal"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <form id="form-manage-form" class="modal-form">
-          <input type="hidden" id="edit-form-id">
-
-          <div class="input-group">
-            <label for="edit-form-name">Nama Formulir</label>
-            <input type="text" id="edit-form-name" class="form-control" required placeholder="Contoh: FORM PENILAIAN SUMATIF">
-          </div>
-
-          <div class="input-group">
-            <label for="edit-form-category">Kategori</label>
-            <input type="text" id="edit-form-category" class="form-control" placeholder="Contoh: Akademik">
-          </div>
-
-          <div class="input-group">
-            <label for="edit-form-url">Base URL Google Form</label>
-            <input type="url" id="edit-form-url" class="form-control font-mono" required placeholder="https://docs.google.com/forms/d/e/.../viewform">
-          </div>
-
-          <div class="input-group">
-            <label for="edit-form-desc">Deskripsi Formulir</label>
-            <input type="text" id="edit-form-desc" class="form-control" placeholder="Penjelasan singkat tujuan form...">
-          </div>
-
-          <div class="input-group">
-            <label for="edit-entry-guru">Entry ID Nama Guru</label>
-            <input type="text" id="edit-entry-guru" class="form-control font-mono" placeholder="entry.12345678">
-          </div>
-
-          <div class="input-group">
-            <label for="edit-entry-nip">Entry ID NIP</label>
-            <input type="text" id="edit-entry-nip" class="form-control font-mono" placeholder="entry.87654321">
-          </div>
-
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" id="btn-cancel-form-modal">Batal</button>
-            <button type="submit" class="btn btn-primary">Simpan Formulir</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <!-- Modal-modal (Ditaruh di luar main/app-wrapper agar fixed position lebih stabil) -->
 
     <!-- Modal Ubah PIN Guru (Mandiri) -->
     <div id="modal-change-pin" class="modal-overlay hidden" style="z-index: 2100;">
-      <div class="modal-card" style="max-width: 420px;">
+      <div class="modal-card" style="max-width: 420px; margin: auto;">
         <div class="modal-header">
           <h3 style="color: var(--accent-color); font-size: 1.15rem;"><i class="fa-solid fa-key"></i> Ubah PIN Guru</h3>
           <button class="modal-close-btn" id="btn-close-pin-modal"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <form id="form-change-pin" class="modal-form">
+        <form id="form-change-pin" class="modal-body modal-form" style="padding: 1.5rem;">
           
-          <div class="input-group">
+          <div class="input-group" style="margin-bottom: 1rem;">
             <label for="current-pin-input">PIN Saat Ini / Lama</label>
             <input type="password" id="current-pin-input" class="form-control font-mono" placeholder="Masukkan PIN saat ini (default: 12345)" required autocomplete="current-password">
           </div>
 
-          <div class="input-group">
+          <div class="input-group" style="margin-bottom: 1rem;">
             <label for="new-pin-input">PIN Baru (Minimal 4 Digit)</label>
             <input type="password" id="new-pin-input" class="form-control font-mono" placeholder="Masukkan PIN baru" minlength="4" maxlength="20" required autocomplete="new-password">
           </div>
 
-          <div class="input-group">
+          <div class="input-group" style="margin-bottom: 1rem;">
             <label for="confirm-new-pin-input">Konfirmasi PIN Baru</label>
             <input type="password" id="confirm-new-pin-input" class="form-control font-mono" placeholder="Ketik ulang PIN baru" minlength="4" maxlength="20" required autocomplete="new-password">
           </div>
@@ -585,7 +374,7 @@
             <i class="fa-solid fa-circle-exclamation"></i>
           </div>
 
-          <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.25rem;">
+          <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
             <button type="button" class="btn btn-secondary" id="btn-cancel-pin-modal">Batal</button>
             <button type="submit" class="btn btn-primary" id="btn-submit-pin"><i class="fa-solid fa-floppy-disk"></i> Simpan PIN Baru</button>
           </div>
@@ -595,7 +384,7 @@
 
     <!-- Modal Konfirmasi Sudah Isi Form -->
     <div id="modal-form-confirm" class="modal-overlay hidden" style="z-index: 2000;">
-      <div class="modal-card" style="max-width: 400px; text-align: center;">
+      <div class="modal-card" style="max-width: 400px; text-align: center; margin: auto;">
         <div class="modal-header" style="justify-content: center;">
           <h3 id="confirm-modal-title" style="color: var(--accent-color);"><i class="fa-solid fa-circle-check"></i> Sudah Terisi</h3>
         </div>
