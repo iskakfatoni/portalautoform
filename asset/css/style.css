@@ -2319,7 +2319,7 @@ body.light-mode .school-badge-pill {
 /* Baris 2: Tombol-tombol Aksi & Navigasi Berlabel Bawah */
 .header-row-actions {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   width: 100%;
 }
