@@ -17,6 +17,7 @@ import {
   fetchForms,
   fetchSchedules,
   saveTeacherToFirestore,
+  updateTeacherPin,
   deleteTeacherFromFirestore,
   saveFormToFirestore,
   deleteFormFromFirestore,
@@ -167,6 +168,7 @@ function initNavigation() {
   if (btnPortalLogout) {
     btnPortalLogout.addEventListener('click', async () => {
       localStorage.removeItem('portal_logged_nip');
+      localStorage.removeItem('portal_logged_pin');
       sessionStorage.removeItem('portal_demo_admin');
       if (auth && isFirebaseActive) {
         try { await signOut(auth); } catch (e) {}
@@ -241,30 +243,44 @@ function checkUrlParamsForTeacher() {
     return;
   }
 
+  const savedNip = localStorage.getItem('portal_logged_nip') || localStorage.getItem('portal_remember_nip');
+  const savedPin = localStorage.getItem('portal_logged_pin') || localStorage.getItem('portal_remember_pin');
+
+  // 1. Verifikasi jika ada parameter ?nip=... di URL
   if (nipParam && nipParam !== '-') {
     const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
-    const found = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanNip);
+    const found = teachersList.find(t => t.nip && String(t.nip).replace(/[\s\.\-]+/g, '') === cleanNip);
     if (found) {
-      localStorage.setItem('portal_logged_nip', found.nip);
-      localStorage.setItem('portal_remember_nip', found.nip);
-      showPortalView(found);
-      showToast(`Selamat datang kembali, ${found.name}!`);
-      return;
+      const expectedPin = (found.pin && String(found.pin).trim() !== '') ? String(found.pin).trim() : '12345';
+      if (savedPin && savedPin === expectedPin) {
+        localStorage.setItem('portal_logged_nip', found.nip);
+        localStorage.setItem('portal_logged_pin', savedPin);
+        showPortalView(found);
+        showToast(`Selamat datang kembali, ${found.name}!`);
+        return;
+      } else {
+        // Belum terautentikasi PIN di sesi perangkat ini -> arahkan ke login
+        window.location.href = `../../index.html?nip=${encodeURIComponent(cleanNip)}`;
+        return;
+      }
     }
   }
 
-  const savedNip = localStorage.getItem('portal_logged_nip') || localStorage.getItem('portal_remember_nip');
-  if (savedNip && savedNip !== '-') {
+  // 2. Verifikasi dari sesi tersimpan di localStorage
+  if (savedNip && savedNip !== '-' && savedPin) {
     const cleanSavedNip = savedNip.replace(/[\s\.\-]+/g, '');
-    const foundSaved = teachersList.find(t => t.nip && t.nip.replace(/[\s\.\-]+/g, '') === cleanSavedNip);
+    const foundSaved = teachersList.find(t => t.nip && String(t.nip).replace(/[\s\.\-]+/g, '') === cleanSavedNip);
     if (foundSaved) {
-      localStorage.setItem('portal_logged_nip', foundSaved.nip);
-      localStorage.setItem('portal_remember_nip', foundSaved.nip);
-      const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanSavedNip)}`;
-      window.history.replaceState({ nip: foundSaved.nip }, '', newUrl);
-      showPortalView(foundSaved);
-      showToast(`Selamat datang kembali, ${foundSaved.name}!`);
-      return;
+      const expectedPin = (foundSaved.pin && String(foundSaved.pin).trim() !== '') ? String(foundSaved.pin).trim() : '12345';
+      if (savedPin === expectedPin) {
+        localStorage.setItem('portal_logged_nip', foundSaved.nip);
+        localStorage.setItem('portal_logged_pin', savedPin);
+        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanSavedNip)}`;
+        window.history.replaceState({ nip: foundSaved.nip }, '', newUrl);
+        showPortalView(foundSaved);
+        showToast(`Selamat datang kembali, ${foundSaved.name}!`);
+        return;
+      }
     }
   }
 
@@ -274,10 +290,8 @@ function checkUrlParamsForTeacher() {
     return;
   }
 
-  const defaultTeacher = teachersList.find(t => t.nip === "198109092022211004") || teachersList[0];
-  if (defaultTeacher) {
-    showPortalView(defaultTeacher);
-  }
+  // Jika tidak ada sesi valid atau admin, arahkan ke login index.html
+  window.location.href = '../../index.html';
 }
 
 function showPortalView(teacher) {
@@ -986,9 +1000,128 @@ function initModals() {
       const teacherClass = document.getElementById('edit-teacher-class').value;
       const guruWaliClass = document.getElementById('edit-teacher-guru-wali-class') ? document.getElementById('edit-teacher-guru-wali-class').value : '-';
       const journalFormUrl = document.getElementById('edit-teacher-journal-url').value.trim();
+      const pin = document.getElementById('edit-teacher-pin') ? (document.getElementById('edit-teacher-pin').value.trim() || '12345') : '12345';
 
-      await saveTeacherHandler({ name, nip, role, class: teacherClass, guruWaliClass, journalFormUrl });
+      await saveTeacherHandler({ name, nip, role, class: teacherClass, guruWaliClass, journalFormUrl, pin });
       modalTeacher.classList.add('hidden');
+    });
+  }
+
+  // Modal Ubah PIN Mandiri Guru
+  const modalPin = document.getElementById('modal-change-pin');
+  const btnOpenPin = document.getElementById('btn-open-pin-modal');
+  const btnClosePin = document.getElementById('btn-close-pin-modal');
+  const btnCancelPin = document.getElementById('btn-cancel-pin-modal');
+  const formChangePin = document.getElementById('form-change-pin');
+  const errorPinMsg = document.getElementById('change-pin-error');
+  const curPinInput = document.getElementById('current-pin-input');
+  const newPinInput = document.getElementById('new-pin-input');
+  const confirmPinInput = document.getElementById('confirm-new-pin-input');
+
+  if (btnOpenPin && modalPin) {
+    btnOpenPin.addEventListener('click', () => {
+      if (curPinInput) curPinInput.value = '';
+      if (newPinInput) newPinInput.value = '';
+      if (confirmPinInput) confirmPinInput.value = '';
+      if (errorPinMsg) errorPinMsg.classList.add('hidden');
+      modalPin.classList.remove('hidden');
+      if (curPinInput) curPinInput.focus();
+    });
+  }
+
+  const closePinModal = () => {
+    if (modalPin) modalPin.classList.add('hidden');
+  };
+
+  if (btnClosePin) btnClosePin.addEventListener('click', closePinModal);
+  if (btnCancelPin) btnCancelPin.addEventListener('click', closePinModal);
+
+  if (formChangePin) {
+    formChangePin.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!activeTeacher || !activeTeacher.nip) {
+        alert('Data guru aktif tidak ditemukan.');
+        return;
+      }
+
+      const curVal = curPinInput ? curPinInput.value.trim() : '';
+      const newVal = newPinInput ? newPinInput.value.trim() : '';
+      const confirmVal = confirmPinInput ? confirmPinInput.value.trim() : '';
+
+      const expectedCurPin = (activeTeacher.pin && String(activeTeacher.pin).trim() !== '') ? String(activeTeacher.pin).trim() : '12345';
+
+      if (curVal !== expectedCurPin) {
+        if (errorPinMsg) {
+          errorPinMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> PIN saat ini salah. (PIN default: <strong>12345</strong> jika belum pernah diubah).`;
+          errorPinMsg.classList.remove('hidden');
+        }
+        if (curPinInput) {
+          curPinInput.focus();
+          curPinInput.select();
+        }
+        return;
+      }
+
+      if (newVal.length < 4) {
+        if (errorPinMsg) {
+          errorPinMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> PIN baru harus minimal 4 digit karakter.`;
+          errorPinMsg.classList.remove('hidden');
+        }
+        if (newPinInput) newPinInput.focus();
+        return;
+      }
+
+      if (newVal !== confirmVal) {
+        if (errorPinMsg) {
+          errorPinMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Konfirmasi PIN baru tidak sesuai dengan PIN baru.`;
+          errorPinMsg.classList.remove('hidden');
+        }
+        if (confirmPinInput) {
+          confirmPinInput.focus();
+          confirmPinInput.select();
+        }
+        return;
+      }
+
+      const submitBtn = document.getElementById('btn-submit-pin');
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...`;
+      }
+
+      try {
+        const success = await updateTeacherPin(activeTeacher.nip, newVal);
+        if (success) {
+          activeTeacher.pin = newVal;
+          const exIdx = currentTeachers.findIndex(t => t.nip === activeTeacher.nip || t.name === activeTeacher.name);
+          if (exIdx >= 0) currentTeachers[exIdx].pin = newVal;
+
+          localStorage.setItem('portal_logged_pin', newVal);
+          if (localStorage.getItem('portal_remember_pin')) {
+            localStorage.setItem('portal_remember_pin', newVal);
+          }
+
+          closePinModal();
+          showToast('✅ Kode Akses / PIN berhasil diperbarui!');
+          renderAdminTables();
+        } else {
+          if (errorPinMsg) {
+            errorPinMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Gagal menyimpan PIN ke database. Periksa koneksi internet Anda.`;
+            errorPinMsg.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        console.error("Error updating pin:", err);
+        if (errorPinMsg) {
+          errorPinMsg.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Error: ${err.message}`;
+          errorPinMsg.classList.remove('hidden');
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan PIN Baru`;
+        }
+      }
     });
   }
 
@@ -1074,6 +1207,7 @@ function openTeacherModal(teacher = null) {
   const classInp = document.getElementById('edit-teacher-class');
   const guruWaliClassInp = document.getElementById('edit-teacher-guru-wali-class');
   const journalInp = document.getElementById('edit-teacher-journal-url');
+  const pinInp = document.getElementById('edit-teacher-pin');
 
   if (teacher) {
     title.innerHTML = `<i class="fa-solid fa-user-pen"></i> Edit Data Guru`;
@@ -1084,6 +1218,7 @@ function openTeacherModal(teacher = null) {
     if (classInp) classInp.value = teacher.class || '-';
     if (guruWaliClassInp) guruWaliClassInp.value = teacher.guruWaliClass || '-';
     if (journalInp) journalInp.value = teacher.journalFormUrl || '';
+    if (pinInp) pinInp.value = teacher.pin || '12345';
   } else {
     title.innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Data Guru`;
     nameInp.value = '';
@@ -1093,6 +1228,7 @@ function openTeacherModal(teacher = null) {
     if (classInp) classInp.value = '-';
     if (guruWaliClassInp) guruWaliClassInp.value = '-';
     if (journalInp) journalInp.value = '';
+    if (pinInp) pinInp.value = '12345';
   }
   modal.classList.remove('hidden');
 }

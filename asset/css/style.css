@@ -547,6 +547,28 @@ body.light-mode .dark-icon { display: block; }
   outline: none;
 }
 
+.landing-pin-box {
+  position: relative;
+}
+
+.btn-toggle-pin {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color var(--transition-fast);
+  border-radius: var(--radius-sm);
+}
+
+.btn-toggle-pin:hover {
+  color: var(--accent-primary);
+}
+
 .btn-landing-go {
   padding: 0.9rem 1.5rem;
   font-size: 1.05rem;
@@ -2421,6 +2443,43 @@ body.light-mode .school-badge-pill {
 .teacher-nip-text strong {
   color: var(--text-primary);
   font-weight: 600;
+}
+
+.btn-change-pin {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.45rem 0.85rem;
+  background: rgba(99, 102, 241, 0.12);
+  color: var(--accent-primary);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.btn-change-pin:hover {
+  background: var(--accent-primary);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+
+.btn-change-pin:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 480px) {
+  .btn-change-pin span {
+    display: none;
+  }
+  .btn-change-pin {
+    padding: 0.45rem 0.6rem;
+  }
 }
 
 /* ==========================================================================

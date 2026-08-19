@@ -75,15 +75,20 @@ export async function fetchCollection(collectionName) {
 export async function fetchTeachers() {
   const list = await fetchCollection('teachers');
   const normalizedList = list.map(t => {
+    const pin = (t.pin && String(t.pin).trim() !== '') ? String(t.pin).trim() : '12345';
     if (t.nip === "198109092022211004" || (t.name && t.name.includes("ISKAK FATONI"))) {
       return {
         ...t,
         class: (t.class && t.class !== "XII TEI 2") ? t.class : "XI TEI 2",
         guruWaliClass: t.guruWaliClass || "XI TEI 1",
-        role: t.role || "Walikelas"
+        role: t.role || "Walikelas",
+        pin: pin
       };
     }
-    return t;
+    return {
+      ...t,
+      pin: pin
+    };
   });
 
   return normalizedList.sort((a, b) => {
@@ -115,8 +120,58 @@ export async function saveTeacherToFirestore(teacherData) {
   const activeDb = getDb();
   if (!activeDb) return false;
   const docId = teacherData.nip && teacherData.nip !== '-' ? teacherData.nip : teacherData.name.replace(/[^a-zA-Z0-9]/g, '_');
-  await setDoc(doc(activeDb, "teachers", docId), teacherData, { merge: true });
+  const payload = {
+    ...teacherData,
+    pin: (teacherData.pin && String(teacherData.pin).trim() !== '') ? String(teacherData.pin).trim() : '12345'
+  };
+  await setDoc(doc(activeDb, "teachers", docId), payload, { merge: true });
   return true;
+}
+
+// 4b. Update PIN Guru ke Firestore (Mandiri oleh Guru atau Reset oleh Admin)
+export async function updateTeacherPin(nipOrDocId, newPin) {
+  const cleanPin = String(newPin).trim();
+  const cleanDocId = String(nipOrDocId).trim().replace(/[\s\.\-]+/g, '');
+  const activeDb = getDb();
+  
+  if (activeDb) {
+    try {
+      await setDoc(doc(activeDb, "teachers", cleanDocId), { 
+        pin: cleanPin,
+        pinUpdatedAt: new Date().toISOString()
+      }, { merge: true });
+      console.log(`✅ [Firestore SDK] PIN guru (${cleanDocId}) berhasil diperbarui!`);
+      return true;
+    } catch (sdkErr) {
+      console.warn(`[Firestore SDK] Update PIN dialihkan ke REST API:`, sdkErr.message);
+    }
+  }
+
+  // REST API Fallback
+  try {
+    const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/teachers/${cleanDocId}?updateMask.fieldPaths=pin&updateMask.fieldPaths=pinUpdatedAt&key=${apiKey}`;
+    const resp = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        fields: {
+          pin: { stringValue: cleanPin },
+          pinUpdatedAt: { stringValue: new Date().toISOString() }
+        }
+      })
+    });
+    if (resp.ok) {
+      console.log(`✅ [Firestore REST] PIN guru (${cleanDocId}) berhasil diperbarui!`);
+      return true;
+    } else {
+      console.error(`[Firestore REST] Gagal update PIN guru: ${resp.statusText}`);
+    }
+  } catch (restErr) {
+    console.error(`[Firestore REST] Gagal update PIN:`, restErr);
+  }
+
+  return false;
 }
 
 // 5. Delete Teacher dari Firestore

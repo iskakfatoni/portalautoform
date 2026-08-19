@@ -108,7 +108,7 @@
 
         <div id="view-teacher-portal" class="portal-view">
           
-          <!-- Clean Active Teacher Bar (Hanya Nama dan NIP) -->
+          <!-- Clean Active Teacher Bar (Nama, NIP & Tombol Ubah PIN) -->
           <div class="teacher-compact-bar" id="teacher-profile-banner">
             <div class="teacher-info-group">
               <div class="teacher-avatar-mini">
@@ -121,6 +121,10 @@
                 </div>
               </div>
             </div>
+            <!-- Tombol Ubah PIN Mandiri -->
+            <button id="btn-open-pin-modal" class="btn-change-pin" title="Ubah Kode Akses / PIN Guru">
+              <i class="fa-solid fa-key"></i> <span>Ubah PIN</span>
+            </button>
           </div>
 
           <!-- Weekend / Holiday Greeting Banner (Sabtu & Minggu) -->
@@ -498,6 +502,11 @@
             </small>
           </div>
 
+          <div class="input-group">
+            <label for="edit-teacher-pin">Kode Akses / PIN Guru (Default: 12345)</label>
+            <input type="text" id="edit-teacher-pin" class="form-control font-mono" placeholder="PIN Guru (Contoh: 12345)" maxlength="20">
+          </div>
+
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" id="btn-cancel-teacher-modal">Batal</button>
             <button type="submit" class="btn btn-primary">Simpan Data</button>
@@ -554,6 +563,42 @@
       </div>
     </div>
 
+    <!-- Modal Ubah PIN Guru (Mandiri) -->
+    <div id="modal-change-pin" class="modal-overlay hidden" style="z-index: 2100;">
+      <div class="modal-card" style="max-width: 420px;">
+        <div class="modal-header">
+          <h3 style="color: var(--accent-color); font-size: 1.15rem;"><i class="fa-solid fa-key"></i> Ubah PIN Guru</h3>
+          <button class="modal-close-btn" id="btn-close-pin-modal"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="form-change-pin" class="modal-form">
+          
+          <div class="input-group">
+            <label for="current-pin-input">PIN Saat Ini / Lama</label>
+            <input type="password" id="current-pin-input" class="form-control font-mono" placeholder="Masukkan PIN saat ini (default: 12345)" required autocomplete="current-password">
+          </div>
+
+          <div class="input-group">
+            <label for="new-pin-input">PIN Baru (Minimal 4 Digit)</label>
+            <input type="password" id="new-pin-input" class="form-control font-mono" placeholder="Masukkan PIN baru" minlength="4" maxlength="20" required autocomplete="new-password">
+          </div>
+
+          <div class="input-group">
+            <label for="confirm-new-pin-input">Konfirmasi PIN Baru</label>
+            <input type="password" id="confirm-new-pin-input" class="form-control font-mono" placeholder="Ketik ulang PIN baru" minlength="4" maxlength="20" required autocomplete="new-password">
+          </div>
+
+          <div id="change-pin-error" class="landing-error-msg hidden" style="margin-top: 0.5rem;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+          </div>
+
+          <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-secondary" id="btn-cancel-pin-modal">Batal</button>
+            <button type="submit" class="btn btn-primary" id="btn-submit-pin"><i class="fa-solid fa-floppy-disk"></i> Simpan PIN Baru</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <!-- Modal Konfirmasi Sudah Isi Form -->
     <div id="modal-form-confirm" class="modal-overlay hidden" style="z-index: 2000;">
       <div class="modal-card" style="max-width: 400px; text-align: center;">
@@ -578,6 +623,6 @@
 
   </div>
 
-  <script type="module" src="../js/app.js?v=2.9.0"></script>
+  <script type="module" src="../js/app.js?v=3.0.0"></script>
 </body>
 </html>

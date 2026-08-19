@@ -30,20 +30,25 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAdminLogin();
   initFirebaseLogin();
 
-  // Pre-fill NIP tersimpan ke input field
+  // Pre-fill NIP dan PIN tersimpan ke input field
   const inputNip = document.getElementById('landing-nip-input');
+  const inputPin = document.getElementById('landing-pin-input');
   const rememberCheckbox = document.getElementById('remember-nip-checkbox');
   const rememberedNip = localStorage.getItem('portal_remember_nip') || localStorage.getItem('portal_logged_nip');
+  const rememberedPin = localStorage.getItem('portal_remember_pin') || localStorage.getItem('portal_logged_pin');
 
   if (rememberedNip && inputNip) {
     inputNip.value = rememberedNip;
     if (rememberCheckbox) rememberCheckbox.checked = true;
   }
+  if (rememberedPin && inputPin) {
+    inputPin.value = rememberedPin;
+  }
 
   // Load Real-Time Teachers from Cloud Firestore
   await loadSavedTeachers();
 
-  // Auto-redirect jika sudah ada sesi NIP tersimpan
+  // Auto-redirect jika sudah ada sesi NIP & PIN valid tersimpan
   checkExistingSession();
 });
 
@@ -60,23 +65,39 @@ function checkExistingSession() {
   const nipParam = params.get('nip');
   const adminParam = params.get('admin');
 
-  if (nipParam && nipParam !== '-') {
-    const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
-    localStorage.setItem('portal_logged_nip', cleanNip);
-    localStorage.setItem('portal_remember_nip', cleanNip);
-    window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
-    return;
-  }
-
   if (adminParam === 'true') {
     window.location.href = `asset/pages/portal.html?admin=true`;
     return;
   }
 
-  const savedNip = localStorage.getItem('portal_logged_nip');
-  if (savedNip && savedNip !== '-') {
+  const savedNip = localStorage.getItem('portal_logged_nip') || localStorage.getItem('portal_remember_nip');
+  const savedPin = localStorage.getItem('portal_logged_pin') || localStorage.getItem('portal_remember_pin');
+
+  if (nipParam && nipParam !== '-') {
+    const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
+    const found = teachersData.find(t => t.nip && String(t.nip).replace(/[\s\.\-]+/g, '') === cleanNip);
+    if (found) {
+      const expectedPin = (found.pin && String(found.pin).trim() !== '') ? String(found.pin).trim() : '12345';
+      if (savedPin && savedPin === expectedPin) {
+        localStorage.setItem('portal_logged_nip', cleanNip);
+        localStorage.setItem('portal_logged_pin', savedPin);
+        window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
+        return;
+      }
+    }
+  }
+
+  if (savedNip && savedNip !== '-' && savedPin) {
     const cleanNip = savedNip.replace(/[\s\.\-]+/g, '');
-    window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
+    const found = teachersData.find(t => t.nip && String(t.nip).replace(/[\s\.\-]+/g, '') === cleanNip);
+    if (found) {
+      const expectedPin = (found.pin && String(found.pin).trim() !== '') ? String(found.pin).trim() : '12345';
+      if (savedPin === expectedPin) {
+        localStorage.setItem('portal_logged_nip', cleanNip);
+        localStorage.setItem('portal_logged_pin', savedPin);
+        window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanNip)}`;
+      }
+    }
   }
 }
 
@@ -98,12 +119,27 @@ function initLoginTabs() {
   });
 }
 
-// Guru NIP Login
+// Guru NIP & PIN Login
 function initTeacherLogin() {
   const form = document.getElementById('form-landing-nip');
   const inputNip = document.getElementById('landing-nip-input');
+  const inputPin = document.getElementById('landing-pin-input');
+  const btnTogglePin = document.getElementById('btn-toggle-pin-visibility');
+  const iconTogglePin = document.getElementById('icon-toggle-pin');
   const errorMsg = document.getElementById('landing-nip-error');
   const rememberCheckbox = document.getElementById('remember-nip-checkbox');
+
+  // Toggle lihat/sembunyikan PIN
+  if (btnTogglePin && inputPin) {
+    btnTogglePin.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isPassword = inputPin.type === 'password';
+      inputPin.type = isPassword ? 'text' : 'password';
+      if (iconTogglePin) {
+        iconTogglePin.className = isPassword ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
+      }
+    });
+  }
 
   if (!form || !inputNip) return;
 
@@ -112,10 +148,17 @@ function initTeacherLogin() {
 
     const rawVal = inputNip.value || '';
     const cleanVal = rawVal.trim().replace(/[\s\.\-]+/g, '');
+    const pinVal = inputPin ? (inputPin.value || '').trim() : '';
 
     if (!cleanVal) {
       showError(errorMsg, 'Silakan masukkan NIP Anda.');
       inputNip.focus();
+      return;
+    }
+
+    if (!pinVal) {
+      showError(errorMsg, 'Silakan masukkan PIN Anda. (PIN default: <strong>12345</strong>)');
+      if (inputPin) inputPin.focus();
       return;
     }
 
@@ -130,28 +173,45 @@ function initTeacherLogin() {
       return String(t.nip).trim().replace(/[\s\.\-]+/g, '') === cleanVal;
     });
 
-    // 2. Fallback pencarian nama
+    // 2. Fallback pencarian nama jika NIP belum ketemu
     if (!found && rawVal.trim().length >= 3) {
       const searchName = rawVal.trim().toLowerCase();
       found = teachersData.find(t => t.name && t.name.toLowerCase().includes(searchName) && t.nip && t.nip !== '-');
     }
 
-    if (found) {
-      hideError(errorMsg);
-      const cleanTeacherNip = String(found.nip).trim().replace(/[\s\.\-]+/g, '');
-      
-      localStorage.setItem('portal_logged_nip', cleanTeacherNip);
-      if (!rememberCheckbox || rememberCheckbox.checked) {
-        localStorage.setItem('portal_remember_nip', cleanTeacherNip);
-      } else {
-        localStorage.removeItem('portal_remember_nip');
-      }
-
-      window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanTeacherNip)}`;
-    } else {
+    if (!found) {
       showError(errorMsg, `NIP <strong>${rawVal}</strong> tidak ditemukan di database Cloud Firestore.`);
       inputNip.focus();
+      return;
     }
+
+    // 3. Validasi PIN (Default 12345 jika belum pernah diset)
+    const expectedPin = (found.pin && String(found.pin).trim() !== '') ? String(found.pin).trim() : '12345';
+    if (pinVal !== expectedPin) {
+      showError(errorMsg, 'PIN yang Anda masukkan salah. (PIN default: <strong>12345</strong> jika belum pernah diubah).');
+      if (inputPin) {
+        inputPin.focus();
+        inputPin.select();
+      }
+      return;
+    }
+
+    // Login Sukses
+    hideError(errorMsg);
+    const cleanTeacherNip = String(found.nip).trim().replace(/[\s\.\-]+/g, '');
+    
+    localStorage.setItem('portal_logged_nip', cleanTeacherNip);
+    localStorage.setItem('portal_logged_pin', pinVal);
+
+    if (!rememberCheckbox || rememberCheckbox.checked) {
+      localStorage.setItem('portal_remember_nip', cleanTeacherNip);
+      localStorage.setItem('portal_remember_pin', pinVal);
+    } else {
+      localStorage.removeItem('portal_remember_nip');
+      localStorage.removeItem('portal_remember_pin');
+    }
+
+    window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(cleanTeacherNip)}`;
   };
 
   form.addEventListener('submit', handleNipSubmit);

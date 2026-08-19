@@ -88,8 +88,10 @@
           <p class="landing-author">Created by Iskak Fatoni</p>
         </div>
 
-        <!-- GURU (Input NIP) -->
+        <!-- GURU (Input NIP & PIN) -->
         <form id="form-landing-nip" class="landing-nip-form" autocomplete="on">
+          
+          <!-- Field 1: NIP -->
           <div class="landing-input-box">
             <i class="fa-solid fa-id-card input-box-icon"></i>
             <input 
@@ -105,11 +107,29 @@
             >
           </div>
 
-          <!-- Remember NIP Checkbox -->
+          <!-- Field 2: PIN / Kode Akses -->
+          <div class="landing-input-box landing-pin-box">
+            <i class="fa-solid fa-key input-box-icon"></i>
+            <input 
+              type="password" 
+              name="pin"
+              id="landing-pin-input" 
+              class="landing-nip-input landing-pin-input font-mono" 
+              placeholder="Masukkan PIN (Default: 12345)..." 
+              autocomplete="current-password"
+              maxlength="20" 
+              required
+            >
+            <button type="button" id="btn-toggle-pin-visibility" class="btn-toggle-pin" title="Lihat/Sembunyikan PIN" aria-label="Lihat atau sembunyikan PIN">
+              <i class="fa-solid fa-eye-slash" id="icon-toggle-pin"></i>
+            </button>
+          </div>
+
+          <!-- Remember NIP & PIN Checkbox -->
           <div class="landing-remember-row">
             <label class="landing-remember-label" for="remember-nip-checkbox">
               <input type="checkbox" id="remember-nip-checkbox" class="landing-remember-checkbox" checked>
-              <span>Ingat NIP di perangkat ini</span>
+              <span>Ingat NIP & PIN di perangkat ini</span>
             </label>
           </div>
 
@@ -117,7 +137,7 @@
             <span>MASUK</span> <i class="fa-solid fa-right-to-bracket"></i>
           </button>
           <div id="landing-nip-error" class="landing-error-msg hidden">
-            <i class="fa-solid fa-circle-exclamation"></i> NIP tidak ditemukan di database. Pastikan digit NIP sudah benar.
+            <i class="fa-solid fa-circle-exclamation"></i> NIP atau PIN tidak sesuai.
           </div>
         </form>
 
@@ -127,6 +147,6 @@
 
   </div>
 
-  <script type="module" src="asset/js/login.js?v=2.9.0"></script>
+  <script type="module" src="asset/js/login.js?v=3.0.0"></script>
 </body>
 </html>
