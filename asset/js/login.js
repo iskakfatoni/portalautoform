@@ -64,6 +64,13 @@ function checkExistingSession() {
   const params = new URLSearchParams(window.location.search);
   const nipParam = params.get('nip');
   const adminParam = params.get('admin');
+  const logoutParam = params.get('logout');
+
+  // Jika baru saja logout, jangan auto-redirect ke portal
+  if (logoutParam === 'true') {
+    console.log("ℹ️ Logout terdeteksi, menghentikan auto-login.");
+    return;
+  }
 
   if (adminParam === 'true') {
     window.location.href = `asset/pages/portal.html?admin=true`;

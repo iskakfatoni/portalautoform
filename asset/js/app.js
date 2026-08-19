@@ -173,7 +173,8 @@ function initNavigation() {
       if (auth && isFirebaseActive) {
         try { await signOut(auth); } catch (e) {}
       }
-      window.location.href = '../../index.html';
+      // Redirect ke landing page dengan parameter logout agar tidak auto-login
+      window.location.href = '../../index.html?logout=true';
     });
   }
 
