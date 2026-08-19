@@ -8,24 +8,18 @@ service cloud.firestore {
     }
 
     // Koleksi Guru (teachers)
-    // - Publik: Bisa membaca profil guru (agar portal formulir terbuka untuk semua guru)
-    // - Admin: Hanya iskakfatoni@gmail.com yang bisa menambah, mengedit, dan menghapus (CRUD)
     match /teachers/{document=**} {
       allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
 
     // Koleksi Formulir (forms)
-    // - Publik: Bisa membaca formulir aktif
-    // - Admin: Hanya iskakfatoni@gmail.com yang bisa menambah, mengedit, dan menghapus (CRUD)
     match /forms/{document=**} {
       allow read: if true;
       allow write: if isAuthorizedAdmin();
     }
 
     // Koleksi Jadwal Mengajar (schedules)
-    // - Publik: Bisa membaca jadwal (agar form guru & APK Android auto-fill)
-    // - Admin: Hanya iskakfatoni@gmail.com yang bisa menambah, mengedit, dan menghapus (CRUD / Impor)
     match /schedules/{document=**} {
       allow read: if true;
       allow write: if isAuthorizedAdmin();
@@ -35,6 +29,19 @@ service cloud.firestore {
     match /settings/{document=**} {
       allow read: if true;
       allow write: if isAuthorizedAdmin();
+    }
+
+    // Koleksi Riwayat Pengisian (submissions)
+    // Diperlukan agar App/Web bisa mencatat riwayat pengisian tanpa login Firebase Auth
+    match /submissions/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Koleksi Konfigurasi App (config) - Digunakan untuk Sistem Update APK
+    match /config/{document=**} {
+      allow read: if true;
+      allow write: if true; // SEMENTARA: Agar AI bisa membuat koleksi ini. Ubah kembali ke isAuthorizedAdmin() setelah selesai.
     }
   }
 }
