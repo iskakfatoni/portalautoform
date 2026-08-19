@@ -1096,7 +1096,10 @@ function initModals() {
       }
 
       try {
-        const success = await updateTeacherPin(activeTeacher.nip, newVal);
+        showToast("⏳ Menyimpan kode akses baru...");
+        // Gunakan .id (Doc ID asli) jika tersedia, fallback ke .nip
+        const targetId = activeTeacher.id || activeTeacher.nip;
+        const success = await updateTeacherPin(targetId, newVal);
         if (success) {
           activeTeacher.pin = newVal;
           const exIdx = currentTeachers.findIndex(t => t.nip === activeTeacher.nip || t.name === activeTeacher.name);

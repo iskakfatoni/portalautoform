@@ -130,18 +130,17 @@ export async function saveTeacherToFirestore(teacherData) {
 }
 
 // 4b. Update PIN Guru ke Firestore (Mandiri oleh Guru atau Reset oleh Admin)
-export async function updateTeacherPin(nipOrDocId, newPin) {
+export async function updateTeacherPin(docId, newPin) {
   const cleanPin = String(newPin).trim();
-  const cleanDocId = String(nipOrDocId).trim().replace(/[\s\.\-]+/g, '');
   const activeDb = getDb();
   
   if (activeDb) {
     try {
-      await setDoc(doc(activeDb, "teachers", cleanDocId), { 
+      await setDoc(doc(activeDb, "teachers", docId), {
         pin: cleanPin,
         pinUpdatedAt: new Date().toISOString()
       }, { merge: true });
-      console.log(`✅ [Firestore SDK] PIN guru (${cleanDocId}) berhasil diperbarui!`);
+      console.log(`✅ [Firestore SDK] PIN guru (${docId}) berhasil diperbarui!`);
       return true;
     } catch (sdkErr) {
       console.warn(`[Firestore SDK] Update PIN dialihkan ke REST API:`, sdkErr.message);
@@ -151,7 +150,7 @@ export async function updateTeacherPin(nipOrDocId, newPin) {
   // REST API Fallback
   try {
     const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/teachers/${cleanDocId}?updateMask.fieldPaths=pin&updateMask.fieldPaths=pinUpdatedAt&key=${apiKey}`;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/teachers/${docId}?updateMask.fieldPaths=pin&updateMask.fieldPaths=pinUpdatedAt&key=${apiKey}`;
     const resp = await fetch(url, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },

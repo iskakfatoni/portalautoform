@@ -7,10 +7,13 @@ service cloud.firestore {
       return request.auth != null && request.auth.token.email.lower() == 'iskakfatoni@gmail.com';
     }
 
-    // Koleksi Guru (teachers) - Admin memiliki akses penuh; Guru dapat memperbarui PIN mereka
-    match /teachers/{document=**} {
+    // Koleksi Guru (teachers)
+    match /teachers/{teacherId} {
       allow read: if true;
-      allow write: if isAuthorizedAdmin() || request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pin', 'pinUpdatedAt']) || !exists(resource.__name__);
+      // Admin punya akses penuh
+      allow write: if isAuthorizedAdmin();
+      // Guru diizinkan UPDATE hanya untuk field pin dan pinUpdatedAt
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pin', 'pinUpdatedAt']);
     }
 
     // Koleksi Formulir (forms)
@@ -32,16 +35,15 @@ service cloud.firestore {
     }
 
     // Koleksi Riwayat Pengisian (submissions)
-    // Diperlukan agar App/Web bisa mencatat riwayat pengisian tanpa login Firebase Auth
     match /submissions/{document=**} {
       allow read: if true;
       allow write: if true;
     }
 
-    // Koleksi Konfigurasi App (config) - Digunakan untuk Sistem Update APK
+    // Koleksi Konfigurasi App (config)
     match /config/{document=**} {
       allow read: if true;
-      allow write: if true; // SEMENTARA: Agar AI bisa membuat koleksi ini. Ubah kembali ke isAuthorizedAdmin() setelah selesai.
+      allow write: if isAuthorizedAdmin() || true; // Tetap allow true sementara jika masih dalam pengembangan
     }
   }
 }
