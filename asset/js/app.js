@@ -552,6 +552,7 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
 
       if (btnYes) {
         btnYes.href = generatedUrl;
+        btnYes.target = "_blank";
         btnYes.onclick = () => modal.classList.add('hidden');
       }
 
@@ -576,12 +577,16 @@ window.onFormSubmittedSuccessfully = async (formId) => {
 
   if (!activeTeacher || !activeTeacher.nip) return;
 
+  // Cari form berdasarkan hash URL atau ID internal
   const form = currentForms.find(f => f.id === formId || (f.baseUrl && f.baseUrl.includes(formId)));
+
+  // Gunakan ID internal jika ditemukan, agar konsisten dengan pengecekan saat klik
+  const finalFormId = form ? form.id : formId;
   const formName = form ? form.name : "Formulir";
   const cleanNip = activeTeacher.nip.replace(/[\s\.\-]+/g, '');
 
   try {
-    await saveFormSubmission(cleanNip, formId, formName);
+    await saveFormSubmission(cleanNip, finalFormId, formName);
     showToast(`✅ Riwayat pengisian ${formName} berhasil dicatat!`);
   } catch (err) {
     console.error("Gagal mencatat riwayat pengisian:", err);

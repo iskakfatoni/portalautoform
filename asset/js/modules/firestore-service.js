@@ -8,6 +8,7 @@ import {
   getDb,
   collection,
   getDocs,
+  getDoc,
   doc,
   setDoc,
   deleteDoc,
@@ -229,7 +230,6 @@ export async function saveFormSubmission(nip, formId, formName) {
 // 9. Cek apakah Form sudah diisi hari ini
 export async function checkFormSubmission(nip, formId) {
   const activeDb = getDb();
-  if (!activeDb) return null;
 
   const now = new Date();
   const yyyy = now.getFullYear();
@@ -238,23 +238,36 @@ export async function checkFormSubmission(nip, formId) {
   const dateKey = `${yyyy}-${mm}-${dd}`;
 
   const docId = `sub_${nip}_${formId}_${dateKey}`;
+  console.log(`🔍 [Firestore] Mengecek riwayat: ${docId}`);
 
-  // Fail-safe via REST API jika SDK gagal
+  if (activeDb) {
+    try {
+      const docRef = doc(activeDb, "submissions", docId);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        console.log("✅ [Firestore] Riwayat ditemukan:", snap.data());
+        return snap.data();
+      }
+    } catch (sdkErr) {
+      console.warn(`[Firestore SDK] Gagal cek riwayat, mencoba REST API:`, sdkErr.message);
+    }
+  }
+
+  // REST API Fallback
   try {
-    const snap = await getDocs(collection(activeDb, "submissions"));
-    // Sederhananya kita cari yang cocok dengan docId
-    const found = snap.docs.find(d => d.id === docId);
-    if (found) return found.data();
-  } catch (e) {
-    // REST API Fallback
     const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
     const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/submissions/${docId}?key=${apiKey}`;
     const resp = await fetch(url);
     if (resp.ok) {
       const data = await resp.json();
-      return parseFirestoreDoc(data);
+      const parsed = parseFirestoreDoc(data);
+      console.log("✅ [Firestore REST] Riwayat ditemukan:", parsed);
+      return parsed;
     }
+  } catch (restErr) {
+    console.error(`[Firestore REST] Gagal cek riwayat:`, restErr);
   }
 
+  console.log("ℹ️ [Firestore] Riwayat tidak ditemukan.");
   return null;
 }
