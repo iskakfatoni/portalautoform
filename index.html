@@ -3,151 +3,150 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download PORTAL:AutoForm | Update Aplikasi</title>
-  <meta name="description" content="Pusat unduhan dan pembaruan aplikasi PORTAL:AutoForm untuk Android dan Windows.">
+  <title>PORTAL:AutoForm | Masuk</title>
+  <meta name="description" content="Portal administrasi dan pelaporan otomatis berbasis NIP Guru dan Manajemen Cloud Firebase.">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  
+
   <!-- Favicon -->
   <link rel="icon" type="image/webp" href="asset/image/logo-smkn1jetis.webp">
 
-  <link rel="stylesheet" href="asset/css/style.css?v=3.2.0">
-  <style>
-    .download-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      width: 100%;
-      max-width: 900px;
-      margin: 2rem auto;
-    }
-    .download-card {
-      background: var(--bg-card);
-      backdrop-filter: blur(20px);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 2.5rem 2rem;
-      text-align: center;
-      transition: all var(--transition-smooth);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-    }
-    .download-card:hover {
-      transform: translateY(-10px);
-      border-color: var(--accent-primary);
-      box-shadow: var(--shadow-lg), 0 0 30px var(--accent-glow);
-    }
-    .platform-icon {
-      font-size: 3.5rem;
-      background: var(--accent-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 10px var(--accent-glow));
-    }
-    .platform-name {
-      font-size: 1.5rem;
-      font-weight: 800;
-    }
-    .platform-desc {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-      line-height: 1.6;
-    }
-    .btn-download {
-      width: 100%;
-      padding: 1rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .go-to-portal {
-      margin-top: 2rem;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: color var(--transition-fast);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .go-to-portal:hover {
-      color: var(--accent-primary);
-    }
-  </style>
-</head>
-<body class="dark-mode">
+  <!-- Early Theme Detection Guard (Auto System / Saved) -->
+  <script>
+    (function() {
+      const saved = localStorage.getItem('portal_theme');
+      const isLight = saved === 'light' || (!saved && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+      if (isLight) {
+        document.documentElement.classList.add('theme-light-init');
+        document.addEventListener('DOMContentLoaded', () => {
+          document.body.classList.remove('dark-mode');
+          document.body.classList.add('light-mode');
+        });
+      }
+    })();
+  </script>
 
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+
+  <link rel="stylesheet" href="asset/css/style.css?v=2.2.0">
+</head>
+<body class="dark-mode landing-page">
+
+  <!-- Background Ambient Glow Effects -->
   <div class="bg-glow-container" aria-hidden="true">
     <div class="glow-sphere glow-1"></div>
     <div class="glow-sphere glow-2"></div>
     <div class="glow-sphere glow-3"></div>
   </div>
 
+  <!-- App Wrapper -->
   <div class="app-wrapper">
-    <header class="main-header" style="justify-content: center;">
+
+    <!-- Top Header -->
+    <header class="main-header" id="app-main-header">
       <div class="brand-container">
-        <div class="brand-link">
+        <a href="index.html" class="brand-link">
           <div class="brand-icon brand-logo-circle">
             <img src="asset/image/logo-smkn1jetis.webp" alt="Logo SMKN 1 Jetis" class="brand-logo-img" width="36" height="36">
           </div>
           <div class="brand-text">
             <h1 class="brand-title">PORTAL<span class="brand-accent">:AutoForm</span></h1>
           </div>
-        </div>
+        </a>
+      </div>
+
+      <div class="header-actions">
+        <!-- Theme Toggle -->
+        <button id="theme-toggle-btn" class="icon-btn" title="Ganti Tema Terang/Gelap" aria-label="Ganti Tema">
+          <i class="fa-solid fa-sun light-icon"></i>
+          <i class="fa-solid fa-moon dark-icon"></i>
+        </button>
       </div>
     </header>
 
-    <main class="content-area" style="align-items: center; justify-content: center;">
-      <div style="text-align: center; margin-bottom: 1rem;">
-        <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Pusat Unduhan</h2>
-        <p style="color: var(--text-secondary);">Dapatkan versi terbaru aplikasi untuk pengalaman terbaik.</p>
-      </div>
+    <!-- Main Content Area: Focused Teacher Login -->
+    <main class="content-area landing-content-centered">
 
-      <div class="download-grid">
-        <!-- Android Download -->
-        <div class="download-card">
-          <i class="fa-brands fa-android platform-icon"></i>
-          <div class="platform-info">
-            <h3 class="platform-name">Android</h3>
-            <p class="platform-desc">Aplikasi mobile untuk mengisi Google Form langsung dari smartphone Anda dengan fitur Auto-Fill.</p>
-          </div>
-          <a href="https://drive.google.com/drive/u/0/folders/1A4RmCXtJsW1sXhutCVGIt5Tk9jfNwixe" target="_blank" class="btn btn-primary btn-download">
-            <i class="fa-solid fa-download"></i> Unduh APK
-          </a>
+      <div class="landing-hero-card">
+
+        <!-- Circular SMK Logo Badge -->
+        <div class="school-logo-wrapper">
+          <img src="asset/image/logo-smkn1jetis.webp" alt="Logo SMKN 1 Jetis Mojokerto" class="school-logo-img" width="96" height="96" fetchpriority="high">
         </div>
 
-        <!-- Windows Download -->
-        <div class="download-card">
-          <i class="fa-brands fa-windows platform-icon"></i>
-          <div class="platform-info">
-            <h3 class="platform-name">Windows</h3>
-            <p class="platform-desc">Versi desktop (Portable) untuk penggunaan di Laptop atau Komputer kantor/sekolah.</p>
-          </div>
-          <a href="asset/app/PORTAL AutoForm.exe" download class="btn btn-secondary btn-download">
-            <i class="fa-solid fa-download"></i> Unduh .EXE
-          </a>
+        <div class="landing-text-header">
+          <span class="school-badge-pill">SMKN 1 JETIS MOJOKERTO</span>
+          <h2 class="landing-title">Portal AutoFill Google Form</h2>
+          <p class="landing-author">Created by Iskak Fatoni</p>
         </div>
+
+        <!-- GURU (Input NIP & PIN) -->
+        <form id="form-landing-nip" class="landing-nip-form" autocomplete="on">
+
+          <!-- Field 1: NIP -->
+          <div class="landing-input-box">
+            <i class="fa-solid fa-id-card input-box-icon"></i>
+            <input
+              type="text"
+              name="nip"
+              id="landing-nip-input"
+              class="landing-nip-input font-mono"
+              placeholder="Masukkan 18 Digit NIP Anda..."
+              autocomplete="username"
+              maxlength="25"
+              autofocus
+              required
+            >
+          </div>
+
+          <!-- Field 2: PIN / Kode Akses -->
+          <div class="landing-input-box landing-pin-box">
+            <i class="fa-solid fa-key input-box-icon"></i>
+            <input
+              type="password"
+              name="pin"
+              id="landing-pin-input"
+              class="landing-nip-input landing-pin-input font-mono"
+              placeholder="Masukkan PIN (Default: 12345)..."
+              autocomplete="current-password"
+              maxlength="20"
+              required
+            >
+            <button type="button" id="btn-toggle-pin-visibility" class="btn-toggle-pin" title="Lihat/Sembunyikan PIN" aria-label="Lihat atau sembunyikan PIN">
+              <i class="fa-solid fa-eye-slash" id="icon-toggle-pin"></i>
+            </button>
+          </div>
+
+          <!-- Remember NIP & PIN Checkbox -->
+          <div class="landing-remember-row">
+            <label class="landing-remember-label" for="remember-nip-checkbox">
+              <input type="checkbox" id="remember-nip-checkbox" class="landing-remember-checkbox" checked>
+              <span>Ingat NIP & PIN di perangkat ini</span>
+            </label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-landing-go btn-landing-submit" id="btn-landing-go">
+            <span>MASUK</span> <i class="fa-solid fa-right-to-bracket"></i>
+          </button>
+          <div id="landing-nip-error" class="landing-error-msg hidden">
+            <i class="fa-solid fa-circle-exclamation"></i> NIP atau PIN tidak sesuai.
+          </div>
+        </form>
+
       </div>
 
-      <a href="autoform.html" class="go-to-portal">
-        Buka Portal Web <i class="fa-solid fa-arrow-right"></i>
-      </a>
     </main>
 
-    <footer class="main-footer" style="margin-top: 2rem;">
-      <p class="footer-brand">PORTAL:AutoForm © 2026</p>
-      <p class="footer-author">SMKN 1 Jetis Mojokerto | Created by Iskak Fatoni</p>
-    </footer>
   </div>
 
+  <script type="module" src="asset/js/login.js?v=3.0.0"></script>
 </body>
 </html>

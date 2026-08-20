@@ -174,7 +174,7 @@ function initNavigation() {
         try { await signOut(auth); } catch (e) {}
       }
       // Redirect ke landing page dengan parameter logout agar tidak auto-login
-      window.location.href = '../../autoform.html?logout=true';
+      window.location.href = '../../index.html?logout=true';
     });
   }
 
@@ -261,7 +261,7 @@ function checkUrlParamsForTeacher() {
         return;
       } else {
         // Belum terautentikasi PIN di sesi perangkat ini -> arahkan ke login
-        window.location.href = `../../autoform.html?nip=${encodeURIComponent(cleanNip)}`;
+        window.location.href = `../../index.html?nip=${encodeURIComponent(cleanNip)}`;
         return;
       }
     }
@@ -291,8 +291,8 @@ function checkUrlParamsForTeacher() {
     return;
   }
 
-  // Jika tidak ada sesi valid atau admin, arahkan ke login autoform.html
-  window.location.href = '../../autoform.html';
+  // Jika tidak ada sesi valid atau admin, arahkan ke login index.html
+  window.location.href = '../../index.html';
 }
 
 function showPortalView(teacher) {
