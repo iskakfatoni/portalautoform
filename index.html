@@ -19,31 +19,36 @@
 
   <link rel="stylesheet" href="asset/css/style.css?v=3.2.0">
   <style>
-    .download-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
+    .download-container {
       width: 100%;
-      max-width: 900px;
+      max-width: 500px;
       margin: 2rem auto;
     }
     .download-card {
       background: var(--bg-card);
-      backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--border-color);
       border-radius: var(--radius-lg);
-      padding: 2.5rem 2rem;
+      padding: 3rem 2rem;
       text-align: center;
       transition: all var(--transition-smooth);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 1.5rem;
+      gap: 1.75rem;
+      box-shadow: var(--shadow-lg), 0 0 40px rgba(99, 102, 241, 0.1);
     }
     .download-card:hover {
       transform: translateY(-10px);
       border-color: var(--accent-primary);
       box-shadow: var(--shadow-lg), 0 0 30px var(--accent-glow);
+    }
+    .platform-icons-row {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      justify-content: center;
     }
     .platform-icon {
       font-size: 3.5rem;
@@ -53,34 +58,22 @@
       filter: drop-shadow(0 0 10px var(--accent-glow));
     }
     .platform-name {
-      font-size: 1.5rem;
+      font-size: 1.75rem;
       font-weight: 800;
+      margin-bottom: 0.5rem;
     }
     .platform-desc {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: var(--text-secondary);
       line-height: 1.6;
     }
     .btn-download {
       width: 100%;
-      padding: 1rem;
-      font-weight: 700;
+      padding: 1.15rem;
+      font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 1px;
-    }
-    .go-to-portal {
-      margin-top: 2rem;
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: color var(--transition-fast);
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .go-to-portal:hover {
-      color: var(--accent-primary);
+      font-size: 1rem;
     }
   </style>
 </head>
@@ -108,39 +101,25 @@
 
     <main class="content-area" style="align-items: center; justify-content: center;">
       <div style="text-align: center; margin-bottom: 1rem;">
-        <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;">Pusat Unduhan</h2>
-        <p style="color: var(--text-secondary);">Dapatkan versi terbaru aplikasi untuk pengalaman terbaik.</p>
+        <h2 style="font-size: 2.25rem; font-weight: 800; margin-bottom: 0.5rem;">Pusat Unduhan</h2>
+        <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto;">Dapatkan aplikasi versi terbaru untuk Android dan Windows dalam satu folder terpadu.</p>
       </div>
 
-      <div class="download-grid">
-        <!-- Android Download -->
+      <div class="download-container">
         <div class="download-card">
-          <i class="fa-brands fa-android platform-icon"></i>
+          <div class="platform-icons-row">
+            <i class="fa-brands fa-android platform-icon"></i>
+            <i class="fa-brands fa-windows platform-icon"></i>
+          </div>
           <div class="platform-info">
-            <h3 class="platform-name">Android</h3>
-            <p class="platform-desc">Aplikasi mobile untuk mengisi Google Form langsung dari smartphone Anda dengan fitur Auto-Fill.</p>
+            <h3 class="platform-name">Aplikasi Multi-Platform</h3>
+            <p class="platform-desc">Unduh file installer <strong>.APK</strong> untuk Android atau <strong>.EXE</strong> untuk Windows sesuai perangkat Anda.</p>
           </div>
           <a href="https://drive.google.com/drive/u/0/folders/1A4RmCXtJsW1sXhutCVGIt5Tk9jfNwixe" target="_blank" class="btn btn-primary btn-download">
-            <i class="fa-solid fa-download"></i> Unduh APK
-          </a>
-        </div>
-
-        <!-- Windows Download -->
-        <div class="download-card">
-          <i class="fa-brands fa-windows platform-icon"></i>
-          <div class="platform-info">
-            <h3 class="platform-name">Windows</h3>
-            <p class="platform-desc">Versi desktop (Portable) untuk penggunaan di Laptop atau Komputer kantor/sekolah.</p>
-          </div>
-          <a href="asset/app/PORTAL AutoForm.exe" download class="btn btn-secondary btn-download">
-            <i class="fa-solid fa-download"></i> Unduh .EXE
+            <i class="fa-solid fa-folder-open"></i> Buka Folder Unduhan
           </a>
         </div>
       </div>
-
-      <a href="autoform.html" class="go-to-portal">
-        Buka Portal Web <i class="fa-solid fa-arrow-right"></i>
-      </a>
     </main>
 
     <footer class="main-footer" style="margin-top: 2rem;">
