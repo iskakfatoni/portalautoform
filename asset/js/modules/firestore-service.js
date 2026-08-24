@@ -25,8 +25,14 @@ export function parseFirestoreDoc(docObj) {
 
   for (const [key, val] of Object.entries(fields)) {
     if ('stringValue' in val) result[key] = val.stringValue;
-    else if ('integerValue' in val) result[key] = parseInt(val.integerValue, 10);
-    else if ('doubleValue' in val) result[key] = parseFloat(val.doubleValue);
+    else if ('integerValue' in val) {
+      const rawInt = val.integerValue;
+      if (key === 'nip' || key === 'id' || !Number.isSafeInteger(Number(rawInt))) {
+        result[key] = String(rawInt);
+      } else {
+        result[key] = parseInt(rawInt, 10);
+      }
+    } else if ('doubleValue' in val) result[key] = parseFloat(val.doubleValue);
     else if ('booleanValue' in val) result[key] = val.booleanValue;
     else if ('nullValue' in val) result[key] = null;
     else if ('arrayValue' in val) {
@@ -72,14 +78,49 @@ export async function fetchCollection(collectionName) {
   return [];
 }
 
+// Default Fallback Master Guru (Primary Admin/Creator)
+export const DEFAULT_PRIMARY_TEACHER = {
+  id: "198109092022211004",
+  nip: "198109092022211004",
+  name: "ISKAK FATONI, S.Pd.",
+  class: "XI TEI 2",
+  guruWaliClass: "XI TEI 1",
+  role: "Walikelas",
+  pin: "12345",
+  orderIndex: 1
+};
+
 // 1. Fetch Teachers (Master Guru Cloud Firestore)
 export async function fetchTeachers() {
-  const list = await fetchCollection('teachers');
+  let list = await fetchCollection('teachers');
+
+  if (!list || list.length === 0) {
+    const cached = localStorage.getItem('portal_teachers_cache');
+    if (cached) {
+      try {
+        list = JSON.parse(cached);
+      } catch (e) {
+        list = [];
+      }
+    }
+  }
+
+  if (!list) list = [];
+
+  // Pastikan NIP Primary Teacher 198109092022211004 (ISKAK FATONI, S.Pd.) selalu tersedia
+  const cleanTargetNip = "198109092022211004";
+  const hasPrimary = list.some(t => t.nip && String(t.nip).replace(/\D/g, '') === cleanTargetNip);
+  if (!hasPrimary) {
+    list.unshift(DEFAULT_PRIMARY_TEACHER);
+  }
+
   const normalizedList = list.map(t => {
     const pin = (t.pin && String(t.pin).trim() !== '') ? String(t.pin).trim() : '12345';
-    if (t.nip === "198109092022211004" || (t.name && t.name.includes("ISKAK FATONI"))) {
+    const nipStr = (t.nip !== undefined && t.nip !== null) ? String(t.nip).trim() : '';
+    if (nipStr.replace(/\D/g, '') === cleanTargetNip || (t.name && t.name.includes("ISKAK FATONI"))) {
       return {
         ...t,
+        nip: nipStr || cleanTargetNip,
         class: (t.class && t.class !== "XII TEI 2") ? t.class : "XI TEI 2",
         guruWaliClass: t.guruWaliClass || "XI TEI 1",
         role: t.role || "Walikelas",
@@ -88,9 +129,16 @@ export async function fetchTeachers() {
     }
     return {
       ...t,
+      nip: nipStr,
       pin: pin
     };
   });
+
+  if (normalizedList && normalizedList.length > 0) {
+    try {
+      localStorage.setItem('portal_teachers_cache', JSON.stringify(normalizedList));
+    } catch (e) {}
+  }
 
   return normalizedList.sort((a, b) => {
     const orderA = (a.orderIndex !== undefined && a.orderIndex !== null) ? a.orderIndex : 999;

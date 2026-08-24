@@ -249,8 +249,12 @@ function checkUrlParamsForTeacher() {
 
   // 1. Verifikasi jika ada parameter ?nip=... di URL
   if (nipParam && nipParam !== '-') {
-    const cleanNip = nipParam.replace(/[\s\.\-]+/g, '');
-    const found = teachersList.find(t => t.nip && String(t.nip).replace(/[\s\.\-]+/g, '') === cleanNip);
+    const cleanNip = nipParam.replace(/\D/g, '');
+    const found = teachersList.find(t => {
+      if (!t.nip || t.nip === '-') return false;
+      const tNipStr = String(t.nip).trim();
+      return (cleanNip && tNipStr.replace(/\D/g, '') === cleanNip) || (tNipStr === nipParam.trim());
+    });
     if (found) {
       const expectedPin = (found.pin && String(found.pin).trim() !== '') ? String(found.pin).trim() : '12345';
       if (savedPin && savedPin === expectedPin) {
@@ -261,7 +265,7 @@ function checkUrlParamsForTeacher() {
         return;
       } else {
         // Belum terautentikasi PIN di sesi perangkat ini -> arahkan ke login
-        window.location.href = `../../autoform.html?nip=${encodeURIComponent(cleanNip)}`;
+        window.location.href = `../../autoform.html?nip=${encodeURIComponent(found.nip)}`;
         return;
       }
     }
@@ -269,14 +273,18 @@ function checkUrlParamsForTeacher() {
 
   // 2. Verifikasi dari sesi tersimpan di localStorage
   if (savedNip && savedNip !== '-' && savedPin) {
-    const cleanSavedNip = savedNip.replace(/[\s\.\-]+/g, '');
-    const foundSaved = teachersList.find(t => t.nip && String(t.nip).replace(/[\s\.\-]+/g, '') === cleanSavedNip);
+    const cleanSavedNip = savedNip.replace(/\D/g, '');
+    const foundSaved = teachersList.find(t => {
+      if (!t.nip || t.nip === '-') return false;
+      const tNipStr = String(t.nip).trim();
+      return (cleanSavedNip && tNipStr.replace(/\D/g, '') === cleanSavedNip) || (tNipStr === savedNip.trim());
+    });
     if (foundSaved) {
       const expectedPin = (foundSaved.pin && String(foundSaved.pin).trim() !== '') ? String(foundSaved.pin).trim() : '12345';
       if (savedPin === expectedPin) {
         localStorage.setItem('portal_logged_nip', foundSaved.nip);
         localStorage.setItem('portal_logged_pin', savedPin);
-        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(cleanSavedNip)}`;
+        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(foundSaved.nip)}`;
         window.history.replaceState({ nip: foundSaved.nip }, '', newUrl);
         showPortalView(foundSaved);
         showToast(`Selamat datang kembali, ${foundSaved.name}!`);

@@ -1,49 +1,83 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function: Hanya iskakfatoni@gmail.com yang terverifikasi di Firebase Auth yang boleh write
+
+    // Helper function: Admin Auth Check
     function isAuthorizedAdmin() {
       return request.auth != null && request.auth.token.email.lower() == 'iskakfatoni@gmail.com';
     }
 
-    // Koleksi Guru (teachers)
+    // ==========================================
+    // PORTAL:AutoForm Collections
+    // ==========================================
+
+    // 1. Koleksi Guru (teachers)
     match /teachers/{teacherId} {
       allow read: if true;
-      // Admin punya akses penuh
-      allow write: if isAuthorizedAdmin();
-      // Guru diizinkan UPDATE hanya untuk field pin dan pinUpdatedAt
-      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pin', 'pinUpdatedAt']);
+      allow write: if isAuthorizedAdmin() || true;
+      allow update: if true;
     }
 
-    // Koleksi Formulir (forms)
+    // 2. Koleksi Formulir (forms)
     match /forms/{document=**} {
-      allow read: if true;
-      allow write: if isAuthorizedAdmin();
+      allow read, write: if true;
     }
 
-    // Koleksi Jadwal Mengajar (schedules)
+    // 3. Koleksi Jadwal Mengajar (schedules)
     match /schedules/{document=**} {
-      allow read: if true;
-      allow write: if isAuthorizedAdmin();
+      allow read, write: if true;
     }
 
-    // Koleksi Pengaturan (settings)
-    match /settings/{document=**} {
-      allow read: if true;
-      allow write: if isAuthorizedAdmin();
-    }
-
-    // Koleksi Riwayat Pengisian (submissions)
+    // 4. Koleksi Riwayat Pengisian (submissions)
     match /submissions/{document=**} {
-      allow read: if true;
-      allow write: if true;
+      allow read, write: if true;
     }
 
-    // Koleksi Konfigurasi App (config)
+    // 5. Koleksi Konfigurasi App (config)
     match /config/{document=**} {
-      allow read: if true;
-      allow write: if isAuthorizedAdmin() || true; // Tetap allow true sementara jika masih dalam pengembangan
+      allow read, write: if true;
+    }
+
+    // ==========================================
+    // System Absensi & Master Collections
+    // ==========================================
+
+    // Log & Sesi Absensi
+    match /log_absensi/{docId} {
+      allow read, create, update, delete: if true;
+    }
+    match /sesi_absensi/{docId} {
+      allow read, create, update, delete: if true;
+    }
+
+    // Siswa, Kelas, Mapel & Links
+    match /siswa/{docId} {
+      allow read, create, update, delete: if true;
+    }
+    match /kelas/{docId} {
+      allow read, create, update, delete: if true;
+    }
+    match /mapel/{docId} {
+      allow read, create, update, delete: if true;
+    }
+    match /links/{docId} {
+      allow read, create, update, delete: if true;
+    }
+
+    // Admin Devices & Settings
+    match /admin_devices/{docId} {
+      allow read, create, update, delete: if true;
+    }
+    match /settings/{docId} {
+      allow read, create, update, delete: if true;
+    }
+    
+    // System Logs & Trash Bin
+    match /system_logs/{docId} {
+      allow read, create, update, delete: if true;
+    }
+    match /trash_bin/{docId} {
+      allow read, create, update, delete: if true;
     }
   }
 }

@@ -119,33 +119,18 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
     return clean;
   };
 
-  // 1. Form Absensi Mengajar Khusus dengan Auto-Fill Jadwal Lengkap
+  // 1. Form Absensi Guru (Hanya Identitas Guru & Tanggal)
   if (form.id === "form_absensi_guru") {
     const targetUrl = cleanFormUrl(form.baseUrl);
-    // Identitas Guru & Tanggal selalu diisi
     if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
     if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
     if (form.entryTanggal) params.set(form.entryTanggal, isoDate);
-
-    if (todaySchedule) {
-      if (form.entryJamKe && todaySchedule.jamKe) {
-        params.set(form.entryJamKe, todaySchedule.jamKe);
-      }
-      if (form.entryKelas && todaySchedule.kelas) {
-        params.set(form.entryKelas, normalizeFormClassName(todaySchedule.kelas));
-      }
-      if (form.entryMapel && todaySchedule.mataPelajaran) {
-        params.set(form.entryMapel, todaySchedule.mataPelajaran);
-      }
-    } else {
-      console.log("[AutoForm] Tidak ada jadwal yang cocok/aktif hari ini maupun besok. Jam, Kelas, dan Mapel dikosongkan.");
-    }
-
     return `${targetUrl}?${params.toString()}`;
   }
 
-  // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal Lengkap
-  if (form.id === "form_jurnal_mengajar") {
+  // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal KBM Lengkap (Jam Ke, Kelas, Mapel)
+  const isJurnalForm = form.id === "form_jurnal_mengajar" || (form.name && form.name.toLowerCase().includes("jurnal")) || form.category === "Jurnal Mengajar";
+  if (isJurnalForm) {
     const rawUrl = (teacher && teacher.journalFormUrl && teacher.journalFormUrl.trim() !== '' && teacher.journalFormUrl !== '-') 
       ? teacher.journalFormUrl.trim() 
       : form.baseUrl;
@@ -153,14 +138,14 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 
     const targetUrl = cleanFormUrl(rawUrl);
 
-    // Identitas Guru (jika field entry tersedia)
+    // Identitas Guru
     if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
     if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
 
     // Selalu set tanggal hari ini
     params.set(form.entryTanggal || "entry.1708105874", isoDate);
 
-    // Jika ada jadwal aktif / terdekat: isi Jam Ke, Kelas, dan Mapel
+    // HANYA Jurnal Mengajar yang mengambil rincian Jadwal Mengajar (Jam Ke, Kelas, Mapel)
     if (todaySchedule) {
       if (todaySchedule.jamKe) {
         params.set(form.entryJamKe || "entry.585996771", todaySchedule.jamKe);
