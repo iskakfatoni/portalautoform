@@ -412,7 +412,11 @@ async function openTpModalForJournal(formId, formName) {
   const storageKey = `portal_tp_selected_${String(activeTeacher.nip).replace(/\D/g, '')}_${mapelKey}`;
   const savedMeeting = localStorage.getItem(storageKey) || '1';
 
-  // Render options ke dropdown
+  // Render options ke dropdown dengan style dark mode eksplisit
+  const isLightMode = document.body.classList.contains('light-mode');
+  const optBg = isLightMode ? '#ffffff' : '#171f33';
+  const optColor = isLightMode ? '#0f172a' : '#f8fafc';
+
   if (listTp.length > 0) {
     selectEl.innerHTML = listTp.map((tp, idx) => {
       const meetingNum = tp.pertemuan || (idx + 1);
@@ -420,10 +424,10 @@ async function openTpModalForJournal(formId, formName) {
       const text = tp.materi || '';
       const isSelected = String(meetingNum) === String(savedMeeting);
       const truncated = text.length > 70 ? text.substring(0, 70) + '...' : text;
-      return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
+      return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" style="background-color: ${optBg} !important; color: ${optColor} !important;" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
     }).join('');
   } else {
-    selectEl.innerHTML = `<option value="1" data-materi="">(Gunakan teks materi standar)</option>`;
+    selectEl.innerHTML = `<option value="1" data-materi="" style="background-color: ${optBg} !important; color: ${optColor} !important;">(Gunakan teks materi standar)</option>`;
   }
 
   const updateModalUrl = () => {
