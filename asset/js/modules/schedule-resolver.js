@@ -96,7 +96,7 @@ export function getActiveTeacherSchedule(teacher, now = new Date(), currentSched
   return null;
 }
 
-export function generateFormUrlForTeacher(form, teacher, now = new Date(), currentSchedules = []) {
+export function generateFormUrlForTeacher(form, teacher, now = new Date(), currentSchedules = [], customOptions = {}) {
   const params = new URLSearchParams();
   params.set('usp', 'pp_url');
 
@@ -128,7 +128,7 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
     return `${targetUrl}?${params.toString()}`;
   }
 
-  // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal KBM Lengkap (Jam Ke, Kelas, Mapel)
+  // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal KBM Lengkap (Jam Ke, Kelas, Mapel, Capaian Materi)
   const isJurnalForm = form.id === "form_jurnal_mengajar" || (form.name && form.name.toLowerCase().includes("jurnal")) || form.category === "Jurnal Mengajar";
   if (isJurnalForm) {
     const rawUrl = (teacher && teacher.journalFormUrl && teacher.journalFormUrl.trim() !== '' && teacher.journalFormUrl !== '-') 
@@ -156,6 +156,13 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
       if (todaySchedule.mataPelajaran) {
         params.set(form.entryMapel || "entry.73505426", todaySchedule.mataPelajaran);
       }
+    }
+
+    // Auto-Fill Capaian / Materi Pembelajaran (entry.1059038821)
+    const entryMateriKey = form.entryMateri || "entry.1059038821";
+    const selectedMateri = (customOptions && customOptions.materi) || (todaySchedule && todaySchedule.materi);
+    if (selectedMateri && String(selectedMateri).trim() !== '') {
+      params.set(entryMateriKey, String(selectedMateri).trim());
     }
 
     return `${targetUrl}?${params.toString()}`;

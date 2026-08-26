@@ -127,9 +127,12 @@ NIP | NAMA_GURU | HARI | JAM_KE | JAM_MULAI | JAM_SELESAI | KELAS | MATA_PELAJAR
 
 ### Contoh Data:
 ```
-198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Senin  | 1-4 | 07:00 | 10:00 | XII TEI 2 | Penerapan Sistem Radio dan Televisi | Lab Elektronika
-198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Senin  | 5-8 | 10:15 | 13:30 | XI TEI 1  | Mikroprosesor dan Mikrokontroler   | Lab Komputer
-198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Selasa | 1-4 | 07:00 | 10:00 | XII TEI 1 | Teknik Kontrol Sistem Robotik      | Lab Robotika
+198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Senin  | 8-9  | 13:00 | 14:30 | XI TEI 2  | Koding dan Kecerdasan Artifisial             | RUANG 8
+198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Senin  | 9-10 | 14:30 | 15:45 | XI TEI 1  | Koding dan Kecerdasan Artifisial             | RUANG 9
+198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Selasa | 1-6  | 07:00 | 11:30 | XI TEI 2  | Mapel Pilihan dan Sistem Kendali Elektronika | LAB KOMPUTER 1
+198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Selasa | 7-12 | 11:45 | 15:45 | XI TEI 1  | Mapel Pilihan dan Sistem Kendali Elektronika | LAB KOMPUTER 1
+198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Rabu   | 1-6  | 07:00 | 11:30 | XII TEI 2 | Mapel Pilihan dan Sistem Kendali Elektronika | BENGKEL TEI
+198109092022211004 | MUCHAMAD ISKAK FATONI, S.Pd. | Rabu   | 7-12 | 11:45 | 15:45 | XII TEI 1 | Mapel Pilihan dan Sistem Kendali Elektronika | BENGKEL TEI
 ```
 
 ---

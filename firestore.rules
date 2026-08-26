@@ -38,6 +38,11 @@ service cloud.firestore {
       allow read, write: if true;
     }
 
+    // 6. Koleksi Capaian / Tujuan Pembelajaran (learning_objectives)
+    match /learning_objectives/{document=**} {
+      allow read, write: if true;
+    }
+
     // ==========================================
     // System Absensi & Master Collections
     // ==========================================

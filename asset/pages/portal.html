@@ -132,6 +132,33 @@
             </div>
           </div>
 
+          <!-- Active Schedule & Learning Objective (TP) Selector Card -->
+          <div id="tp-selector-container" class="tp-selector-card hidden" style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.15rem 1.25rem; margin-bottom: 1.25rem; backdrop-filter: blur(20px); box-shadow: var(--shadow-sm);">
+            <div class="tp-selector-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.9rem; color: var(--text-primary);">
+                <i class="fa-solid fa-book-bookmark" style="color: var(--accent-primary);"></i>
+                <span id="tp-schedule-info">Materi KBM (Tujuan Pembelajaran):</span>
+              </div>
+              <span class="pill-badge pill-auto" id="tp-status-badge" style="font-size: 0.72rem; display: inline-flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-bolt"></i> Auto-Fill Jurnal
+              </span>
+            </div>
+            
+            <div class="tp-dropdown-group" style="display: flex; flex-direction: column; gap: 6px;">
+              <label for="select-learning-objective" style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fa-solid fa-bullseye"></i> Pilih Pertemuan / Topik Hari Ini:</span>
+                <span id="tp-selected-counter" style="font-size: 0.75rem; color: var(--accent-primary); font-weight: 700;">Pertemuan 1 / 35</span>
+              </label>
+              <select id="select-learning-objective" class="form-control" style="width: 100%; padding: 0.65rem 0.85rem; border-radius: var(--radius-md); font-size: 0.85rem; background: var(--bg-surface); border: 1px solid var(--border-color); color: var(--text-primary); cursor: pointer;">
+                <!-- Populated dynamically -->
+              </select>
+              <div id="tp-preview-box" style="font-size: 0.8rem; color: var(--text-secondary); background: rgba(99, 102, 241, 0.05); border: 1px dashed var(--border-color); padding: 0.6rem 0.85rem; border-radius: var(--radius-sm); margin-top: 4px; line-height: 1.45;">
+                <i class="fa-solid fa-circle-info" style="color: var(--accent-primary); margin-right: 4px;"></i>
+                <span id="tp-preview-text">Materi ini otomatis terisi ke Form Jurnal Mengajar saat dibuka.</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Dynamic Direct Form Link Buttons -->
           <div class="form-links-list" id="portal-forms-grid">
             <!-- Populated dynamically by app.js -->

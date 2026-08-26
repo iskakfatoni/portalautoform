@@ -204,11 +204,12 @@ function initTeacherLogin() {
       found = {
         id: "198109092022211004",
         nip: "198109092022211004",
-        name: "ISKAK FATONI, S.Pd.",
-        class: "XI TEI 2",
+        name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+        class: "XII TEI 2",
         guruWaliClass: "XI TEI 1",
         role: "Walikelas",
-        pin: "12345"
+        pin: "231008",
+        journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
       };
     }
 

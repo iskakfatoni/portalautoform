@@ -22,7 +22,8 @@ import {
   saveFormToFirestore,
   deleteFormFromFirestore,
   saveFormSubmission,
-  checkFormSubmission
+  checkFormSubmission,
+  fetchLearningObjectives
 } from './modules/firestore-service.js';
 
 import {
@@ -52,13 +53,19 @@ import {
   renderScheduleTable
 } from './modules/ui-renderers.js';
 
+// State Capaian / Tujuan Pembelajaran (TP)
+let selectedLearningObjectiveMateri = "";
+let learningObjectivesData = null;
+
 // Helper wrappers to preserve signatures
 function getActiveTeacherSchedule(teacher, now = new Date()) {
   return getActiveTeacherScheduleModule(teacher, now, currentSchedules);
 }
 
 function generateFormUrlForTeacher(form, teacher) {
-  return generateFormUrlForTeacherModule(form, teacher, new Date(), currentSchedules);
+  return generateFormUrlForTeacherModule(form, teacher, new Date(), currentSchedules, {
+    materi: selectedLearningObjectiveMateri
+  });
 }
 
 // State Aplikasi (100% Murni Dimuat Real-Time dari Cloud Firestore)
@@ -303,7 +310,7 @@ function checkUrlParamsForTeacher() {
   window.location.href = '../../autoform.html';
 }
 
-function showPortalView(teacher) {
+async function showPortalView(teacher) {
   if (!teacher) return;
   activeTeacher = teacher;
   
@@ -317,7 +324,100 @@ function showPortalView(teacher) {
   if (classEl) classEl.textContent = teacher.class || '-';
   if (roleEl) roleEl.textContent = teacher.role || 'Guru';
 
+  await setupLearningObjectiveSelector(teacher);
   renderUserPortalApp();
+}
+
+// Cache untuk daftar TP multi-tingkat
+let learningObjectivesCache = {};
+
+async function setupLearningObjectiveSelector(teacher) {
+  const container = document.getElementById('tp-selector-container');
+  const selectEl = document.getElementById('select-learning-objective');
+  const scheduleInfoEl = document.getElementById('tp-schedule-info');
+  const previewTextEl = document.getElementById('tp-preview-text');
+  const counterEl = document.getElementById('tp-selected-counter');
+  
+  if (!container || !selectEl) return;
+
+  const now = new Date();
+  const todaySchedule = getActiveTeacherSchedule(teacher, now);
+
+  // Cek apakah guru memiliki jadwal yang berkaitan dengan TP yang tersimpan
+  const hasSkeSchedule = currentSchedules.some(s => 
+    s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
+    s.mataPelajaran && s.mataPelajaran.toLowerCase().includes('kendali')
+  );
+
+  if (!hasSkeSchedule && (!todaySchedule || !todaySchedule.mataPelajaran || !todaySchedule.mataPelajaran.toLowerCase().includes('kendali'))) {
+    container.classList.add('hidden');
+    selectedLearningObjectiveMateri = "";
+    return;
+  }
+
+  // Tentukan tingkat kelas: XII vs XI
+  const currentKelas = todaySchedule ? todaySchedule.kelas : (teacher.class || 'XII TEI 2');
+  const isKelas12 = currentKelas && (currentKelas.includes('XII') || currentKelas.includes('12'));
+  const mapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
+  const labelTingkat = isKelas12 ? 'Kelas XII (ESP32 & IoT)' : 'Kelas XI (Arduino & Embedded)';
+
+  // Load TP dari Firestore / cache
+  if (!learningObjectivesCache[mapelKey]) {
+    learningObjectivesCache[mapelKey] = await fetchLearningObjectives(mapelKey);
+  }
+
+  const currentObj = learningObjectivesCache[mapelKey];
+
+  if (!currentObj || !currentObj.listTp || currentObj.listTp.length === 0) {
+    container.classList.add('hidden');
+    return;
+  }
+
+  const listTp = currentObj.listTp;
+  
+  if (scheduleInfoEl) {
+    scheduleInfoEl.textContent = `Materi KBM: ${todaySchedule ? todaySchedule.mataPelajaran : 'Sistem Kendali Elektronika'} - ${labelTingkat} [${currentKelas}]`;
+  }
+
+  // Simpan & baca pilihan tersimpan di localStorage per tingkat kelas
+  const storageKey = `portal_tp_selected_${String(teacher.nip).replace(/\D/g, '')}_${mapelKey}`;
+  const savedMeeting = localStorage.getItem(storageKey) || '1';
+
+  // Render options ke select element
+  selectEl.innerHTML = listTp.map((tp, idx) => {
+    const meetingNum = tp.pertemuan || (idx + 1);
+    const code = tp.kodeTp || `TP-${String(meetingNum).padStart(2, '0')}`;
+    const text = tp.materi || '';
+    const isSelected = String(meetingNum) === String(savedMeeting);
+    const truncated = text.length > 75 ? text.substring(0, 75) + '...' : text;
+    return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
+  }).join('');
+
+  // Update preview dan state
+  const updateSelectedState = () => {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    if (selectedOption) {
+      const materiText = decodeURIComponent(selectedOption.getAttribute('data-materi') || '');
+      selectedLearningObjectiveMateri = materiText;
+      const meetingNum = selectedOption.value;
+      localStorage.setItem(storageKey, meetingNum);
+
+      if (previewTextEl) {
+        previewTextEl.textContent = materiText;
+      }
+      if (counterEl) {
+        counterEl.textContent = `Pertemuan ${meetingNum} / ${listTp.length}`;
+      }
+    }
+  };
+
+  updateSelectedState();
+  container.classList.remove('hidden');
+
+  selectEl.onchange = () => {
+    updateSelectedState();
+    renderUserPortalApp();
+  };
 }
 
 /* ==========================================================================

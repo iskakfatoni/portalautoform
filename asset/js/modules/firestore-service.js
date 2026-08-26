@@ -82,12 +82,13 @@ export async function fetchCollection(collectionName) {
 export const DEFAULT_PRIMARY_TEACHER = {
   id: "198109092022211004",
   nip: "198109092022211004",
-  name: "ISKAK FATONI, S.Pd.",
-  class: "XI TEI 2",
+  name: "MUCHAMAD ISKAK FATONI, S.Pd.",
+  class: "XII TEI 2",
   guruWaliClass: "XI TEI 1",
   role: "Walikelas",
-  pin: "12345",
-  orderIndex: 1
+  pin: "231008",
+  journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform",
+  orderIndex: 47
 };
 
 // 1. Fetch Teachers (Master Guru Cloud Firestore)
@@ -107,7 +108,7 @@ export async function fetchTeachers() {
 
   if (!list) list = [];
 
-  // Pastikan NIP Primary Teacher 198109092022211004 (ISKAK FATONI, S.Pd.) selalu tersedia
+  // Pastikan NIP Primary Teacher 198109092022211004 (MUCHAMAD ISKAK FATONI, S.Pd.) selalu tersedia
   const cleanTargetNip = "198109092022211004";
   const hasPrimary = list.some(t => t.nip && String(t.nip).replace(/\D/g, '') === cleanTargetNip);
   if (!hasPrimary) {
@@ -121,9 +122,10 @@ export async function fetchTeachers() {
       return {
         ...t,
         nip: nipStr || cleanTargetNip,
-        class: (t.class && t.class !== "XII TEI 2") ? t.class : "XI TEI 2",
-        guruWaliClass: t.guruWaliClass || "XI TEI 1",
+        name: t.name || DEFAULT_PRIMARY_TEACHER.name,
+        class: t.class || "XII TEI 2",
         role: t.role || "Walikelas",
+        journalFormUrl: t.journalFormUrl || DEFAULT_PRIMARY_TEACHER.journalFormUrl,
         pin: pin
       };
     }
@@ -317,4 +319,50 @@ export async function checkFormSubmission(nip, formId) {
 
   console.log("ℹ️ [Firestore] Riwayat tidak ditemukan.");
   return null;
+}
+
+// 10. Fetch Learning Objectives / Tujuan Pembelajaran (TP)
+export async function fetchLearningObjectives(mapelKey = 'ske_xi') {
+  const activeDb = getDb();
+  let data = null;
+
+  if (activeDb) {
+    try {
+      const docRef = doc(activeDb, "mapel", mapelKey);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        data = snap.data();
+      }
+    } catch (e) {
+      console.warn(`[Firestore SDK] Gagal memuat TP mapel/${mapelKey}:`, e.message);
+    }
+  }
+
+  // REST API Fallback (mapel)
+  if (!data) {
+    try {
+      const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
+      const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/mapel/${mapelKey}?key=${apiKey}`;
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const json = await resp.json();
+        data = parseFirestoreDoc(json);
+      }
+    } catch (e) {}
+  }
+
+  // Backup REST API Fallback (config)
+  if (!data) {
+    try {
+      const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
+      const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/config/${mapelKey}?key=${apiKey}`;
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const json = await resp.json();
+        data = parseFirestoreDoc(json);
+      }
+    } catch (e) {}
+  }
+
+  return data;
 }
