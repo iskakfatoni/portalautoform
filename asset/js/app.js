@@ -310,7 +310,7 @@ function checkUrlParamsForTeacher() {
   window.location.href = '../../autoform.html';
 }
 
-async function showPortalView(teacher) {
+function showPortalView(teacher) {
   if (!teacher) return;
   activeTeacher = teacher;
   
@@ -324,33 +324,37 @@ async function showPortalView(teacher) {
   if (classEl) classEl.textContent = teacher.class || '-';
   if (roleEl) roleEl.textContent = teacher.role || 'Guru';
 
-  await setupLearningObjectiveSelector(teacher);
   renderUserPortalApp();
 }
 
 // Cache untuk daftar TP multi-tingkat
 let learningObjectivesCache = {};
 
-async function setupLearningObjectiveSelector(teacher) {
-  const container = document.getElementById('tp-selector-container');
-  const selectEl = document.getElementById('select-learning-objective');
-  const scheduleInfoEl = document.getElementById('tp-schedule-info');
-  const previewTextEl = document.getElementById('tp-preview-text');
-  const counterEl = document.getElementById('tp-selected-counter');
-  
-  if (!container || !selectEl) return;
+// Buka Modal Pemilihan Capaian Pembelajaran (TP) Khusus saat Form Jurnal Diklik
+async function openTpModalForJournal(formId, formName) {
+  const modal = document.getElementById('modal-select-tp');
+  const selectEl = document.getElementById('modal-select-learning-objective');
+  const titleEl = document.getElementById('modal-tp-schedule-title');
+  const subEl = document.getElementById('modal-tp-schedule-sub');
+  const previewBox = document.getElementById('modal-tp-preview-box');
+  const counterEl = document.getElementById('modal-tp-counter');
+  const btnSubmit = document.getElementById('btn-submit-tp-modal');
+  const btnClose = document.getElementById('btn-close-tp-modal');
+  const btnCancel = document.getElementById('btn-cancel-tp-modal');
+
+  if (!modal || !selectEl || !btnSubmit) return;
 
   const now = new Date();
-  const todaySchedule = getActiveTeacherSchedule(teacher, now);
+  const todaySchedule = getActiveTeacherSchedule(activeTeacher, now);
 
   // Deteksi Mapel & Tingkat Aktif
   const activeMapelName = todaySchedule ? todaySchedule.mataPelajaran : '';
-  const currentKelas = todaySchedule ? todaySchedule.kelas : (teacher.class || 'XI TEI 2');
+  const currentKelas = todaySchedule ? todaySchedule.kelas : (activeTeacher.class || 'XI TEI 2');
   const isKelas12 = currentKelas && (currentKelas.includes('XII') || currentKelas.includes('12'));
 
-  let mapelKey = '';
-  let labelTingkat = '';
-  let displayMapelTitle = '';
+  let mapelKey = 'koding_ai_xi';
+  let labelTingkat = 'Kelas XI (Koding & AI)';
+  let displayMapelTitle = 'Koding dan Kecerdasan Artifisial';
 
   const lowerMapel = activeMapelName.toLowerCase();
   if (lowerMapel.includes('koding') || lowerMapel.includes('kecerdasan') || lowerMapel.includes('artifisial') || lowerMapel.includes('ai')) {
@@ -362,13 +366,13 @@ async function setupLearningObjectiveSelector(teacher) {
     labelTingkat = isKelas12 ? 'Kelas XII (ESP32 & IoT)' : 'Kelas XI (Arduino & Embedded)';
     displayMapelTitle = 'Mapel Pilihan dan Sistem Kendali Elektronika';
   } else {
-    // Cek apakah guru mengampu SKE atau Koding & AI di master jadwal
+    // Default fallback berdasarkan mata pelajaran yang diampu guru
     const teachesKoding = currentSchedules.some(s => 
-      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
+      s.nip && activeTeacher.nip && String(s.nip).replace(/\D/g, '') === String(activeTeacher.nip).replace(/\D/g, '') &&
       s.mataPelajaran && (s.mataPelajaran.toLowerCase().includes('koding') || s.mataPelajaran.toLowerCase().includes('kecerdasan'))
     );
     const teachesSke = currentSchedules.some(s => 
-      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
+      s.nip && activeTeacher.nip && String(s.nip).replace(/\D/g, '') === String(activeTeacher.nip).replace(/\D/g, '') &&
       s.mataPelajaran && s.mataPelajaran.toLowerCase().includes('kendali')
     );
 
@@ -383,69 +387,78 @@ async function setupLearningObjectiveSelector(teacher) {
     }
   }
 
-  if (!mapelKey) {
-    container.classList.add('hidden');
-    selectedLearningObjectiveMateri = "";
-    return;
+  // Update Header Informasi Sesi KBM di Modal
+  if (titleEl) titleEl.textContent = `${displayMapelTitle} - ${labelTingkat}`;
+  if (subEl) {
+    const jamKe = todaySchedule ? `Jam Ke: ${todaySchedule.jamKe}` : 'Jam Reguler';
+    const ruang = todaySchedule && todaySchedule.keterangan ? ` | Ruang: ${todaySchedule.keterangan}` : '';
+    subEl.textContent = `Kelas: ${currentKelas} | ${jamKe}${ruang}`;
   }
 
-  // Load TP dari Firestore / cache
+  // Load TP dari Firestore jika belum di-cache
+  showToast('Memuat daftar materi KBM...');
   if (!learningObjectivesCache[mapelKey]) {
     learningObjectivesCache[mapelKey] = await fetchLearningObjectives(mapelKey);
   }
 
   const currentObj = learningObjectivesCache[mapelKey];
+  const listTp = (currentObj && currentObj.listTp) ? currentObj.listTp : [];
 
-  if (!currentObj || !currentObj.listTp || currentObj.listTp.length === 0) {
-    container.classList.add('hidden');
-    return;
-  }
+  const targetForm = currentForms.find(f => f.id === formId || (f.name && f.name.toLowerCase().includes('jurnal'))) || {
+    id: 'form_jurnal_mengajar',
+    name: 'Form Jurnal Mengajar Guru'
+  };
 
-  const listTp = currentObj.listTp;
-  
-  if (scheduleInfoEl) {
-    scheduleInfoEl.textContent = `Materi KBM: ${displayMapelTitle} - ${labelTingkat} [${currentKelas}]`;
-  }
-
-  // Simpan & baca pilihan tersimpan di localStorage per mapel & guru
-  const storageKey = `portal_tp_selected_${String(teacher.nip).replace(/\D/g, '')}_${mapelKey}`;
+  const storageKey = `portal_tp_selected_${String(activeTeacher.nip).replace(/\D/g, '')}_${mapelKey}`;
   const savedMeeting = localStorage.getItem(storageKey) || '1';
 
-  // Render options ke select element
-  selectEl.innerHTML = listTp.map((tp, idx) => {
-    const meetingNum = tp.pertemuan || (idx + 1);
-    const code = tp.kodeTp || `P${String(meetingNum).padStart(2, '0')}`;
-    const text = tp.materi || '';
-    const isSelected = String(meetingNum) === String(savedMeeting);
-    const truncated = text.length > 75 ? text.substring(0, 75) + '...' : text;
-    return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
-  }).join('');
+  // Render options ke dropdown
+  if (listTp.length > 0) {
+    selectEl.innerHTML = listTp.map((tp, idx) => {
+      const meetingNum = tp.pertemuan || (idx + 1);
+      const code = tp.kodeTp || `P${String(meetingNum).padStart(2, '0')}`;
+      const text = tp.materi || '';
+      const isSelected = String(meetingNum) === String(savedMeeting);
+      const truncated = text.length > 70 ? text.substring(0, 70) + '...' : text;
+      return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
+    }).join('');
+  } else {
+    selectEl.innerHTML = `<option value="1" data-materi="">(Gunakan teks materi standar)</option>`;
+  }
 
-  // Update preview dan state
-  const updateSelectedState = () => {
+  const updateModalUrl = () => {
     const selectedOption = selectEl.options[selectEl.selectedIndex];
-    if (selectedOption) {
-      const materiText = decodeURIComponent(selectedOption.getAttribute('data-materi') || '');
-      selectedLearningObjectiveMateri = materiText;
-      const meetingNum = selectedOption.value;
-      localStorage.setItem(storageKey, meetingNum);
-
-      if (previewTextEl) {
-        previewTextEl.textContent = materiText;
-      }
-      if (counterEl) {
-        counterEl.textContent = `Pertemuan ${meetingNum} / ${listTp.length}`;
-      }
+    const materiText = selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '';
+    const meetingNum = selectedOption ? selectedOption.value : '1';
+    
+    if (previewBox) {
+      previewBox.textContent = materiText || '(Teks materi otomatis)';
     }
+    if (counterEl) {
+      counterEl.textContent = `Pertemuan ${meetingNum} / ${listTp.length || 35}`;
+    }
+
+    localStorage.setItem(storageKey, meetingNum);
+
+    // Generate Final URL langsung ke tombol submit
+    const url = generateFormUrlForTeacherModule(targetForm, activeTeacher, new Date(), currentSchedules, {
+      materi: materiText
+    });
+    btnSubmit.href = url;
   };
 
-  updateSelectedState();
-  container.classList.remove('hidden');
+  updateModalUrl();
+  selectEl.onchange = updateModalUrl;
 
-  selectEl.onchange = () => {
-    updateSelectedState();
-    renderUserPortalApp();
+  const closeModal = () => modal.classList.add('hidden');
+  if (btnClose) btnClose.onclick = closeModal;
+  if (btnCancel) btnCancel.onclick = closeModal;
+  btnSubmit.onclick = () => {
+    closeModal();
+    showToast('Membuka Form Jurnal Mengajar...');
   };
+
+  modal.classList.remove('hidden');
 }
 
 /* ==========================================================================
@@ -657,7 +670,7 @@ function renderUserPortalApp() {
    5. Form Submission Logic & Android Bridge
    ========================================================================== */
 
-// Intercept Klik Form untuk Cek Riwayat di Firestore
+// Intercept Klik Form untuk Cek Riwayat di Firestore & Modal Jurnal KBM
 window.handleFormClick = async (event, formId, formName, generatedUrl) => {
   if (event) event.preventDefault();
 
@@ -666,6 +679,14 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
     return;
   }
 
+  // 1. Khusus Form Jurnal Mengajar: Buka Modal Pemilihan Capaian Pembelajaran (TP)
+  const isJurnal = formId === "form_jurnal_mengajar" || (formName && formName.toLowerCase().includes("jurnal"));
+  if (isJurnal) {
+    openTpModalForJournal(formId, formName);
+    return;
+  }
+
+  // 2. Untuk Form Lain: Cek Riwayat Pengisian
   const cleanNip = activeTeacher.nip.replace(/[\s\.\-]+/g, '');
 
   try {
