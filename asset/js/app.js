@@ -343,23 +343,51 @@ async function setupLearningObjectiveSelector(teacher) {
   const now = new Date();
   const todaySchedule = getActiveTeacherSchedule(teacher, now);
 
-  // Cek apakah guru memiliki jadwal yang berkaitan dengan TP yang tersimpan
-  const hasSkeSchedule = currentSchedules.some(s => 
-    s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
-    s.mataPelajaran && s.mataPelajaran.toLowerCase().includes('kendali')
-  );
+  // Deteksi Mapel & Tingkat Aktif
+  const activeMapelName = todaySchedule ? todaySchedule.mataPelajaran : '';
+  const currentKelas = todaySchedule ? todaySchedule.kelas : (teacher.class || 'XI TEI 2');
+  const isKelas12 = currentKelas && (currentKelas.includes('XII') || currentKelas.includes('12'));
 
-  if (!hasSkeSchedule && (!todaySchedule || !todaySchedule.mataPelajaran || !todaySchedule.mataPelajaran.toLowerCase().includes('kendali'))) {
+  let mapelKey = '';
+  let labelTingkat = '';
+  let displayMapelTitle = '';
+
+  const lowerMapel = activeMapelName.toLowerCase();
+  if (lowerMapel.includes('koding') || lowerMapel.includes('kecerdasan') || lowerMapel.includes('artifisial') || lowerMapel.includes('ai')) {
+    mapelKey = 'koding_ai_xi';
+    labelTingkat = 'Kelas XI (Koding & AI)';
+    displayMapelTitle = 'Koding dan Kecerdasan Artifisial';
+  } else if (lowerMapel.includes('kendali') || lowerMapel.includes('ske') || lowerMapel.includes('pilihan')) {
+    mapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
+    labelTingkat = isKelas12 ? 'Kelas XII (ESP32 & IoT)' : 'Kelas XI (Arduino & Embedded)';
+    displayMapelTitle = 'Mapel Pilihan dan Sistem Kendali Elektronika';
+  } else {
+    // Cek apakah guru mengampu SKE atau Koding & AI di master jadwal
+    const teachesKoding = currentSchedules.some(s => 
+      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
+      s.mataPelajaran && (s.mataPelajaran.toLowerCase().includes('koding') || s.mataPelajaran.toLowerCase().includes('kecerdasan'))
+    );
+    const teachesSke = currentSchedules.some(s => 
+      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
+      s.mataPelajaran && s.mataPelajaran.toLowerCase().includes('kendali')
+    );
+
+    if (teachesKoding) {
+      mapelKey = 'koding_ai_xi';
+      labelTingkat = 'Kelas XI (Koding & AI)';
+      displayMapelTitle = 'Koding dan Kecerdasan Artifisial';
+    } else if (teachesSke) {
+      mapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
+      labelTingkat = isKelas12 ? 'Kelas XII (ESP32 & IoT)' : 'Kelas XI (Arduino & Embedded)';
+      displayMapelTitle = 'Mapel Pilihan dan Sistem Kendali Elektronika';
+    }
+  }
+
+  if (!mapelKey) {
     container.classList.add('hidden');
     selectedLearningObjectiveMateri = "";
     return;
   }
-
-  // Tentukan tingkat kelas: XII vs XI
-  const currentKelas = todaySchedule ? todaySchedule.kelas : (teacher.class || 'XII TEI 2');
-  const isKelas12 = currentKelas && (currentKelas.includes('XII') || currentKelas.includes('12'));
-  const mapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
-  const labelTingkat = isKelas12 ? 'Kelas XII (ESP32 & IoT)' : 'Kelas XI (Arduino & Embedded)';
 
   // Load TP dari Firestore / cache
   if (!learningObjectivesCache[mapelKey]) {
@@ -376,17 +404,17 @@ async function setupLearningObjectiveSelector(teacher) {
   const listTp = currentObj.listTp;
   
   if (scheduleInfoEl) {
-    scheduleInfoEl.textContent = `Materi KBM: ${todaySchedule ? todaySchedule.mataPelajaran : 'Sistem Kendali Elektronika'} - ${labelTingkat} [${currentKelas}]`;
+    scheduleInfoEl.textContent = `Materi KBM: ${displayMapelTitle} - ${labelTingkat} [${currentKelas}]`;
   }
 
-  // Simpan & baca pilihan tersimpan di localStorage per tingkat kelas
+  // Simpan & baca pilihan tersimpan di localStorage per mapel & guru
   const storageKey = `portal_tp_selected_${String(teacher.nip).replace(/\D/g, '')}_${mapelKey}`;
   const savedMeeting = localStorage.getItem(storageKey) || '1';
 
   // Render options ke select element
   selectEl.innerHTML = listTp.map((tp, idx) => {
     const meetingNum = tp.pertemuan || (idx + 1);
-    const code = tp.kodeTp || `TP-${String(meetingNum).padStart(2, '0')}`;
+    const code = tp.kodeTp || `P${String(meetingNum).padStart(2, '0')}`;
     const text = tp.materi || '';
     const isSelected = String(meetingNum) === String(savedMeeting);
     const truncated = text.length > 75 ? text.substring(0, 75) + '...' : text;
