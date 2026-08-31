@@ -39,7 +39,14 @@ export function formatTimeString(timeStr) {
     return `${hh}:${mm}`;
   }
 
-  // Cek string dengan titik/titik dua (misal "00:2916666666666667" atau "07:00" atau "7.00")
+  // Jika format "HH:MM" standar
+  if (/^\d{1,2}:\d{2}$/.test(s)) {
+    const [h, m] = s.split(':');
+    return `${String(parseInt(h, 10)).padStart(2, '0')}:${m}`;
+  }
+
+  // Cek jika mengandung angka pecahan Excel yang terformat sebagai "00:XXXX" atau "0.XXXX"
+  let numVal = NaN;
   s = s.replace(/\./g, ':');
   if (s.includes(':')) {
     const parts = s.split(':');
@@ -47,27 +54,23 @@ export function formatTimeString(timeStr) {
       const hhStr = parts[0].trim();
       const mmStr = parts[1].trim();
 
-      // Kasus khusus: Angka pecahan desimal Excel yang terlanjur diubah menjadi "00:2916666666666667"
-      if (mmStr.length > 3 && !isNaN(mmStr)) {
-        const fraction = parseFloat(`0.${mmStr}`);
-        const totalMinutes = Math.round(fraction * 24 * 60);
-        const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
-        const mm = String(totalMinutes % 60).padStart(2, '0');
+      if (hhStr === '00' && mmStr.length > 3 && !isNaN(mmStr)) {
+        numVal = parseFloat(`0.${mmStr}`);
+      } else {
+        const hh = String(parseInt(hhStr, 10) || 0).padStart(2, '0');
+        const mm = String(parseInt(mmStr, 10) || 0).padStart(2, '0');
         return `${hh}:${mm}`;
       }
-
-      const hh = String(parseInt(hhStr, 10) || 0).padStart(2, '0');
-      const mm = String(parseInt(mmStr, 10) || 0).padStart(2, '0');
-      return `${hh}:${mm}`;
     }
+  } else {
+    numVal = parseFloat(s);
   }
 
-  // Jika berupa angka desimal Excel murni (misal 0.2916666666666667 untuk 07:00)
-  const num = parseFloat(s);
-  if (!isNaN(num) && num >= 0 && num < 1) {
-    const totalMinutes = Math.round(num * 24 * 60);
-    const hh = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
-    const mm = String(totalMinutes % 60).padStart(2, '0');
+  // Konversi angka desimal Excel murni (misal 0.5416666666666666 untuk 13:00)
+  if (!isNaN(numVal) && numVal >= 0 && numVal < 1) {
+    const totalSeconds = Math.round(numVal * 24 * 3600);
+    const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
     return `${hh}:${mm}`;
   }
 

@@ -119,12 +119,37 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
     return clean;
   };
 
-  // 1. Form Absensi Guru (Hanya Identitas Guru & Tanggal)
-  if (form.id === "form_absensi_guru") {
-    const targetUrl = cleanFormUrl(form.baseUrl);
-    if (form.entryGuru && teacher && teacher.name) params.set(form.entryGuru, teacher.name);
-    if (form.entryNip && teacher && teacher.nip && teacher.nip !== '-') params.set(form.entryNip, teacher.nip);
-    if (form.entryTanggal) params.set(form.entryTanggal, isoDate);
+  // 1. Form Absensi Mengajar Guru (Auto-Fill: Nama, NIP, Tanggal, Jam Ke, Kelas, Mapel)
+  const isAbsensiMengajar = form.id === "form_absensi_guru" || form.id === "form_absensi_mengajar" || (form.name && form.name.toLowerCase().includes("absensi mengajar")) || form.category === "Absensi Mengajar";
+  if (isAbsensiMengajar) {
+    const canonicalAbsensiUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfrm87oC00zamhQQBP4LS5BcwxSHa97M9plvLpYUHQ7dR-ybQ/viewform";
+    const targetUrl = cleanFormUrl(form.baseUrl || canonicalAbsensiUrl);
+
+    const entryGuruKey = form.entryGuru || "entry.691754896";
+    const entryNipKey = form.entryNip || "entry.65154558";
+    const entryTanggalKey = form.entryTanggal || "entry.1708105874";
+    const entryJamKeKey = form.entryJamKe || "entry.585996771";
+    const entryKelasKey = form.entryKelas || "entry.666017338";
+    const entryMapelKey = form.entryMapel || "entry.73505426";
+
+    // Identitas Guru & Tanggal
+    if (entryGuruKey && teacher && teacher.name) params.set(entryGuruKey, teacher.name);
+    if (entryNipKey && teacher && teacher.nip && teacher.nip !== '-') params.set(entryNipKey, teacher.nip);
+    if (entryTanggalKey) params.set(entryTanggalKey, isoDate);
+
+    // Auto-Fill Jadwal KBM (Jam Ke, Kelas, Mapel) dari getActiveTeacherSchedule
+    if (todaySchedule) {
+      if (todaySchedule.jamKe && entryJamKeKey) {
+        params.set(entryJamKeKey, todaySchedule.jamKe);
+      }
+      if (todaySchedule.kelas && entryKelasKey) {
+        params.set(entryKelasKey, normalizeFormClassName(todaySchedule.kelas));
+      }
+      if (todaySchedule.mataPelajaran && entryMapelKey) {
+        params.set(entryMapelKey, todaySchedule.mataPelajaran);
+      }
+    }
+
     return `${targetUrl}?${params.toString()}`;
   }
 
@@ -256,11 +281,25 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
 
 export function sortAndNormalizeForms(formsList) {
   const list = formsList || [];
+  const canonicalAbsensiUrl = "https://docs.google.com/forms/d/e/1FAIpQLSfrm87oC00zamhQQBP4LS5BcwxSHa97M9plvLpYUHQ7dR-ybQ/viewform";
   const canonicalPiketUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform";
   const canonicalWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform";
   const canonicalGuruWaliUrl = "https://docs.google.com/forms/d/e/1FAIpQLSeVYQG1tPodad-cUyHW5Mzx3CmO3L8GOx8AzWXajJqYkqbkBg/viewform";
 
   const normalized = list.map(f => {
+    const isAbsensiMengajar = f.id === "form_absensi_guru" || f.id === "form_absensi_mengajar" || (f.name && f.name.toLowerCase().includes("absensi mengajar")) || f.category === "Absensi Mengajar";
+    if (isAbsensiMengajar) {
+      return {
+        ...f,
+        baseUrl: canonicalAbsensiUrl,
+        entryGuru: "entry.691754896",
+        entryNip: "entry.65154558",
+        entryTanggal: "entry.1708105874",
+        entryJamKe: "entry.585996771",
+        entryKelas: "entry.666017338",
+        entryMapel: "entry.73505426"
+      };
+    }
     const isPiket = f.id === "form_absensi_piket" || (f.name && f.name.toLowerCase().includes("piket")) || f.category === "Piket";
     if (isPiket) {
       return { 
