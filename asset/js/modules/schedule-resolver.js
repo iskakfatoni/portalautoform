@@ -39,61 +39,58 @@ export function getActiveTeacherSchedule(teacher, now = new Date(), currentSched
   const currentMinutes = String(now.getMinutes()).padStart(2, '0');
   const currentTimeStr = `${currentHours}:${currentMinutes}`;
 
-  // ATURAN AKHIR PEKAN (Sabtu & Minggu): Libur KBM, HANYA isi Nama Guru & NIP
-  if (currentDayIndex === 0 || currentDayIndex === 6) {
-    return null;
-  }
+  // 1. Filter jadwal untuk hari ini jika hari aktif (Senin - Jumat)
+  const isWeekend = currentDayIndex === 0 || currentDayIndex === 6;
+  if (!isWeekend) {
+    const todaySchedules = teacherSchedules.filter(s => normalizeDayName(s.hari) === currentDay);
 
-  // 1. Filter jadwal untuk hari aktif ini (Senin - Jumat) dengan normalisasi ejaan hari
-  const todaySchedules = teacherSchedules.filter(s => normalizeDayName(s.hari) === currentDay);
+    if (todaySchedules.length > 0) {
+      // A. Cek apakah ada jadwal yang sedang aktif saat ini
+      const activeSlot = todaySchedules.find(s => {
+        const sMulai = formatTimeString(s.jamMulai);
+        const sSelesai = formatTimeString(s.jamSelesai);
+        if (sMulai && sSelesai) {
+          return currentTimeStr >= sMulai && currentTimeStr < sSelesai;
+        }
+        return false;
+      }) || todaySchedules.find(s => {
+        const sMulai = formatTimeString(s.jamMulai);
+        const sSelesai = formatTimeString(s.jamSelesai);
+        return sMulai && sSelesai && currentTimeStr >= sMulai && currentTimeStr <= sSelesai;
+      });
 
-  if (todaySchedules.length > 0) {
-    // A. Cek apakah ada jadwal yang sedang aktif saat ini (prioritas sesi yang baru mulai jika tepat di batas waktu)
-    const activeSlot = todaySchedules.find(s => {
-      const sMulai = formatTimeString(s.jamMulai);
-      const sSelesai = formatTimeString(s.jamSelesai);
-      if (sMulai && sSelesai) {
-        return currentTimeStr >= sMulai && currentTimeStr < sSelesai;
+      if (activeSlot) return activeSlot;
+
+      // B. Jika belum waktunya pada hari ini, ambil jadwal terdekat berikutnya hari ini
+      const upcomingTodaySlots = todaySchedules.filter(s => {
+        const sMulai = formatTimeString(s.jamMulai);
+        return sMulai && sMulai >= currentTimeStr;
+      });
+      if (upcomingTodaySlots.length > 0) {
+        upcomingTodaySlots.sort((a, b) => formatTimeString(a.jamMulai).localeCompare(formatTimeString(b.jamMulai)));
+        return upcomingTodaySlots[0];
       }
-      return false;
-    }) || todaySchedules.find(s => {
-      const sMulai = formatTimeString(s.jamMulai);
-      const sSelesai = formatTimeString(s.jamSelesai);
-      return sMulai && sSelesai && currentTimeStr >= sMulai && currentTimeStr <= sSelesai;
-    });
-
-    if (activeSlot) return activeSlot;
-
-    // B. Jika belum waktunya pada hari ini, ambil jadwal terdekat berikutnya hari ini
-    const upcomingTodaySlots = todaySchedules.filter(s => {
-      const sMulai = formatTimeString(s.jamMulai);
-      return sMulai && sMulai >= currentTimeStr;
-    });
-    if (upcomingTodaySlots.length > 0) {
-      upcomingTodaySlots.sort((a, b) => formatTimeString(a.jamMulai).localeCompare(formatTimeString(b.jamMulai)));
-      return upcomingTodaySlots[0];
     }
   }
 
-  // C. Jika jadwal hari ini sudah terlewati (misal sore/malam hari Senin-Kamis):
-  // Cek jadwal hari kerja berikutnya (besok)
-  const nextDayIndex = (currentDayIndex + 1) % 7;
-  if (nextDayIndex === 0 || nextDayIndex === 6) {
-    // Jika besok adalah akhir pekan (Jumat sore -> Sabtu), HANYA isi Nama & NIP
-    return null;
+  // 2. Jika jadwal hari ini sudah terlewati atau hari ini tidak ada jadwal:
+  // Cari hari mengajar terdekat berikutnya dalam 1 siklus mingguan (wrap-around 1-6 hari ke depan)
+  for (let offset = 1; offset <= 6; offset++) {
+    const targetDayIndex = (currentDayIndex + offset) % 7;
+    // Lewati akhir pekan (Sabtu & Minggu) untuk mencari hari KBM efektif
+    if (targetDayIndex === 0 || targetDayIndex === 6) continue;
+
+    const targetDayName = INDONESIAN_DAYS[targetDayIndex];
+    const targetDaySchedules = teacherSchedules.filter(s => normalizeDayName(s.hari) === targetDayName);
+
+    if (targetDaySchedules.length > 0) {
+      targetDaySchedules.sort((a, b) => formatTimeString(a.jamMulai).localeCompare(formatTimeString(b.jamMulai)));
+      return targetDaySchedules[0];
+    }
   }
 
-  const nextDayName = INDONESIAN_DAYS[nextDayIndex];
-  const nextDaySchedules = teacherSchedules.filter(s => normalizeDayName(s.hari) === nextDayName);
-
-  if (nextDaySchedules.length > 0) {
-    // Urutkan jadwal hari berikutnya dan ambil yang paling awal
-    nextDaySchedules.sort((a, b) => formatTimeString(a.jamMulai).localeCompare(formatTimeString(b.jamMulai)));
-    return nextDaySchedules[0];
-  }
-
-  // D. Jika hari berikutnya kosong: return null (HANYA isi Nama Guru & NIP)
-  return null;
+  // 3. Fallback terakhir: Ambil jadwal pertama yang terdaftar untuk guru tersebut
+  return teacherSchedules[0] || null;
 }
 
 export function generateFormUrlForTeacher(form, teacher, now = new Date(), currentSchedules = [], customOptions = {}) {
