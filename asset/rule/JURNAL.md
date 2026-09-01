@@ -29,14 +29,15 @@ Dokumen ini berisi spesifikasi teknis, pemetaan field (Entry ID), dan logika oto
 
 ## 3. LOGIKA OTOMASI JADWAL JURNAL
 
-### Aturan 1: Hari Kerja Aktif (Senin - Jumat)
-* **Sesi Sedang Berlangsung:** Sistem mengisi Tanggal, Jam Ke, Kelas, Mapel, dan Capaian Materi/TP sesuai pilihan/pertemuan aktif saat ini.
-* **Persiapan Jam Berikutnya:** Jika jam pertama belum mulai, sistem mengisi jadwal pertama hari ini beserta materi pembelajarannya.
-* **Sore / Malam Hari (KBM Hari Ini Selesai):** Sistem otomatis membaca dan mengisi jadwal mengajar hari kerja berikutnya (besok pagi) untuk persiapan guru.
-
-### Aturan 2: Akhir Pekan (Sabtu & Minggu) atau Hari Tanpa Jadwal
-* Sistem **HANYA mengisi Tanggal Hari Ini** (`entry.1708105874`).
-* Field Jam Ke, Kelas, dan Mapel dibiarkan kosong agar guru dapat memilih/mengisi secara mandiri jika ada kegiatan tambahan di luar jam reguler.
+### Aturan 3: Modal Interaktif Pemilihan Mata Pelajaran & Silabus Capaian (TP)
+* **Auto-Detect Mata Pelajaran:** Sistem otomatis mendeteksi mata pelajaran dari jam KBM aktif (Koding & AI / SKE XI / SKE XII).
+* **Fleksibilitas Penggantian Mapel:** Guru dapat mengganti silabus/mapel langsung dari dropdown:
+  1. `koding_ai_xi` : Koding dan Kecerdasan Artifisial (Kelas XI - 35 Pertemuan).
+  2. `ske_xi` : Sistem Kendali Elektronika - Arduino & Embedded (Kelas XI - 35 Pertemuan).
+  3. `ske_xii` : Sistem Kendali Elektronika - ESP32 & IoT (Kelas XII - 35 Pertemuan).
+  4. `custom_manual` : Opsi Tulis Materi Mandiri / Kustom.
+* **Live Textarea Edit:** Guru dapat mengedit teks rumusan materi secara langsung pada kotak teks modal sebelum membuka Google Form.
+* **Preferensi Tersimpan:** Pilihan pertemuan dan mapel terakhir otomatis tersimpan di `localStorage` per akun guru.
 
 ---
 

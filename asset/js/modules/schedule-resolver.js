@@ -180,6 +180,11 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
       }
     }
 
+    // Dukungan override Mapel jika guru memilih mapel kustom pada modal
+    if (customOptions && customOptions.mapel && customOptions.mapel.trim() !== '') {
+      params.set(form.entryMapel || "entry.73505426", customOptions.mapel.trim());
+    }
+
     // Auto-Fill Capaian / Materi Pembelajaran (entry.1059038821)
     const entryMateriKey = form.entryMateri || "entry.1059038821";
     const selectedMateri = (customOptions && customOptions.materi) || (todaySchedule && todaySchedule.materi);

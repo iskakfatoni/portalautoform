@@ -330,10 +330,37 @@ function showPortalView(teacher) {
 // Cache untuk daftar TP multi-tingkat
 let learningObjectivesCache = {};
 
+// Metadata konfigurasi Mata Pelajaran & Silabus TP
+const MAPEL_TP_CONFIG = {
+  koding_ai_xi: {
+    id: 'koding_ai_xi',
+    title: 'Koding dan Kecerdasan Artifisial',
+    label: 'Kelas XI (Koding & AI)',
+    totalMeetings: 35,
+    formMapelName: 'Koding dan Kecerdasan Artifisial'
+  },
+  ske_xi: {
+    id: 'ske_xi',
+    title: 'Mapel Pilihan dan Sistem Kendali Elektronika',
+    label: 'Kelas XI (Arduino & Embedded)',
+    totalMeetings: 35,
+    formMapelName: 'Mapel Pilihan dan Sistem Kendali Elektronika'
+  },
+  ske_xii: {
+    id: 'ske_xii',
+    title: 'Mapel Pilihan dan Sistem Kendali Elektronika',
+    label: 'Kelas XII (ESP32 & IoT)',
+    totalMeetings: 35,
+    formMapelName: 'Mapel Pilihan dan Sistem Kendali Elektronika'
+  }
+};
+
 // Buka Modal Pemilihan Capaian Pembelajaran (TP) Khusus saat Form Jurnal Diklik
 async function openTpModalForJournal(formId, formName) {
   const modal = document.getElementById('modal-select-tp');
+  const mapelSelectEl = document.getElementById('modal-select-tp-mapel');
   const selectEl = document.getElementById('modal-select-learning-objective');
+  const wrapperSelectObjective = document.getElementById('wrapper-select-learning-objective');
   const titleEl = document.getElementById('modal-tp-schedule-title');
   const subEl = document.getElementById('modal-tp-schedule-sub');
   const previewBox = document.getElementById('modal-tp-preview-box');
@@ -345,28 +372,21 @@ async function openTpModalForJournal(formId, formName) {
   if (!modal || !selectEl || !btnSubmit) return;
 
   const now = new Date();
-  const todaySchedule = getActiveTeacherSchedule(activeTeacher, now);
+  const todaySchedule = getActiveTeacherSchedule(activeTeacher, now, currentSchedules);
 
-  // Deteksi Mapel & Tingkat Aktif
-  const activeMapelName = todaySchedule ? todaySchedule.mataPelajaran : '';
+  // 1. Deteksi Mapel Default dari Jadwal KBM Aktif
+  const activeMapelName = todaySchedule ? (todaySchedule.mataPelajaran || '') : '';
   const currentKelas = todaySchedule ? todaySchedule.kelas : (activeTeacher.class || 'XI TEI 2');
   const isKelas12 = currentKelas && (currentKelas.includes('XII') || currentKelas.includes('12'));
 
-  let mapelKey = 'koding_ai_xi';
-  let labelTingkat = 'Kelas XI (Koding & AI)';
-  let displayMapelTitle = 'Koding dan Kecerdasan Artifisial';
-
+  let detectedMapelKey = 'koding_ai_xi';
   const lowerMapel = activeMapelName.toLowerCase();
   if (lowerMapel.includes('koding') || lowerMapel.includes('kecerdasan') || lowerMapel.includes('artifisial') || lowerMapel.includes('ai')) {
-    mapelKey = 'koding_ai_xi';
-    labelTingkat = 'Kelas XI (Koding & AI)';
-    displayMapelTitle = 'Koding dan Kecerdasan Artifisial';
+    detectedMapelKey = 'koding_ai_xi';
   } else if (lowerMapel.includes('kendali') || lowerMapel.includes('ske') || lowerMapel.includes('pilihan')) {
-    mapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
-    labelTingkat = isKelas12 ? 'Kelas XII (ESP32 & IoT)' : 'Kelas XI (Arduino & Embedded)';
-    displayMapelTitle = 'Mapel Pilihan dan Sistem Kendali Elektronika';
+    detectedMapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
   } else {
-    // Default fallback berdasarkan mata pelajaran yang diampu guru
+    // Cek jadwal keseluruhan yang diampu guru
     const teachesKoding = currentSchedules.some(s => 
       s.nip && activeTeacher.nip && String(s.nip).replace(/\D/g, '') === String(activeTeacher.nip).replace(/\D/g, '') &&
       s.mataPelajaran && (s.mataPelajaran.toLowerCase().includes('koding') || s.mataPelajaran.toLowerCase().includes('kecerdasan'))
@@ -377,83 +397,163 @@ async function openTpModalForJournal(formId, formName) {
     );
 
     if (teachesKoding) {
-      mapelKey = 'koding_ai_xi';
-      labelTingkat = 'Kelas XI (Koding & AI)';
-      displayMapelTitle = 'Koding dan Kecerdasan Artifisial';
+      detectedMapelKey = 'koding_ai_xi';
     } else if (teachesSke) {
-      mapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
-      labelTingkat = isKelas12 ? 'Kelas XII (ESP32 & IoT)' : 'Kelas XI (Arduino & Embedded)';
-      displayMapelTitle = 'Mapel Pilihan dan Sistem Kendali Elektronika';
+      detectedMapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
     }
   }
 
-  // Update Header Informasi Sesi KBM di Modal
-  if (titleEl) titleEl.textContent = `${displayMapelTitle} - ${labelTingkat}`;
-  if (subEl) {
-    const jamKe = todaySchedule ? `Jam Ke: ${todaySchedule.jamKe}` : 'Jam Reguler';
-    const ruang = todaySchedule && todaySchedule.keterangan ? ` | Ruang: ${todaySchedule.keterangan}` : '';
-    subEl.textContent = `Kelas: ${currentKelas} | ${jamKe}${ruang}`;
+  // Cek preferensi mapel terakhir yang dipilih guru dari localStorage
+  const teacherCleanNip = String(activeTeacher.nip || '').replace(/\D/g, '');
+  const prefMapelKey = localStorage.getItem(`portal_last_mapel_${teacherCleanNip}`) || detectedMapelKey;
+  let activeMapelKey = MAPEL_TP_CONFIG[prefMapelKey] || prefMapelKey === 'custom_manual' ? prefMapelKey : detectedMapelKey;
+
+  // Set nilai dropdown mapel
+  if (mapelSelectEl) {
+    mapelSelectEl.value = activeMapelKey;
   }
 
-  // Load TP dari Firestore jika belum di-cache
-  showToast('Memuat daftar materi KBM...');
-  if (!learningObjectivesCache[mapelKey]) {
-    learningObjectivesCache[mapelKey] = await fetchLearningObjectives(mapelKey);
-  }
-
-  const currentObj = learningObjectivesCache[mapelKey];
-  const listTp = (currentObj && currentObj.listTp) ? currentObj.listTp : [];
+  // Update Badge Informasi Sesi KBM
+  const updateScheduleBadge = (mapelKey) => {
+    const config = MAPEL_TP_CONFIG[mapelKey];
+    const displayMapelTitle = config ? `${config.title} - ${config.label}` : (activeMapelName || 'Materi Kustom / Mandiri');
+    if (titleEl) titleEl.textContent = displayMapelTitle;
+    if (subEl) {
+      const jamKe = todaySchedule ? `Jam Ke: ${todaySchedule.jamKe}` : 'Jam Reguler';
+      const ruang = todaySchedule && todaySchedule.keterangan ? ` | Ruang: ${todaySchedule.keterangan}` : '';
+      subEl.textContent = `Kelas: ${currentKelas} | ${jamKe}${ruang}`;
+    }
+  };
 
   const targetForm = currentForms.find(f => f.id === formId || (f.name && f.name.toLowerCase().includes('jurnal'))) || {
     id: 'form_jurnal_mengajar',
     name: 'Form Jurnal Mengajar Guru'
   };
 
-  const storageKey = `portal_tp_selected_${String(activeTeacher.nip).replace(/\D/g, '')}_${mapelKey}`;
-  const savedMeeting = localStorage.getItem(storageKey) || '1';
-
-  // Render options ke dropdown dengan style dark mode eksplisit
-  const isLightMode = document.body.classList.contains('light-mode');
-  const optBg = isLightMode ? '#ffffff' : '#171f33';
-  const optColor = isLightMode ? '#0f172a' : '#f8fafc';
-
-  if (listTp.length > 0) {
-    selectEl.innerHTML = listTp.map((tp, idx) => {
-      const meetingNum = tp.pertemuan || (idx + 1);
-      const code = tp.kodeTp || `P${String(meetingNum).padStart(2, '0')}`;
-      const text = tp.materi || '';
-      const isSelected = String(meetingNum) === String(savedMeeting);
-      const truncated = text.length > 70 ? text.substring(0, 70) + '...' : text;
-      return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" style="background-color: ${optBg} !important; color: ${optColor} !important;" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
-    }).join('');
-  } else {
-    selectEl.innerHTML = `<option value="1" data-materi="" style="background-color: ${optBg} !important; color: ${optColor} !important;">(Gunakan teks materi standar)</option>`;
-  }
-
+  // 2. Fungsi Regenerasi Final URL ke Google Form
   const updateModalUrl = () => {
-    const selectedOption = selectEl.options[selectEl.selectedIndex];
-    const materiText = selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '';
-    const meetingNum = selectedOption ? selectedOption.value : '1';
-    
-    if (previewBox) {
-      previewBox.textContent = materiText || '(Teks materi otomatis)';
-    }
-    if (counterEl) {
-      counterEl.textContent = `Pertemuan ${meetingNum} / ${listTp.length || 35}`;
+    const currentMapel = mapelSelectEl ? mapelSelectEl.value : activeMapelKey;
+    const isCustom = currentMapel === 'custom_manual';
+    const config = MAPEL_TP_CONFIG[currentMapel];
+
+    let materiText = '';
+    let meetingNum = '1';
+
+    if (isCustom) {
+      materiText = previewBox ? previewBox.value.trim() : '';
+      if (counterEl) counterEl.textContent = 'Materi Mandiri';
+    } else {
+      const selectedOption = selectEl.options[selectEl.selectedIndex];
+      materiText = previewBox ? previewBox.value.trim() : (selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '');
+      meetingNum = selectedOption ? selectedOption.value : '1';
+      const totalTp = (learningObjectivesCache[currentMapel] && learningObjectivesCache[currentMapel].listTp) ? learningObjectivesCache[currentMapel].listTp.length : 35;
+      if (counterEl) counterEl.textContent = `Pertemuan ${meetingNum} / ${totalTp}`;
+
+      const storageKey = `portal_tp_selected_${teacherCleanNip}_${currentMapel}`;
+      localStorage.setItem(storageKey, meetingNum);
     }
 
-    localStorage.setItem(storageKey, meetingNum);
+    // Tentukan Nama Mapel yang dikirim ke Google Form
+    const finalMapelName = config ? config.formMapelName : (todaySchedule ? todaySchedule.mataPelajaran : '');
 
     // Generate Final URL langsung ke tombol submit
     const url = generateFormUrlForTeacherModule(targetForm, activeTeacher, new Date(), currentSchedules, {
-      materi: materiText
+      materi: materiText,
+      mapel: finalMapelName
     });
+
     btnSubmit.href = url;
   };
 
-  updateModalUrl();
-  selectEl.onchange = updateModalUrl;
+  // 3. Fungsi Memuat Silabus & TP untuk Mapel Terpilih
+  const loadTpForMapel = async (mapelKey) => {
+    activeMapelKey = mapelKey;
+    localStorage.setItem(`portal_last_mapel_${teacherCleanNip}`, mapelKey);
+    updateScheduleBadge(mapelKey);
 
+    const isLightMode = document.body.classList.contains('light-mode');
+    const optBg = isLightMode ? '#ffffff' : '#171f33';
+    const optColor = isLightMode ? '#0f172a' : '#f8fafc';
+
+    if (mapelKey === 'custom_manual') {
+      if (wrapperSelectObjective) wrapperSelectObjective.style.display = 'none';
+      if (previewBox) {
+        const savedCustom = localStorage.getItem(`portal_custom_materi_${teacherCleanNip}`) || '';
+        previewBox.value = savedCustom;
+        previewBox.placeholder = 'Ketik deskripsi capaian pembelajaran / materi pertemuan ini secara mandiri...';
+      }
+      updateModalUrl();
+      return;
+    }
+
+    if (wrapperSelectObjective) wrapperSelectObjective.style.display = 'block';
+
+    // Load dari cache Firestore jika belum tersedia
+    if (!learningObjectivesCache[mapelKey]) {
+      showToast('Memuat silabus materi KBM...');
+      learningObjectivesCache[mapelKey] = await fetchLearningObjectives(mapelKey);
+    }
+
+    const currentObj = learningObjectivesCache[mapelKey];
+    const listTp = (currentObj && currentObj.listTp) ? currentObj.listTp : [];
+
+    const storageKey = `portal_tp_selected_${teacherCleanNip}_${mapelKey}`;
+    const savedMeeting = localStorage.getItem(storageKey) || '1';
+
+    if (listTp.length > 0) {
+      selectEl.innerHTML = listTp.map((tp, idx) => {
+        const meetingNum = tp.pertemuan || (idx + 1);
+        const code = tp.kodeTp || `P${String(meetingNum).padStart(2, '0')}`;
+        const text = tp.materi || '';
+        const isSelected = String(meetingNum) === String(savedMeeting);
+        const truncated = text.length > 70 ? text.substring(0, 70) + '...' : text;
+        return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" style="background-color: ${optBg} !important; color: ${optColor} !important;" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
+      }).join('');
+    } else {
+      selectEl.innerHTML = `<option value="1" data-materi="" style="background-color: ${optBg} !important; color: ${optColor} !important;">(Gunakan teks materi standar)</option>`;
+    }
+
+    // Set teks awal preview box dari pilihan yang aktif
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const initialMateri = selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '';
+    if (previewBox) {
+      previewBox.value = initialMateri;
+    }
+
+    updateModalUrl();
+  };
+
+  // Event Listener Pergantian Dropdown Mapel
+  if (mapelSelectEl) {
+    mapelSelectEl.onchange = () => {
+      loadTpForMapel(mapelSelectEl.value);
+    };
+  }
+
+  // Event Listener Pergantian Dropdown Pertemuan
+  selectEl.onchange = () => {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const materiText = selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '';
+    if (previewBox) {
+      previewBox.value = materiText;
+    }
+    updateModalUrl();
+  };
+
+  // Event Listener Ketik / Edit Langsung pada Kotak Preview Teks Materi
+  if (previewBox) {
+    previewBox.oninput = () => {
+      if (mapelSelectEl && mapelSelectEl.value === 'custom_manual') {
+        localStorage.setItem(`portal_custom_materi_${teacherCleanNip}`, previewBox.value);
+      }
+      updateModalUrl();
+    };
+  }
+
+  // Inisialisasi awal saat modal dibuka
+  await loadTpForMapel(activeMapelKey);
+
+  // Setup Tombol Modal
   const closeModal = () => modal.classList.add('hidden');
   if (btnClose) btnClose.onclick = closeModal;
   if (btnCancel) btnCancel.onclick = closeModal;
