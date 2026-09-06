@@ -25,6 +25,26 @@ async function bootstrapLogin() {
   initAdminLogin();
   initFirebaseLogin();
 
+  // Fast-track auto-redirect seketika jika sudah ada sesi NIP & PIN valid (Zero Latency)
+  const quickParams = new URLSearchParams(window.location.search);
+  const quickLogout = quickParams.get('logout');
+  const quickAdmin = quickParams.get('admin');
+  const quickNipParam = quickParams.get('nip');
+
+  if (quickLogout !== 'true') {
+    if (quickAdmin === 'true') {
+      window.location.replace(`asset/pages/portal.html?admin=true`);
+      return;
+    }
+    const savedNip = localStorage.getItem('portal_logged_nip') || localStorage.getItem('portal_remember_nip');
+    const savedPin = localStorage.getItem('portal_logged_pin') || localStorage.getItem('portal_remember_pin');
+    const targetNip = (quickNipParam && quickNipParam !== '-') ? quickNipParam : savedNip;
+    if (targetNip && targetNip !== '-' && savedPin) {
+      window.location.replace(`asset/pages/portal.html?nip=${encodeURIComponent(targetNip.trim())}`);
+      return;
+    }
+  }
+
   // Pre-fill NIP dan PIN tersimpan ke input field
   const inputNip = document.getElementById('landing-nip-input');
   const inputPin = document.getElementById('landing-pin-input');
@@ -40,10 +60,10 @@ async function bootstrapLogin() {
     inputPin.value = rememberedPin;
   }
 
-  // Load Real-Time Teachers from Cloud Firestore
+  // Load Real-Time Teachers from Cloud Firestore di latar belakang
   await loadSavedTeachers();
 
-  // Auto-redirect jika sudah ada sesi NIP & PIN valid tersimpan
+  // Verifikasi ulang sesi setelah data guru termuat
   checkExistingSession();
 }
 
@@ -74,7 +94,7 @@ function checkExistingSession() {
   }
 
   if (adminParam === 'true') {
-    window.location.href = `asset/pages/portal.html?admin=true`;
+    window.location.replace(`asset/pages/portal.html?admin=true`);
     return;
   }
 
@@ -94,7 +114,7 @@ function checkExistingSession() {
         const foundNipStr = String(found.nip).trim();
         localStorage.setItem('portal_logged_nip', foundNipStr);
         localStorage.setItem('portal_logged_pin', savedPin);
-        window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(foundNipStr)}`;
+        window.location.replace(`asset/pages/portal.html?nip=${encodeURIComponent(foundNipStr)}`);
         return;
       }
     }
@@ -113,7 +133,7 @@ function checkExistingSession() {
         const foundNipStr = String(found.nip).trim();
         localStorage.setItem('portal_logged_nip', foundNipStr);
         localStorage.setItem('portal_logged_pin', savedPin);
-        window.location.href = `asset/pages/portal.html?nip=${encodeURIComponent(foundNipStr)}`;
+        window.location.replace(`asset/pages/portal.html?nip=${encodeURIComponent(foundNipStr)}`);
       }
     }
   }
