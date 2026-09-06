@@ -10,11 +10,11 @@ import {
   isFirebaseActive,
   signInWithPopup,
   signInWithEmailAndPassword
-} from './firebase-config.js';
+} from './firebase-config.js?v=3.9.5';
 
-import { initTheme } from './modules/theme-manager.js';
-import { isAuthorizedAdminEmail } from './modules/auth-manager.js';
-import { fetchTeachers } from './modules/firestore-service.js';
+import { initTheme } from './modules/theme-manager.js?v=3.9.5';
+import { isAuthorizedAdminEmail } from './modules/auth-manager.js?v=3.9.5';
+import { fetchTeachers } from './modules/firestore-service.js?v=3.9.5';
 
 let teachersData = [];
 

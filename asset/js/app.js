@@ -10,7 +10,7 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged
-} from './firebase-config.js';
+} from './firebase-config.js?v=3.9.5';
 
 import {
   fetchTeachers,
@@ -25,34 +25,34 @@ import {
   saveFormSubmission,
   checkFormSubmission,
   fetchLearningObjectives
-} from './modules/firestore-service.js';
+} from './modules/firestore-service.js?v=3.9.5';
 
 import {
   formatTimeString
-} from './modules/formatters.js';
+} from './modules/formatters.js?v=3.9.5';
 
 import {
   getActiveTeacherSchedule as getActiveTeacherScheduleModule,
   generateFormUrlForTeacher as generateFormUrlForTeacherModule,
   sortAndNormalizeForms
-} from './modules/schedule-resolver.js';
+} from './modules/schedule-resolver.js?v=3.9.5';
 
-import { initTheme } from './modules/theme-manager.js';
-import { isAuthorizedAdminEmail } from './modules/auth-manager.js';
+import { initTheme } from './modules/theme-manager.js?v=3.9.5';
+import { isAuthorizedAdminEmail } from './modules/auth-manager.js?v=3.9.5';
 import {
   exportTeachersToExcel as exportExcelService,
   exportTeachersToJSON as exportJSONService,
   processImportedExcelRows,
   processImportedScheduleRows,
   getPersonalPortalUrl
-} from './modules/excel-service.js';
+} from './modules/excel-service.js?v=3.9.5';
 
 import {
   renderUserPortal,
   renderTeachersTable,
   renderFormsTable,
   renderScheduleTable
-} from './modules/ui-renderers.js';
+} from './modules/ui-renderers.js?v=3.9.5';
 
 // State Capaian / Tujuan Pembelajaran (TP)
 let selectedLearningObjectiveMateri = "";
@@ -1173,10 +1173,14 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
 
   // 1. Khusus Form Absensi Mengajar: Buka Modal Presensi Siswa Dinamis
   const lowerFormName = (formName || '').toLowerCase();
+  const lowerFormId = (formId || '').toLowerCase();
   const isAbsensi = formId === "form_absensi_mengajar" || 
                     formId === "form_absensi_guru" || 
-                    lowerFormName.includes("absensi mengajar") ||
-                    lowerFormName.includes("absensi guru");
+                    lowerFormId.includes("absensi_mengajar") ||
+                    lowerFormId.includes("absensi_guru") ||
+                    lowerFormId === "form_absensi" ||
+                    (lowerFormName.includes("absensi") && !lowerFormName.includes("piket") && !lowerFormName.includes("wali")) ||
+                    lowerFormName.includes("presensi");
 
   if (isAbsensi) {
     openAbsensiModal(formId, formName);

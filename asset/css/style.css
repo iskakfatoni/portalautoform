@@ -102,7 +102,9 @@ body.light-mode select optgroup {
 /* Modal Capaian Pembelajaran (CP) & Presensi Siswa Compact Typography */
 #modal-select-tp-mapel,
 #modal-select-attend-class,
-#modal-select-absent-count {
+#modal-select-absent-count,
+#modal-absensi-select-class,
+#modal-absensi-select-count {
   font-size: 0.80rem !important;
   padding: 0.50rem 0.70rem !important;
 }
@@ -116,6 +118,8 @@ body.light-mode select optgroup {
 #modal-select-learning-objective option,
 #modal-select-attend-class option,
 #modal-select-absent-count option,
+#modal-absensi-select-class option,
+#modal-absensi-select-count option,
 .select-absent-student option,
 .select-absent-reason option {
   font-size: 0.78rem !important;
