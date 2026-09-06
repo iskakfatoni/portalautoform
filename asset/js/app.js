@@ -403,6 +403,8 @@ async function openTpModalForJournal(formId, formName) {
 
   // Attendance UI Elements
   const classBadgeEl = document.getElementById('modal-attendance-class-badge');
+  const classSelectEl = document.getElementById('modal-select-attend-class');
+  const countSelectEl = document.getElementById('modal-select-absent-count');
   const presentCountEl = document.getElementById('modal-attend-present-count');
   const absentCountEl = document.getElementById('modal-attend-absent-count');
   const absentListEl = document.getElementById('modal-attend-absent-list');
@@ -411,13 +413,22 @@ async function openTpModalForJournal(formId, formName) {
 
   if (!modal || !selectEl || !btnSubmit) return;
 
+  // Pastikan Master Siswa telah dimuat
+  if (!currentStudents || currentStudents.length === 0) {
+    try {
+      currentStudents = await fetchStudents();
+    } catch (e) {
+      console.warn('Gagal memuat siswa dari Firestore:', e);
+    }
+  }
+
   const now = new Date();
   const todaySchedule = getActiveTeacherSchedule(activeTeacher, now, currentSchedules);
 
   // 1. Deteksi Mapel Default dari Jadwal KBM Aktif
   const activeMapelName = todaySchedule ? (todaySchedule.mataPelajaran || '') : '';
-  const currentKelas = todaySchedule ? todaySchedule.kelas : (activeTeacher.class || 'XI TEI 2');
-  const isKelas12 = currentKelas && (currentKelas.includes('XII') || currentKelas.includes('12'));
+  const detectedKelas = todaySchedule ? todaySchedule.kelas : (activeTeacher.class || 'XI TEI 2');
+  const isKelas12 = detectedKelas && (detectedKelas.includes('XII') || detectedKelas.includes('12'));
 
   let detectedMapelKey = 'koding_ai_xi';
   const lowerMapel = activeMapelName.toLowerCase();
@@ -452,15 +463,39 @@ async function openTpModalForJournal(formId, formName) {
     mapelSelectEl.value = activeMapelKey;
   }
 
+  // 2. Setup Pemilihan Kelas
+  let activeClass = detectedKelas;
+  const availableClassesSet = new Set();
+  if (currentStudents && currentStudents.length > 0) {
+    currentStudents.forEach(s => { if (s.nama_kelas) availableClassesSet.add(s.nama_kelas.trim()); });
+  }
+  if (currentSchedules && currentSchedules.length > 0) {
+    currentSchedules.forEach(sc => { if (sc.kelas) availableClassesSet.add(sc.kelas.trim()); });
+  }
+  if (availableClassesSet.size === 0) {
+    ['XI TEI 1', 'XI TEI 2', 'XII TEI 1', 'XII TEI 2'].forEach(c => availableClassesSet.add(c));
+  }
+  const availableClasses = Array.from(availableClassesSet).sort();
+
+  // Pastikan activeClass ada di list
+  const matchedClass = availableClasses.find(c => c.toLowerCase() === (activeClass || '').toLowerCase()) || availableClasses[0];
+  activeClass = matchedClass;
+
+  if (classSelectEl) {
+    classSelectEl.innerHTML = availableClasses.map(c => 
+      `<option value="${c}" ${c === activeClass ? 'selected' : ''}>${c}</option>`
+    ).join('');
+  }
+
   // Update Badge Informasi Sesi KBM
-  const updateScheduleBadge = (mapelKey) => {
+  const updateScheduleBadge = (mapelKey, selectedClass) => {
     const config = MAPEL_TP_CONFIG[mapelKey];
     const displayMapelTitle = config ? `${config.title} - ${config.label}` : (activeMapelName || 'Materi Kustom / Mandiri');
     if (titleEl) titleEl.textContent = displayMapelTitle;
     if (subEl) {
       const jamKe = todaySchedule ? `Jam Ke: ${todaySchedule.jamKe}` : 'Jam Reguler';
       const ruang = todaySchedule && todaySchedule.keterangan ? ` | Ruang: ${todaySchedule.keterangan}` : '';
-      subEl.textContent = `Kelas: ${currentKelas} | ${jamKe}${ruang}`;
+      subEl.textContent = `Kelas: ${selectedClass || activeClass} | ${jamKe}${ruang}`;
     }
   };
 
@@ -474,16 +509,24 @@ async function openTpModalForJournal(formId, formName) {
     name: 'Form Absensi Mengajar'
   };
 
-  // 2. Filter Siswa Sesuai Kelas Aktif
-  const normalizedCurrentClass = String(currentKelas || '').replace(/\s+/g, ' ').toLowerCase();
-  let classStudents = currentStudents.filter(s => {
-    const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase();
-    return sClass === normalizedCurrentClass || sClass.includes(normalizedCurrentClass) || normalizedCurrentClass.includes(sClass);
-  });
+  // Filter Siswa Sesuai Kelas Aktif
+  let classStudents = [];
+  const getFilteredClassStudents = (targetClass) => {
+    const normalized = String(targetClass || '').replace(/\s+/g, ' ').toLowerCase();
+    let filtered = currentStudents.filter(s => {
+      const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase();
+      return sClass === normalized || sClass.includes(normalized) || normalized.includes(sClass);
+    });
+    if (filtered.length === 0) {
+      filtered = currentStudents;
+    }
+    return filtered;
+  };
 
-  const totalClassCount = classStudents.length || 36;
+  classStudents = getFilteredClassStudents(activeClass);
+  let totalClassCount = classStudents.length || 36;
   if (classBadgeEl) {
-    classBadgeEl.textContent = `${currentKelas} (${totalClassCount} Siswa)`;
+    classBadgeEl.textContent = `${activeClass} (${totalClassCount} Siswa)`;
   }
 
   // Load Saved Attendance
@@ -491,18 +534,22 @@ async function openTpModalForJournal(formId, formName) {
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const dd = String(now.getDate()).padStart(2, '0');
   const dateKey = `${yyyy}-${mm}-${dd}`;
-  const attendStorageKey = `portal_attend_${teacherCleanNip}_${currentKelas}_${dateKey}`;
+  const getAttendStorageKey = (cls) => `portal_attend_${teacherCleanNip}_${cls}_${dateKey}`;
 
   let absentStudents = [];
-  const savedAttendStr = localStorage.getItem(attendStorageKey);
-  if (savedAttendStr) {
-    try {
-      const parsed = JSON.parse(savedAttendStr);
-      if (Array.isArray(parsed.absentStudents)) {
-        absentStudents = parsed.absentStudents;
-      }
-    } catch (e) {}
-  }
+  const loadSavedAttendanceForClass = (cls) => {
+    const savedAttendStr = localStorage.getItem(getAttendStorageKey(cls));
+    absentStudents = [];
+    if (savedAttendStr) {
+      try {
+        const parsed = JSON.parse(savedAttendStr);
+        if (Array.isArray(parsed.absentStudents)) {
+          absentStudents = parsed.absentStudents;
+        }
+      } catch (e) {}
+    }
+  };
+  loadSavedAttendanceForClass(activeClass);
 
   // 3. Fungsi Regenerasi Final URL ke Google Form (Jurnal & Absensi)
   const updateModalUrl = () => {
@@ -536,7 +583,7 @@ async function openTpModalForJournal(formId, formName) {
     const jurnalKet = jumlahTidakHadir === 0 ? "Nihil" : absentStudents.map(a => `${a.name} (${a.reason})`).join(', ');
 
     // Simpan ke localStorage
-    localStorage.setItem(attendStorageKey, JSON.stringify({
+    localStorage.setItem(getAttendStorageKey(activeClass), JSON.stringify({
       absentStudents,
       jumlahHadir,
       jumlahTidakHadir,
@@ -577,6 +624,11 @@ async function openTpModalForJournal(formId, formName) {
         absentCountEl.textContent = `${jumlahTidakHadir} Siswa`;
         absentCountEl.style.color = "#ef4444";
       }
+    }
+
+    // Sync Dropdown Jumlah Siswa Tidak Masuk
+    if (countSelectEl) {
+      countSelectEl.value = String(Math.min(10, jumlahTidakHadir));
     }
 
     if (!absentListEl) return;
@@ -656,11 +708,49 @@ async function openTpModalForJournal(formId, formName) {
     updateModalUrl();
   };
 
+  // Listener Pemilihan Kelas
+  if (classSelectEl) {
+    classSelectEl.onchange = (e) => {
+      activeClass = e.target.value;
+      classStudents = getFilteredClassStudents(activeClass);
+      totalClassCount = classStudents.length || 36;
+      if (classBadgeEl) {
+        classBadgeEl.textContent = `${activeClass} (${totalClassCount} Siswa)`;
+      }
+      updateScheduleBadge(activeMapelKey, activeClass);
+      loadSavedAttendanceForClass(activeClass);
+      renderAttendanceRows();
+    };
+  }
+
+  // Listener Dropdown Jumlah Siswa Tidak Masuk
+  if (countSelectEl) {
+    countSelectEl.onchange = (e) => {
+      const targetCount = parseInt(e.target.value, 10) || 0;
+      if (targetCount === 0) {
+        absentStudents = [];
+      } else if (targetCount > absentStudents.length) {
+        const diff = targetCount - absentStudents.length;
+        for (let i = 0; i < diff; i++) {
+          const availableStudent = classStudents.find(s => !absentStudents.some(a => (a.nis && a.nis === s.nis) || a.name === s.nama_siswa)) || classStudents[i % classStudents.length];
+          absentStudents.push({
+            nis: availableStudent ? (availableStudent.nis || '') : '',
+            name: availableStudent ? (availableStudent.nama_siswa || `Siswa ${absentStudents.length + 1}`) : `Siswa ${absentStudents.length + 1}`,
+            reason: 'Sakit'
+          });
+        }
+      } else if (targetCount < absentStudents.length) {
+        absentStudents = absentStudents.slice(0, targetCount);
+      }
+      renderAttendanceRows();
+    };
+  }
+
   // Button Listeners for Attendance
   if (btnAddAbsent) {
     btnAddAbsent.onclick = () => {
       // Find first student not yet in absent list
-      const availableStudent = classStudents.find(s => !absentStudents.some(a => a.nis === s.nis || a.name === s.nama_siswa)) || classStudents[0];
+      const availableStudent = classStudents.find(s => !absentStudents.some(a => (a.nis && a.nis === s.nis) || a.name === s.nama_siswa)) || classStudents[0];
       if (availableStudent) {
         absentStudents.push({
           nis: availableStudent.nis || '',
@@ -1013,9 +1103,16 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
     return;
   }
 
-  // 1. Khusus Form Jurnal Mengajar: Buka Modal Pemilihan Capaian Pembelajaran (TP)
-  const isJurnal = formId === "form_jurnal_mengajar" || (formName && formName.toLowerCase().includes("jurnal"));
-  if (isJurnal) {
+  // 1. Khusus Form Jurnal Mengajar & Form Absensi Mengajar: Buka Modal Pemilihan Capaian Pembelajaran (TP) & Presensi Dinamis Siswa
+  const lowerFormName = (formName || '').toLowerCase();
+  const isKbmOrAttendance = formId === "form_jurnal_mengajar" || 
+                            formId === "form_absensi_mengajar" || 
+                            formId === "form_absensi_guru" || 
+                            lowerFormName.includes("jurnal") || 
+                            lowerFormName.includes("absensi mengajar") ||
+                            lowerFormName.includes("absensi guru");
+
+  if (isKbmOrAttendance) {
     openTpModalForJournal(formId, formName);
     return;
   }

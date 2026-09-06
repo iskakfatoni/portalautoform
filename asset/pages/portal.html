@@ -39,7 +39,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <link rel="stylesheet" href="../css/style.css?v=3.4.0">
+  <link rel="stylesheet" href="../css/style.css?v=3.5.0">
 </head>
 <body class="dark-mode">
 
@@ -405,13 +405,43 @@
 
           <!-- Bagian Presensi Kehadiran Siswa Dinamis -->
           <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 1rem; text-align: left;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
               <span style="font-size: 0.82rem; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 6px;">
                 <i class="fa-solid fa-users-viewfinder"></i> Presensi Kehadiran Siswa KBM
               </span>
               <span id="modal-attendance-class-badge" style="font-size: 0.74rem; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 12px; font-weight: 700;">
                 Memuat Siswa...
               </span>
+            </div>
+
+            <!-- Kontrol Pemilihan Kelas & Jumlah Siswa Tidak Masuk -->
+            <div style="display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 8px; margin-bottom: 10px;">
+              <div>
+                <label for="modal-select-attend-class" style="display: block; font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+                  <i class="fa-solid fa-chalkboard-user"></i> Kelas:
+                </label>
+                <select id="modal-select-attend-class" class="form-control" style="width: 100%; padding: 0.48rem 0.65rem; font-size: 0.79rem; border-radius: var(--radius-sm); background-color: #171f33 !important; border: 1px solid rgba(255,255,255,0.15) !important; color: #f8fafc !important; cursor: pointer;">
+                  <!-- Dynamically populated classes -->
+                </select>
+              </div>
+              <div>
+                <label for="modal-select-absent-count" style="display: block; font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">
+                  <i class="fa-solid fa-user-xmark"></i> Jumlah Siswa Tidak Masuk:
+                </label>
+                <select id="modal-select-absent-count" class="form-control" style="width: 100%; padding: 0.48rem 0.65rem; font-size: 0.79rem; border-radius: var(--radius-sm); background-color: #171f33 !important; border: 1px solid rgba(255,255,255,0.15) !important; color: #f8fafc !important; cursor: pointer;">
+                  <option value="0">0 Siswa (Semua Hadir / Nihil)</option>
+                  <option value="1">1 Siswa Tidak Masuk</option>
+                  <option value="2">2 Siswa Tidak Masuk</option>
+                  <option value="3">3 Siswa Tidak Masuk</option>
+                  <option value="4">4 Siswa Tidak Masuk</option>
+                  <option value="5">5 Siswa Tidak Masuk</option>
+                  <option value="6">6 Siswa Tidak Masuk</option>
+                  <option value="7">7 Siswa Tidak Masuk</option>
+                  <option value="8">8 Siswa Tidak Masuk</option>
+                  <option value="9">9 Siswa Tidak Masuk</option>
+                  <option value="10">10 Siswa Tidak Masuk</option>
+                </select>
+              </div>
             </div>
 
             <!-- Rekap Hadir & Tidak Hadir Pills -->
@@ -426,7 +456,7 @@
               </div>
             </div>
 
-            <!-- Container Baris Siswa Tidak Hadir Dinamis -->
+            <!-- Container Baris Dropdown Siswa Tidak Hadir Dinamis -->
             <div id="modal-attend-absent-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
               <!-- Dynamic Rows Added by JS -->
             </div>
@@ -515,6 +545,6 @@
 
   </div>
 
-  <script type="module" src="../js/app.js?v=3.4.0"></script>
+  <script type="module" src="../js/app.js?v=3.5.0"></script>
 </body>
 </html>
