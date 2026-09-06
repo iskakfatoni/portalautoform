@@ -856,6 +856,7 @@ body.light-mode .dark-icon { display: block; }
 .teacher-compact-bar {
   background: #171f33 !important;
   background-color: #171f33 !important;
+  color: #f8fafc !important;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 0.65rem 1.25rem;
@@ -867,6 +868,13 @@ body.light-mode .dark-icon { display: block; }
   gap: 12px;
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+body.light-mode .teacher-compact-bar {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
 .teacher-info-group {
@@ -893,11 +901,15 @@ body.light-mode .dark-icon { display: block; }
 .teacher-title-mini {
   font-size: 1.05rem;
   font-weight: 700;
-  color: var(--text-primary);
+  color: #f8fafc !important;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+body.light-mode .teacher-title-mini {
+  color: #0f172a !important;
 }
 
 .btn-logout-pill {
@@ -940,7 +952,7 @@ body.light-mode .dark-icon { display: block; }
   padding: 1.15rem 1.4rem;
   border-radius: var(--radius-lg);
   text-decoration: none;
-  color: var(--text-primary);
+  color: #f8fafc !important;
   background: #171f33 !important;
   background-color: #171f33 !important;
   box-shadow: var(--shadow-sm);
@@ -951,6 +963,13 @@ body.light-mode .dark-icon { display: block; }
   border: 1.5px solid var(--border-color);
   opacity: 1 !important;
   visibility: visible !important;
+}
+
+body.light-mode .form-direct-card {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
 }
 
 .form-direct-card:hover {
@@ -994,13 +1013,22 @@ body.light-mode .dark-icon { display: block; }
 .form-card-number {
   font-size: 1.15rem;
   font-weight: 800;
+  color: #f8fafc !important;
+}
+
+body.light-mode .form-card-number {
+  color: #0f172a !important;
 }
 
 .form-card-title {
   font-size: 1.08rem;
   font-weight: 700;
   letter-spacing: 0.3px;
-  color: var(--text-primary);
+  color: #f8fafc !important;
+}
+
+body.light-mode .form-card-title {
+  color: #0f172a !important;
 }
 
 .form-card-right {
