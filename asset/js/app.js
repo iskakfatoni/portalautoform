@@ -726,11 +726,11 @@ async function openTpModalForJournal(formId, formName) {
         const code = tp.kodeTp || `P${String(meetingNum).padStart(2, '0')}`;
         const text = tp.materi || '';
         const isSelected = String(meetingNum) === String(savedMeeting);
-        const truncated = text.length > 70 ? text.substring(0, 70) + '...' : text;
-        return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" style="background-color: ${optBg} !important; color: ${optColor} !important;" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
+        const truncated = text.length > 80 ? text.substring(0, 80) + '...' : text;
+        return `<option value="${meetingNum}" data-materi="${encodeURIComponent(text)}" style="background-color: ${optBg} !important; color: ${optColor} !important; font-size: 0.79rem;" ${isSelected ? 'selected' : ''}>Pertemuan ${meetingNum} (${code}): ${truncated}</option>`;
       }).join('');
     } else {
-      selectEl.innerHTML = `<option value="1" data-materi="" style="background-color: ${optBg} !important; color: ${optColor} !important;">(Gunakan teks materi standar)</option>`;
+      selectEl.innerHTML = `<option value="1" data-materi="" style="background-color: ${optBg} !important; color: ${optColor} !important; font-size: 0.79rem;">(Gunakan teks materi standar)</option>`;
     }
 
     const selectedOption = selectEl.options[selectEl.selectedIndex];
