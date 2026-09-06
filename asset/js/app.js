@@ -203,7 +203,7 @@ function initNavigation() {
 
       if (targetId === 'tab-admin') {
         renderAdminTables();
-      } else if (targetId === 'tab-portal') {
+      } else if (targetId === 'tab-user-portal' || targetId === 'tab-portal') {
         renderUserPortalApp();
       }
     });
@@ -319,6 +319,7 @@ export function switchToPortalView() {
   if (portalTab) {
     portalTab.classList.add('active');
   }
+  renderUserPortalApp();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
