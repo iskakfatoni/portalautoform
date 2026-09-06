@@ -32,6 +32,32 @@
     })();
   </script>
 
+  <!-- Global JS Error Diagnostic Banner -->
+  <script>
+    window.addEventListener('error', function(e) {
+      console.error('JS ERROR:', e);
+      var b = document.getElementById('js-err-banner');
+      if (!b) {
+        b = document.createElement('div');
+        b.id = 'js-err-banner';
+        b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#ef4444;color:#ffffff;padding:10px 14px;font-size:12px;font-weight:bold;font-family:sans-serif;box-shadow:0 4px 12px rgba(0,0,0,0.5);word-break:break-all;';
+        (document.body || document.documentElement).appendChild(b);
+      }
+      b.innerHTML = '⚠️ JavaScript Error: ' + (e.message || e) + ' (' + (e.filename ? e.filename.split('/').pop() : '') + ':' + (e.lineno || 0) + ')';
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      console.error('PROMISE REJECTION:', e);
+      var b = document.getElementById('js-err-banner');
+      if (!b) {
+        b = document.createElement('div');
+        b.id = 'js-err-banner';
+        b.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:999999;background:#ef4444;color:#ffffff;padding:10px 14px;font-size:12px;font-weight:bold;font-family:sans-serif;box-shadow:0 4px 12px rgba(0,0,0,0.5);word-break:break-all;';
+        (document.body || document.documentElement).appendChild(b);
+      }
+      b.innerHTML = '⚠️ Promise Error: ' + (e.reason ? (e.reason.message || e.reason) : e);
+    });
+  </script>
+
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">

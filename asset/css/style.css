@@ -481,17 +481,19 @@ body.light-mode .dark-icon { display: block; }
 /* Tab Panes */
 .tab-pane {
   display: none;
-  animation: fadeIn 0.35s ease forwards;
+  opacity: 1;
 }
 
 .tab-pane.active {
   display: flex;
   flex-direction: column;
   flex: 1;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0.8; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -3244,14 +3246,15 @@ body.landing-page .landing-content-centered {
   align-items: center;
   text-align: center;
   position: relative;
+  opacity: 1 !important;
+  visibility: visible !important;
   transition: transform var(--transition-smooth), box-shadow var(--transition-smooth);
-  animation: fadeInCard 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes fadeInCard {
   from {
-    opacity: 0;
-    transform: translateY(18px) scale(0.98);
+    opacity: 0.8;
+    transform: translateY(12px) scale(0.98);
   }
   to {
     opacity: 1;
