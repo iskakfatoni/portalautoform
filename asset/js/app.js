@@ -389,6 +389,7 @@ const MAPEL_TP_CONFIG = {
 // Buka Modal Pemilihan Capaian Pembelajaran (TP) & Presensi Dinamis Siswa
 async function openTpModalForJournal(formId, formName) {
   const modal = document.getElementById('modal-select-tp');
+  const headerTitleEl = document.getElementById('modal-tp-header-title');
   const mapelSelectEl = document.getElementById('modal-select-tp-mapel');
   const selectEl = document.getElementById('modal-select-learning-objective');
   const wrapperSelectObjective = document.getElementById('wrapper-select-learning-objective');
@@ -412,6 +413,24 @@ async function openTpModalForJournal(formId, formName) {
   const btnResetAttendance = document.getElementById('btn-reset-attendance-all-present');
 
   if (!modal || !selectEl || !btnSubmit) return;
+
+  // Setup Close Handlers Segera
+  const closeModal = () => modal.classList.add('hidden');
+  if (btnClose) btnClose.onclick = closeModal;
+  if (btnCancel) btnCancel.onclick = closeModal;
+
+  // Deteksi asal klik: Form Absensi atau Form Jurnal
+  const isAbsensiOrigin = (formName && formName.toLowerCase().includes('absensi')) || (formId && formId.toLowerCase().includes('absensi'));
+  if (headerTitleEl) {
+    if (isAbsensiOrigin) {
+      headerTitleEl.innerHTML = `<i class="fa-solid fa-clipboard-user"></i> <span>Presensi Siswa & Form Absensi</span>`;
+    } else {
+      headerTitleEl.innerHTML = `<i class="fa-solid fa-book-journal-whills"></i> <span>Form Jurnal & Presensi KBM</span>`;
+    }
+  }
+
+  // Tampilkan Modal Langsung (Mencegah Layar Hitam / Menunggu Network)
+  modal.classList.remove('hidden');
 
   // Pastikan Master Siswa telah dimuat
   if (!currentStudents || currentStudents.length === 0) {
@@ -859,14 +878,26 @@ async function openTpModalForJournal(formId, formName) {
     };
   }
 
+  // Highlight Tombol Utama Sesuai Formulir Asal
+  if (btnOpenAbsensi && btnSubmit) {
+    if (isAbsensiOrigin) {
+      btnOpenAbsensi.className = 'btn btn-primary';
+      btnSubmit.className = 'btn btn-secondary';
+    } else {
+      btnSubmit.className = 'btn btn-primary';
+      btnOpenAbsensi.className = 'btn btn-secondary';
+    }
+  }
+
   // Initial Load
   renderAttendanceRows();
-  await loadTpForMapel(activeMapelKey);
+  try {
+    await loadTpForMapel(activeMapelKey);
+  } catch (tpErr) {
+    console.warn('Gagal memuat TP materi:', tpErr);
+  }
 
   // Setup Tombol Modal
-  const closeModal = () => modal.classList.add('hidden');
-  if (btnClose) btnClose.onclick = closeModal;
-  if (btnCancel) btnCancel.onclick = closeModal;
   btnSubmit.onclick = () => {
     closeModal();
     showToast('Membuka Form Jurnal Mengajar...');
@@ -877,8 +908,6 @@ async function openTpModalForJournal(formId, formName) {
       showToast('Membuka Form Absensi Mengajar...');
     };
   }
-
-  modal.classList.remove('hidden');
 }
 
 /* ==========================================================================

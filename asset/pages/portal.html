@@ -39,7 +39,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <link rel="stylesheet" href="../css/style.css?v=3.6.0">
+  <link rel="stylesheet" href="../css/style.css?v=3.7.0">
 </head>
 <body class="dark-mode">
 
@@ -347,15 +347,15 @@
     <!-- Modal-modal (Ditaruh di luar main/app-wrapper agar fixed position lebih stabil) -->
 
     <!-- Modal Pemilihan Capaian Pembelajaran / Materi Jurnal KBM -->
-    <div id="modal-select-tp" class="modal-overlay hidden" style="z-index: 2150;">
-      <div class="modal-card" style="max-width: 540px; margin: auto; padding: 0; overflow: hidden;">
-        <div class="modal-header" style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface);">
-          <h3 style="color: var(--accent-primary); font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-book-journal-whills"></i> Form Jurnal & Presensi KBM
+    <div id="modal-select-tp" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3 id="modal-tp-header-title" style="color: var(--accent-primary); font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-book-journal-whills"></i> <span>Form Jurnal & Presensi KBM</span>
           </h3>
-          <button class="modal-close-btn" id="btn-close-tp-modal" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
+          <button class="modal-close-btn" id="btn-close-tp-modal" title="Tutup"><i class="fa-solid fa-xmark"></i></button>
         </div>
-        <div class="modal-body" style="padding: 1.5rem;">
+        <div class="modal-body">
           
           <!-- Badge Sesi KBM Aktif -->
           <div style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: var(--radius-md); padding: 0.85rem 1rem; margin-bottom: 1.25rem;">
@@ -472,13 +472,12 @@
             </div>
           </div>
 
-        </div>
-        <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 8px; justify-content: flex-end; align-items: center; background: var(--bg-surface); flex-wrap: wrap;">
-          <button type="button" class="btn btn-secondary" id="btn-cancel-tp-modal" style="font-size: 0.85rem; padding: 0.6rem 1rem;">Tutup</button>
-          <a href="#" id="btn-open-absensi-from-modal" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.85rem; padding: 0.6rem 1rem; text-decoration: none; border-color: rgba(99,102,241,0.4); color: var(--accent-primary);">
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-tp-modal">Tutup</button>
+          <a href="#" id="btn-open-absensi-from-modal" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; text-decoration: none;">
             <i class="fa-solid fa-clipboard-user"></i> <span>Form Absensi</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
           </a>
-          <a href="#" id="btn-submit-tp-modal" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85rem; padding: 0.6rem 1.2rem; text-decoration: none;">
+          <a href="#" id="btn-submit-tp-modal" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none;">
             <i class="fa-solid fa-book-journal-whills"></i> <span>Buka Form Jurnal</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
           </a>
         </div>
@@ -545,6 +544,6 @@
 
   </div>
 
-  <script type="module" src="../js/app.js?v=3.6.0"></script>
+  <script type="module" src="../js/app.js?v=3.7.0"></script>
 </body>
 </html>
