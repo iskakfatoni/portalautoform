@@ -374,21 +374,16 @@ function checkUrlParamsForTeacher() {
     }
 
     if (found) {
-      const expectedPin = (found.pin && String(found.pin).trim() !== '') ? String(found.pin).trim() : '12345';
-      const actualPin = savedPin || '12345';
+      localStorage.setItem('portal_logged_nip', found.nip);
+      if (savedPin) localStorage.setItem('portal_logged_pin', savedPin);
 
-      if (!savedPin || actualPin === expectedPin || expectedPin === '12345' || found.id === "198109092022211004") {
-        localStorage.setItem('portal_logged_nip', found.nip);
-        if (savedPin) localStorage.setItem('portal_logged_pin', savedPin);
-
-        const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(found.nip)}`;
-        if (window.location.search !== `?nip=${encodeURIComponent(found.nip)}`) {
-          window.history.replaceState({ nip: found.nip }, '', newUrl);
-        }
-
-        showPortalView(found);
-        return;
+      const newUrl = `${window.location.pathname}?nip=${encodeURIComponent(found.nip)}`;
+      if (window.location.search !== `?nip=${encodeURIComponent(found.nip)}`) {
+        window.history.replaceState({ nip: found.nip }, '', newUrl);
       }
+
+      showPortalView(found);
+      return;
     }
   }
 
@@ -398,11 +393,8 @@ function checkUrlParamsForTeacher() {
     return;
   }
 
-  // Jika benar-benar tidak ada NIP / Sesi sama sekali:
-  // Bersihkan sesi lokal yang rusak agar tidak terjadi loop redirect dengan autoform.html
-  localStorage.removeItem('portal_logged_nip');
-  localStorage.removeItem('portal_logged_pin');
-  window.location.href = '../../autoform.html';
+  // Fallback Guru Default (Pak Iskak) agar tampilan portal tidak pernah blank
+  showPortalView(fallbackIskak);
 }
 
 function showPortalView(teacher) {
