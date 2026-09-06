@@ -386,53 +386,80 @@ const MAPEL_TP_CONFIG = {
   }
 };
 
-// Buka Modal Pemilihan Capaian Pembelajaran (TP) & Presensi Dinamis Siswa
-async function openTpModalForJournal(formId, formName) {
-  const modal = document.getElementById('modal-select-tp');
-  const headerTitleEl = document.getElementById('modal-tp-header-title');
-  const mapelSelectEl = document.getElementById('modal-select-tp-mapel');
-  const selectEl = document.getElementById('modal-select-learning-objective');
-  const wrapperSelectObjective = document.getElementById('wrapper-select-learning-objective');
-  const titleEl = document.getElementById('modal-tp-schedule-title');
-  const subEl = document.getElementById('modal-tp-schedule-sub');
-  const previewBox = document.getElementById('modal-tp-preview-box');
-  const counterEl = document.getElementById('modal-tp-counter');
-  const btnSubmit = document.getElementById('btn-submit-tp-modal');
-  const btnOpenAbsensi = document.getElementById('btn-open-absensi-from-modal');
-  const btnClose = document.getElementById('btn-close-tp-modal');
-  const btnCancel = document.getElementById('btn-cancel-tp-modal');
+// Helper Key & Persistence Kehadiran Siswa Hari Ini
+function getTodayAttendanceKey(cleanNip, className) {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const dateKey = `${yyyy}-${mm}-${dd}`;
+  return `portal_attend_${cleanNip}_${className}_${dateKey}`;
+}
 
-  // Attendance UI Elements
-  const classBadgeEl = document.getElementById('modal-attendance-class-badge');
-  const classSelectEl = document.getElementById('modal-select-attend-class');
-  const countSelectEl = document.getElementById('modal-select-absent-count');
-  const presentCountEl = document.getElementById('modal-attend-present-count');
-  const absentCountEl = document.getElementById('modal-attend-absent-count');
-  const absentListEl = document.getElementById('modal-attend-absent-list');
-  const btnAddAbsent = document.getElementById('btn-add-absent-student');
-  const btnResetAttendance = document.getElementById('btn-reset-attendance-all-present');
+function getTodaySavedAttendance(cleanNip, className, totalCount = 36) {
+  const key = getTodayAttendanceKey(cleanNip, className);
+  const raw = localStorage.getItem(key);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.absentStudents)) {
+        return parsed;
+      }
+    } catch (e) {}
+  }
+  return {
+    absentStudents: [],
+    jumlahHadir: totalCount,
+    jumlahTidakHadir: 0,
+    absensiKet: "Nihil",
+    jurnalKet: "Nihil"
+  };
+}
 
-  if (!modal || !selectEl || !btnSubmit) return;
+function saveTodayAttendance(cleanNip, className, attendObj) {
+  const key = getTodayAttendanceKey(cleanNip, className);
+  localStorage.setItem(key, JSON.stringify(attendObj));
+}
 
-  // Setup Close Handlers Segera
+// Helper Filter Siswa berdasarkan Kelas
+function getFilteredStudentsByClass(targetClass, studentList) {
+  const list = (studentList && studentList.length > 0) ? studentList : [];
+  const normalized = String(targetClass || '').replace(/\s+/g, ' ').toLowerCase();
+  let filtered = list.filter(s => {
+    const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase();
+    return sClass === normalized || sClass.includes(normalized) || normalized.includes(sClass);
+  });
+  return filtered.length > 0 ? filtered : list;
+}
+
+/* ==========================================================================
+   MODAL 1: PRESENSI SISWA DINAMIS KHUSUS FORM ABSENSI MENGAJAR
+   ========================================================================== */
+async function openAbsensiModal(formId, formName) {
+  const modal = document.getElementById('modal-absensi-siswa');
+  const btnClose = document.getElementById('btn-close-absensi-modal');
+  const btnCancel = document.getElementById('btn-cancel-absensi-modal');
+  const titleEl = document.getElementById('modal-absensi-schedule-title');
+  const subEl = document.getElementById('modal-absensi-schedule-sub');
+  const classSelectEl = document.getElementById('modal-absensi-select-class');
+  const countSelectEl = document.getElementById('modal-absensi-select-count');
+  const presentCountEl = document.getElementById('modal-absensi-present-count');
+  const absentCountEl = document.getElementById('modal-absensi-absent-count');
+  const studentListEl = document.getElementById('modal-absensi-student-list');
+  const btnAddAbsent = document.getElementById('btn-absensi-add-student');
+  const btnResetAll = document.getElementById('btn-absensi-reset-all-present');
+  const btnSubmit = document.getElementById('btn-submit-absensi-modal');
+
+  if (!modal || !btnSubmit) return;
+
   const closeModal = () => modal.classList.add('hidden');
   if (btnClose) btnClose.onclick = closeModal;
   if (btnCancel) btnCancel.onclick = closeModal;
 
-  // Deteksi asal klik: Form Absensi atau Form Jurnal
-  const isAbsensiOrigin = (formName && formName.toLowerCase().includes('absensi')) || (formId && formId.toLowerCase().includes('absensi'));
-  if (headerTitleEl) {
-    if (isAbsensiOrigin) {
-      headerTitleEl.innerHTML = `<i class="fa-solid fa-clipboard-user"></i> <span>Presensi Siswa & Form Absensi</span>`;
-    } else {
-      headerTitleEl.innerHTML = `<i class="fa-solid fa-book-journal-whills"></i> <span>Form Jurnal & Presensi KBM</span>`;
-    }
-  }
-
-  // Tampilkan Modal Langsung (Mencegah Layar Hitam / Menunggu Network)
+  // Buka modal seketika
   modal.classList.remove('hidden');
 
-  // Pastikan Master Siswa telah dimuat
+  // Pastikan data siswa telah dimuat
   if (!currentStudents || currentStudents.length === 0) {
     try {
       currentStudents = await fetchStudents();
@@ -446,45 +473,10 @@ async function openTpModalForJournal(formId, formName) {
   const now = new Date();
   const todaySchedule = getActiveTeacherSchedule(teacher, now, currentSchedules);
 
-  // 1. Deteksi Mapel Default dari Jadwal KBM Aktif
-  const activeMapelName = todaySchedule ? (todaySchedule.mataPelajaran || '') : '';
+  const activeMapelName = todaySchedule ? (todaySchedule.mataPelajaran || '') : 'Presensi KBM';
   const detectedKelas = todaySchedule ? todaySchedule.kelas : (teacher.class || 'XI TEI 2');
-  const isKelas12 = detectedKelas && (detectedKelas.includes('XII') || detectedKelas.includes('12'));
 
-  let detectedMapelKey = 'koding_ai_xi';
-  const lowerMapel = activeMapelName.toLowerCase();
-  if (lowerMapel.includes('koding') || lowerMapel.includes('kecerdasan') || lowerMapel.includes('artifisial') || lowerMapel.includes('ai')) {
-    detectedMapelKey = 'koding_ai_xi';
-  } else if (lowerMapel.includes('kendali') || lowerMapel.includes('ske') || lowerMapel.includes('pilihan')) {
-    detectedMapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
-  } else {
-    // Cek jadwal keseluruhan yang diampu guru
-    const teachesKoding = currentSchedules.some(s => 
-      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
-      s.mataPelajaran && (s.mataPelajaran.toLowerCase().includes('koding') || s.mataPelajaran.toLowerCase().includes('kecerdasan'))
-    );
-    const teachesSke = currentSchedules.some(s => 
-      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
-      s.mataPelajaran && s.mataPelajaran.toLowerCase().includes('kendali')
-    );
-
-    if (teachesKoding) {
-      detectedMapelKey = 'koding_ai_xi';
-    } else if (teachesSke) {
-      detectedMapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
-    }
-  }
-
-  // Cek preferensi mapel terakhir yang dipilih guru dari localStorage
-  const prefMapelKey = localStorage.getItem(`portal_last_mapel_${teacherCleanNip}`) || detectedMapelKey;
-  let activeMapelKey = MAPEL_TP_CONFIG[prefMapelKey] || prefMapelKey === 'custom_manual' ? prefMapelKey : detectedMapelKey;
-
-  if (mapelSelectEl) {
-    mapelSelectEl.value = activeMapelKey;
-  }
-
-  // 2. Setup Pemilihan Kelas
-  let activeClass = detectedKelas;
+  // Setup list pilihan kelas
   const availableClassesSet = new Set();
   if (currentStudents && currentStudents.length > 0) {
     currentStudents.forEach(s => { if (s.nama_kelas) availableClassesSet.add(s.nama_kelas.trim()); });
@@ -496,10 +488,7 @@ async function openTpModalForJournal(formId, formName) {
     ['XI TEI 1', 'XI TEI 2', 'XII TEI 1', 'XII TEI 2'].forEach(c => availableClassesSet.add(c));
   }
   const availableClasses = Array.from(availableClassesSet).sort();
-
-  // Pastikan activeClass ada di list
-  const matchedClass = availableClasses.find(c => c.toLowerCase() === (activeClass || '').toLowerCase()) || availableClasses[0];
-  activeClass = matchedClass;
+  let activeClass = availableClasses.find(c => c.toLowerCase() === (detectedKelas || '').toLowerCase()) || availableClasses[0];
 
   if (classSelectEl) {
     classSelectEl.innerHTML = availableClasses.map(c => 
@@ -507,134 +496,46 @@ async function openTpModalForJournal(formId, formName) {
     ).join('');
   }
 
-  // Update Badge Informasi Sesi KBM
-  const updateScheduleBadge = (mapelKey, selectedClass) => {
-    const config = MAPEL_TP_CONFIG[mapelKey];
-    const displayMapelTitle = config ? `${config.title} - ${config.label}` : (activeMapelName || 'Materi Kustom / Mandiri');
-    if (titleEl) titleEl.textContent = displayMapelTitle;
+  let classStudents = getFilteredStudentsByClass(activeClass, currentStudents);
+  let totalClassCount = classStudents.length || 36;
+
+  // Update Tampilan Informasi Sesi KBM
+  const updateScheduleBadge = (cls) => {
+    if (titleEl) titleEl.textContent = activeMapelName || 'Presensi KBM Mengajar';
     if (subEl) {
       const jamKe = todaySchedule ? `Jam Ke: ${todaySchedule.jamKe}` : 'Jam Reguler';
       const ruang = todaySchedule && todaySchedule.keterangan ? ` | Ruang: ${todaySchedule.keterangan}` : '';
-      subEl.textContent = `Kelas: ${selectedClass || activeClass} | ${jamKe}${ruang}`;
+      subEl.textContent = `Kelas: ${cls || activeClass} (${totalClassCount} Siswa) | ${jamKe}${ruang}`;
     }
   };
+  updateScheduleBadge(activeClass);
 
-  const targetForm = currentForms.find(f => f.id === formId || (f.name && f.name.toLowerCase().includes('jurnal'))) || {
-    id: 'form_jurnal_mengajar',
-    name: 'Form Jurnal Mengajar Guru'
-  };
+  // Load Saved Attendance State
+  let savedState = getTodaySavedAttendance(teacherCleanNip, activeClass, totalClassCount);
+  let absentStudents = [...(savedState.absentStudents || [])];
 
-  const absensiForm = currentForms.find(f => f.id === 'form_absensi_guru' || f.id === 'form_absensi_mengajar' || (f.name && f.name.toLowerCase().includes('absensi mengajar'))) || {
+  const absensiForm = currentForms.find(f => f.id === formId || f.id === 'form_absensi_guru' || f.id === 'form_absensi_mengajar' || (f.name && f.name.toLowerCase().includes('absensi'))) || {
     id: 'form_absensi_mengajar',
     name: 'Form Absensi Mengajar'
   };
 
-  // Filter Siswa Sesuai Kelas Aktif
-  let classStudents = [];
-  const getFilteredClassStudents = (targetClass) => {
-    const normalized = String(targetClass || '').replace(/\s+/g, ' ').toLowerCase();
-    let filtered = currentStudents.filter(s => {
-      const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase();
-      return sClass === normalized || sClass.includes(normalized) || normalized.includes(sClass);
-    });
-    if (filtered.length === 0) {
-      filtered = currentStudents;
-    }
-    return filtered;
-  };
-
-  classStudents = getFilteredClassStudents(activeClass);
-  let totalClassCount = classStudents.length || 36;
-  if (classBadgeEl) {
-    classBadgeEl.textContent = `${activeClass} (${totalClassCount} Siswa)`;
-  }
-
-  // Load Saved Attendance
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  const dateKey = `${yyyy}-${mm}-${dd}`;
-  const getAttendStorageKey = (cls) => `portal_attend_${teacherCleanNip}_${cls}_${dateKey}`;
-
-  let absentStudents = [];
-  const loadSavedAttendanceForClass = (cls) => {
-    const savedAttendStr = localStorage.getItem(getAttendStorageKey(cls));
-    absentStudents = [];
-    if (savedAttendStr) {
-      try {
-        const parsed = JSON.parse(savedAttendStr);
-        if (Array.isArray(parsed.absentStudents)) {
-          absentStudents = parsed.absentStudents;
-        }
-      } catch (e) {}
-    }
-  };
-  loadSavedAttendanceForClass(activeClass);
-
-  // 3. Fungsi Regenerasi Final URL ke Google Form (Jurnal & Absensi)
-  const updateModalUrl = () => {
-    const currentMapel = mapelSelectEl ? mapelSelectEl.value : activeMapelKey;
-    const isCustom = currentMapel === 'custom_manual';
-    const config = MAPEL_TP_CONFIG[currentMapel];
-
-    let materiText = '';
-    let meetingNum = '1';
-
-    if (isCustom) {
-      materiText = previewBox ? previewBox.value.trim() : '';
-      if (counterEl) counterEl.textContent = 'Materi Mandiri';
-    } else {
-      const selectedOption = selectEl.options[selectEl.selectedIndex];
-      materiText = previewBox ? previewBox.value.trim() : (selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '');
-      meetingNum = selectedOption ? selectedOption.value : '1';
-      const totalTp = (learningObjectivesCache[currentMapel] && learningObjectivesCache[currentMapel].listTp) ? learningObjectivesCache[currentMapel].listTp.length : 35;
-      if (counterEl) counterEl.textContent = `Pertemuan ${meetingNum} / ${totalTp}`;
-
-      const storageKey = `portal_tp_selected_${teacherCleanNip}_${currentMapel}`;
-      localStorage.setItem(storageKey, meetingNum);
-    }
-
-    const finalMapelName = config ? config.formMapelName : (todaySchedule ? todaySchedule.mataPelajaran : '');
-
-    // Hitung Kehadiran Dinamis
+  // Fungsi Regenerasi URL & Simpan State
+  const updateAbsensiUrl = () => {
     const jumlahTidakHadir = absentStudents.length;
     const jumlahHadir = Math.max(0, totalClassCount - jumlahTidakHadir);
     const absensiKet = jumlahTidakHadir === 0 ? "Nihil" : `${jumlahTidakHadir} (${absentStudents.map(a => `${a.name}: ${a.reason}`).join(', ')})`;
     const jurnalKet = jumlahTidakHadir === 0 ? "Nihil" : absentStudents.map(a => `${a.name} (${a.reason})`).join(', ');
 
-    // Simpan ke localStorage
-    localStorage.setItem(getAttendStorageKey(activeClass), JSON.stringify({
+    // Simpan ke storage
+    saveTodayAttendance(teacherCleanNip, activeClass, {
       absentStudents,
       jumlahHadir,
       jumlahTidakHadir,
       absensiKet,
       jurnalKet
-    }));
-
-    // Generate Final URL untuk Form Jurnal
-    const journalUrl = generateFormUrlForTeacherModule(targetForm, activeTeacher, new Date(), currentSchedules, {
-      materi: materiText,
-      mapel: finalMapelName,
-      jumlahHadir: jumlahHadir,
-      ketTidakHadir: jurnalKet
     });
-    btnSubmit.href = journalUrl;
 
-    // Generate Final URL untuk Form Absensi
-    if (btnOpenAbsensi) {
-      const absensiUrl = generateFormUrlForTeacherModule(absensiForm, activeTeacher, new Date(), currentSchedules, {
-        jumlahHadir: jumlahHadir,
-        ketTidakHadir: absensiKet
-      });
-      btnOpenAbsensi.href = absensiUrl;
-    }
-  };
-
-  // 4. Render Dynamic Attendance UI
-  const renderAttendanceRows = () => {
-    const jumlahTidakHadir = absentStudents.length;
-    const jumlahHadir = Math.max(0, totalClassCount - jumlahTidakHadir);
-
+    // Update Counter UI
     if (presentCountEl) presentCountEl.textContent = `${jumlahHadir} Siswa`;
     if (absentCountEl) {
       if (jumlahTidakHadir === 0) {
@@ -646,20 +547,29 @@ async function openTpModalForJournal(formId, formName) {
       }
     }
 
-    // Sync Dropdown Jumlah Siswa Tidak Masuk
     if (countSelectEl) {
       countSelectEl.value = String(Math.min(10, jumlahTidakHadir));
     }
 
-    if (!absentListEl) return;
+    // Generate Final Pre-filled Link Form Absensi
+    const absensiUrl = generateFormUrlForTeacherModule(absensiForm, activeTeacher, new Date(), currentSchedules, {
+      jumlahHadir: jumlahHadir,
+      ketTidakHadir: absensiKet
+    });
+    btnSubmit.href = absensiUrl;
+  };
+
+  // Render Baris Dropdown Siswa Tidak Hadir
+  const renderAttendanceRows = () => {
+    if (!studentListEl) return;
 
     if (absentStudents.length === 0) {
-      absentListEl.innerHTML = `
-        <div style="font-size: 0.78rem; color: var(--text-secondary); font-style: italic; padding: 4px 0; display: flex; align-items: center; gap: 6px;">
+      studentListEl.innerHTML = `
+        <div style="font-size: 0.78rem; color: var(--text-secondary); font-style: italic; padding: 6px 0; display: flex; align-items: center; gap: 6px;">
           <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Semua siswa hadir (Presensi Nihil).
         </div>
       `;
-      updateModalUrl();
+      updateAbsensiUrl();
       return;
     }
 
@@ -667,7 +577,7 @@ async function openTpModalForJournal(formId, formName) {
     const optBg = isLightMode ? '#ffffff' : '#171f33';
     const optColor = isLightMode ? '#0f172a' : '#f8fafc';
 
-    absentListEl.innerHTML = absentStudents.map((item, idx) => {
+    studentListEl.innerHTML = absentStudents.map((item, idx) => {
       const studentOptions = classStudents.map(s => {
         const isSel = (s.nis && s.nis === item.nis) || (s.nama_siswa === item.name);
         return `<option value="${s.nis || s.nama_siswa}" data-nama="${s.nama_siswa}" style="background-color: ${optBg} !important; color: ${optColor} !important;" ${isSel ? 'selected' : ''}>${s.nama_siswa} (${s.nis || '-'})</option>`;
@@ -692,8 +602,8 @@ async function openTpModalForJournal(formId, formName) {
       `;
     }).join('');
 
-    // Attach row change listeners
-    absentListEl.querySelectorAll('.select-absent-student').forEach(sel => {
+    // Pasang listener pada baris
+    studentListEl.querySelectorAll('.select-absent-student').forEach(sel => {
       sel.onchange = (e) => {
         const index = parseInt(e.target.getAttribute('data-index'), 10);
         const selectedOpt = e.target.options[e.target.selectedIndex];
@@ -702,22 +612,22 @@ async function openTpModalForJournal(formId, formName) {
         if (absentStudents[index]) {
           absentStudents[index].nis = studentNis;
           absentStudents[index].name = studentName;
-          renderAttendanceRows();
+          updateAbsensiUrl();
         }
       };
     });
 
-    absentListEl.querySelectorAll('.select-absent-reason').forEach(sel => {
+    studentListEl.querySelectorAll('.select-absent-reason').forEach(sel => {
       sel.onchange = (e) => {
         const index = parseInt(e.target.getAttribute('data-index'), 10);
         if (absentStudents[index]) {
           absentStudents[index].reason = e.target.value;
-          updateModalUrl();
+          updateAbsensiUrl();
         }
       };
     });
 
-    absentListEl.querySelectorAll('.btn-delete-absent').forEach(btn => {
+    studentListEl.querySelectorAll('.btn-delete-absent').forEach(btn => {
       btn.onclick = (e) => {
         const index = parseInt(btn.getAttribute('data-index'), 10);
         absentStudents.splice(index, 1);
@@ -725,20 +635,18 @@ async function openTpModalForJournal(formId, formName) {
       };
     });
 
-    updateModalUrl();
+    updateAbsensiUrl();
   };
 
-  // Listener Pemilihan Kelas
+  // Listener Pergantian Kelas
   if (classSelectEl) {
     classSelectEl.onchange = (e) => {
       activeClass = e.target.value;
-      classStudents = getFilteredClassStudents(activeClass);
+      classStudents = getFilteredStudentsByClass(activeClass, currentStudents);
       totalClassCount = classStudents.length || 36;
-      if (classBadgeEl) {
-        classBadgeEl.textContent = `${activeClass} (${totalClassCount} Siswa)`;
-      }
-      updateScheduleBadge(activeMapelKey, activeClass);
-      loadSavedAttendanceForClass(activeClass);
+      updateScheduleBadge(activeClass);
+      savedState = getTodaySavedAttendance(teacherCleanNip, activeClass, totalClassCount);
+      absentStudents = [...(savedState.absentStudents || [])];
       renderAttendanceRows();
     };
   }
@@ -766,10 +674,9 @@ async function openTpModalForJournal(formId, formName) {
     };
   }
 
-  // Button Listeners for Attendance
+  // Listener Tombol Tambah Siswa
   if (btnAddAbsent) {
     btnAddAbsent.onclick = () => {
-      // Find first student not yet in absent list
       const availableStudent = classStudents.find(s => !absentStudents.some(a => (a.nis && a.nis === s.nis) || a.name === s.nama_siswa)) || classStudents[0];
       if (availableStudent) {
         absentStudents.push({
@@ -788,15 +695,170 @@ async function openTpModalForJournal(formId, formName) {
     };
   }
 
-  if (btnResetAttendance) {
-    btnResetAttendance.onclick = () => {
+  // Listener Reset Semua Hadir
+  if (btnResetAll) {
+    btnResetAll.onclick = () => {
       absentStudents = [];
       renderAttendanceRows();
       showToast('Presensi di-set Semua Hadir (Nihil)');
     };
   }
 
-  // 5. Fungsi Memuat Silabus & TP untuk Mapel Terpilih
+  // Submit Handler
+  btnSubmit.onclick = () => {
+    closeModal();
+    showToast('Membuka Form Absensi Mengajar...');
+  };
+
+  renderAttendanceRows();
+}
+
+/* ==========================================================================
+   MODAL 2: PEMILIHAN CAPAIAN PEMBELAJARAN (TP) KHUSUS FORM JURNAL MENGAJAR
+   (Presensi Otomatis Mengikuti Data Form Absensi)
+   ========================================================================== */
+async function openTpModalForJournal(formId, formName) {
+  const modal = document.getElementById('modal-select-tp');
+  const mapelSelectEl = document.getElementById('modal-select-tp-mapel');
+  const selectEl = document.getElementById('modal-select-learning-objective');
+  const wrapperSelectObjective = document.getElementById('wrapper-select-learning-objective');
+  const titleEl = document.getElementById('modal-tp-schedule-title');
+  const subEl = document.getElementById('modal-tp-schedule-sub');
+  const previewBox = document.getElementById('modal-tp-preview-box');
+  const counterEl = document.getElementById('modal-tp-counter');
+  const attendSummaryText = document.getElementById('modal-tp-attend-summary-text');
+  const btnSwitchToAbsensi = document.getElementById('btn-tp-switch-to-absensi');
+  const btnSubmit = document.getElementById('btn-submit-tp-modal');
+  const btnClose = document.getElementById('btn-close-tp-modal');
+  const btnCancel = document.getElementById('btn-cancel-tp-modal');
+
+  if (!modal || !selectEl || !btnSubmit) return;
+
+  const closeModal = () => modal.classList.add('hidden');
+  if (btnClose) btnClose.onclick = closeModal;
+  if (btnCancel) btnCancel.onclick = closeModal;
+
+  // Buka Modal Langsung
+  modal.classList.remove('hidden');
+
+  const teacher = activeTeacher || {};
+  const teacherCleanNip = String(teacher.nip || '').replace(/\D/g, '');
+  const now = new Date();
+  const todaySchedule = getActiveTeacherSchedule(teacher, now, currentSchedules);
+
+  // 1. Deteksi Mapel & Kelas
+  const activeMapelName = todaySchedule ? (todaySchedule.mataPelajaran || '') : '';
+  const detectedKelas = todaySchedule ? todaySchedule.kelas : (teacher.class || 'XI TEI 2');
+  const isKelas12 = detectedKelas && (detectedKelas.includes('XII') || detectedKelas.includes('12'));
+
+  let detectedMapelKey = 'koding_ai_xi';
+  const lowerMapel = activeMapelName.toLowerCase();
+  if (lowerMapel.includes('koding') || lowerMapel.includes('kecerdasan') || lowerMapel.includes('artifisial') || lowerMapel.includes('ai')) {
+    detectedMapelKey = 'koding_ai_xi';
+  } else if (lowerMapel.includes('kendali') || lowerMapel.includes('ske') || lowerMapel.includes('pilihan')) {
+    detectedMapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
+  } else {
+    const teachesKoding = currentSchedules.some(s => 
+      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
+      s.mataPelajaran && (s.mataPelajaran.toLowerCase().includes('koding') || s.mataPelajaran.toLowerCase().includes('kecerdasan'))
+    );
+    const teachesSke = currentSchedules.some(s => 
+      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
+      s.mataPelajaran && s.mataPelajaran.toLowerCase().includes('kendali')
+    );
+
+    if (teachesKoding) {
+      detectedMapelKey = 'koding_ai_xi';
+    } else if (teachesSke) {
+      detectedMapelKey = isKelas12 ? 'ske_xii' : 'ske_xi';
+    }
+  }
+
+  const prefMapelKey = localStorage.getItem(`portal_last_mapel_${teacherCleanNip}`) || detectedMapelKey;
+  let activeMapelKey = MAPEL_TP_CONFIG[prefMapelKey] || prefMapelKey === 'custom_manual' ? prefMapelKey : detectedMapelKey;
+
+  if (mapelSelectEl) {
+    mapelSelectEl.value = activeMapelKey;
+  }
+
+  // Update Tampilan Sesi KBM
+  const updateScheduleBadge = (mapelKey) => {
+    const config = MAPEL_TP_CONFIG[mapelKey];
+    const displayMapelTitle = config ? `${config.title} - ${config.label}` : (activeMapelName || 'Materi Kustom / Mandiri');
+    if (titleEl) titleEl.textContent = displayMapelTitle;
+    if (subEl) {
+      const jamKe = todaySchedule ? `Jam Ke: ${todaySchedule.jamKe}` : 'Jam Reguler';
+      const ruang = todaySchedule && todaySchedule.keterangan ? ` | Ruang: ${todaySchedule.keterangan}` : '';
+      subEl.textContent = `Kelas: ${detectedKelas} | ${jamKe}${ruang}`;
+    }
+  };
+  updateScheduleBadge(activeMapelKey);
+
+  // 2. Baca Data Presensi Siswa yang Mengikuti Sesi Hari Ini
+  const classStudents = getFilteredStudentsByClass(detectedKelas, currentStudents);
+  const totalClassCount = classStudents.length || 36;
+  const savedAttend = getTodaySavedAttendance(teacherCleanNip, detectedKelas, totalClassCount);
+
+  if (attendSummaryText) {
+    if (savedAttend.jumlahTidakHadir === 0) {
+      attendSummaryText.innerHTML = `<span style="color: #10b981;"><i class="fa-solid fa-circle-check"></i> ${savedAttend.jumlahHadir} Siswa Hadir (Presensi Nihil)</span>`;
+    } else {
+      attendSummaryText.innerHTML = `
+        <span style="color: #10b981;"><i class="fa-solid fa-circle-check"></i> ${savedAttend.jumlahHadir} Hadir</span> &bull; 
+        <span style="color: #ef4444;"><i class="fa-solid fa-circle-xmark"></i> ${savedAttend.jumlahTidakHadir} Tidak Hadir (${savedAttend.jurnalKet})</span>
+      `;
+    }
+  }
+
+  // Tombol Beralih ke Form Absensi jika Guru ingin mengedit presensi
+  if (btnSwitchToAbsensi) {
+    btnSwitchToAbsensi.onclick = () => {
+      closeModal();
+      openAbsensiModal('form_absensi_mengajar', 'Form Absensi Mengajar');
+    };
+  }
+
+  const targetForm = currentForms.find(f => f.id === formId || (f.name && f.name.toLowerCase().includes('jurnal'))) || {
+    id: 'form_jurnal_mengajar',
+    name: 'Form Jurnal Mengajar Guru'
+  };
+
+  // 3. Fungsi Update Final URL Jurnal
+  const updateModalUrl = () => {
+    const currentMapel = mapelSelectEl ? mapelSelectEl.value : activeMapelKey;
+    const isCustom = currentMapel === 'custom_manual';
+    const config = MAPEL_TP_CONFIG[currentMapel];
+
+    let materiText = '';
+    let meetingNum = '1';
+
+    if (isCustom) {
+      materiText = previewBox ? previewBox.value.trim() : '';
+      if (counterEl) counterEl.textContent = 'Materi Mandiri';
+    } else {
+      const selectedOption = selectEl.options[selectEl.selectedIndex];
+      materiText = previewBox ? previewBox.value.trim() : (selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '');
+      meetingNum = selectedOption ? selectedOption.value : '1';
+      const totalTp = (learningObjectivesCache[currentMapel] && learningObjectivesCache[currentMapel].listTp) ? learningObjectivesCache[currentMapel].listTp.length : 35;
+      if (counterEl) counterEl.textContent = `Pertemuan ${meetingNum} / ${totalTp}`;
+
+      const storageKey = `portal_tp_selected_${teacherCleanNip}_${currentMapel}`;
+      localStorage.setItem(storageKey, meetingNum);
+    }
+
+    const finalMapelName = config ? config.formMapelName : (todaySchedule ? todaySchedule.mataPelajaran : '');
+
+    // Generate Final URL untuk Form Jurnal Mengajar (Dengan Presensi Mengikuti)
+    const journalUrl = generateFormUrlForTeacherModule(targetForm, activeTeacher, new Date(), currentSchedules, {
+      materi: materiText,
+      mapel: finalMapelName,
+      jumlahHadir: savedAttend.jumlahHadir,
+      ketTidakHadir: savedAttend.jurnalKet
+    });
+    btnSubmit.href = journalUrl;
+  };
+
+  // 4. Load Silabus & Materi (CP)
   const loadTpForMapel = async (mapelKey) => {
     activeMapelKey = mapelKey;
     localStorage.setItem(`portal_last_mapel_${teacherCleanNip}`, mapelKey);
@@ -852,14 +914,11 @@ async function openTpModalForJournal(formId, formName) {
     updateModalUrl();
   };
 
-  // Event Listener Pergantian Dropdown Mapel
+  // Event Listeners
   if (mapelSelectEl) {
-    mapelSelectEl.onchange = () => {
-      loadTpForMapel(mapelSelectEl.value);
-    };
+    mapelSelectEl.onchange = () => loadTpForMapel(mapelSelectEl.value);
   }
 
-  // Event Listener Pergantian Dropdown Pertemuan
   selectEl.onchange = () => {
     const selectedOption = selectEl.options[selectEl.selectedIndex];
     const materiText = selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '';
@@ -869,7 +928,6 @@ async function openTpModalForJournal(formId, formName) {
     updateModalUrl();
   };
 
-  // Event Listener Ketik / Edit Langsung pada Kotak Preview Teks Materi
   if (previewBox) {
     previewBox.oninput = () => {
       if (mapelSelectEl && mapelSelectEl.value === 'custom_manual') {
@@ -879,35 +937,15 @@ async function openTpModalForJournal(formId, formName) {
     };
   }
 
-  // Highlight Tombol Utama Sesuai Formulir Asal
-  if (btnOpenAbsensi && btnSubmit) {
-    if (isAbsensiOrigin) {
-      btnOpenAbsensi.className = 'btn btn-primary';
-      btnSubmit.className = 'btn btn-secondary';
-    } else {
-      btnSubmit.className = 'btn btn-primary';
-      btnOpenAbsensi.className = 'btn btn-secondary';
-    }
-  }
-
-  // Initial Load
-  renderAttendanceRows();
-  try {
-    await loadTpForMapel(activeMapelKey);
-  } catch (tpErr) {
-    console.warn('Gagal memuat TP materi:', tpErr);
-  }
-
-  // Setup Tombol Modal
   btnSubmit.onclick = () => {
     closeModal();
     showToast('Membuka Form Jurnal Mengajar...');
   };
-  if (btnOpenAbsensi) {
-    btnOpenAbsensi.onclick = () => {
-      closeModal();
-      showToast('Membuka Form Absensi Mengajar...');
-    };
+
+  try {
+    await loadTpForMapel(activeMapelKey);
+  } catch (tpErr) {
+    console.warn('Gagal memuat TP materi:', tpErr);
   }
 }
 
@@ -1133,21 +1171,28 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
     return;
   }
 
-  // 1. Khusus Form Jurnal Mengajar & Form Absensi Mengajar: Buka Modal Pemilihan Capaian Pembelajaran (TP) & Presensi Dinamis Siswa
+  // 1. Khusus Form Absensi Mengajar: Buka Modal Presensi Siswa Dinamis
   const lowerFormName = (formName || '').toLowerCase();
-  const isKbmOrAttendance = formId === "form_jurnal_mengajar" || 
-                            formId === "form_absensi_mengajar" || 
-                            formId === "form_absensi_guru" || 
-                            lowerFormName.includes("jurnal") || 
-                            lowerFormName.includes("absensi mengajar") ||
-                            lowerFormName.includes("absensi guru");
+  const isAbsensi = formId === "form_absensi_mengajar" || 
+                    formId === "form_absensi_guru" || 
+                    lowerFormName.includes("absensi mengajar") ||
+                    lowerFormName.includes("absensi guru");
 
-  if (isKbmOrAttendance) {
+  if (isAbsensi) {
+    openAbsensiModal(formId, formName);
+    return;
+  }
+
+  // 2. Khusus Form Jurnal Mengajar: Buka Modal Pemilihan Capaian Pembelajaran (TP)
+  const isJurnal = formId === "form_jurnal_mengajar" || 
+                   lowerFormName.includes("jurnal");
+
+  if (isJurnal) {
     openTpModalForJournal(formId, formName);
     return;
   }
 
-  // 2. Untuk Form Lain: Cek Riwayat Pengisian
+  // 3. Untuk Form Lain: Cek Riwayat Pengisian
   const cleanNip = activeTeacher.nip.replace(/[\s\.\-]+/g, '');
 
   try {
