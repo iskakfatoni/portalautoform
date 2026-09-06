@@ -2547,6 +2547,7 @@ body.light-mode .school-badge-pill {
   animation: modalPop 0.25s ease-out forwards;
   display: flex;
   flex-direction: column;
+  max-height: calc(100vh - 24px);
   max-height: calc(100dvh - 24px);
   overflow: hidden;
 }

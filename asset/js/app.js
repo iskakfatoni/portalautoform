@@ -1224,7 +1224,9 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
   if (event) event.preventDefault();
 
   if (!activeTeacher || !activeTeacher.nip) {
-    window.open(generatedUrl, '_blank');
+    if (generatedUrl && generatedUrl !== '#') {
+      window.location.href = generatedUrl;
+    }
     return;
   }
 
