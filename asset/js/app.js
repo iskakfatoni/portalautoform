@@ -517,11 +517,13 @@ async function openAbsensiModal(formId, formName) {
   modal.classList.remove('hidden');
 
   // Pastikan data siswa telah dimuat
-  if (!currentStudents || currentStudents.length === 0) {
+  if (!currentStudents || !Array.isArray(currentStudents) || currentStudents.length === 0) {
     try {
-      currentStudents = await fetchStudents();
+      const loaded = await fetchStudents();
+      currentStudents = Array.isArray(loaded) ? loaded : [];
     } catch (e) {
       console.warn('Gagal memuat siswa dari Firestore:', e);
+      currentStudents = [];
     }
   }
 

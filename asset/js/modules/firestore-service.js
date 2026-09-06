@@ -81,7 +81,7 @@ export async function fetchCollection(collectionName) {
 // 3b. Fetch Students (Master Siswa Cloud Firestore)
 export async function fetchStudents() {
   let list = await fetchCollection('siswa');
-  if (!list || list.length === 0) {
+  if (!list || !Array.isArray(list) || list.length === 0) {
     const cached = localStorage.getItem('portal_students_cache');
     if (cached) {
       try {
@@ -92,7 +92,11 @@ export async function fetchStudents() {
     }
   }
 
-  if (list && list.length > 0) {
+  if (!list || !Array.isArray(list)) {
+    list = [];
+  }
+
+  if (list.length > 0) {
     try {
       localStorage.setItem('portal_students_cache', JSON.stringify(list));
     } catch (e) {}
