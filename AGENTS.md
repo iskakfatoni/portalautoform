@@ -45,9 +45,13 @@ Setiap modifikasi logika *schedule resolver* atau tautan otomatisasi Google Form
 
 ---
 
-## 5. 📱 Perintah Khusus /buildapk (Android Build & Deploy)
-Jika pengguna memanggil perintah `/buildapk`:
-* Jalankan script otomatis [`asset/tools/build_apk.ps1`](file:///c:/Users/iskak/Antigravity-Projetcs/portalautoform/asset/tools/build_apk.ps1).
-* Output APK akan dikompilasi dari `c:\Users\iskak\Antigravity-Projetcs\PORTAL-AutoForm-ANDROID` dan otomatis disalin/ditimpa ke:
-  `D:\Cloud\ISKAK\GOOGLE DRIVE\SHARE\APP ANDROID\PORTAL-AUTOFOORM\PORTAL-AutoForm.apk`
+## 5. 📱 Perintah Khusus /buildapk & Penanganan Repo Android
+* **Repo Android (`PORTAL-AutoForm-ANDROID`):**
+  * Dikelola dan di-handle langsung oleh pengguna melalui Android Studio.
+  * **AI Agent DILARANG melakukan `git push`** pada repository Android.
+* Jika pengguna memanggil perintah `/buildapk`:
+  * Jalankan script otomatis [`asset/tools/build_apk.ps1`](file:///c:/Users/iskak/Antigravity-Projetcs/portalautoform/asset/tools/build_apk.ps1).
+  * Output APK akan dikompilasi dari `c:\Users\iskak\Antigravity-Projetcs\PORTAL-AutoForm-ANDROID` dan otomatis disalin/ditimpa ke:
+    `D:\Cloud\ISKAK\GOOGLE DRIVE\SHARE\APP ANDROID\PORTAL-AUTOFOORM\PORTAL-AutoForm.apk`
+
 
