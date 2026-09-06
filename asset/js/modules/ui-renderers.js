@@ -6,6 +6,54 @@
 import { sortAndNormalizeForms } from './schedule-resolver.js';
 import { sortTeachersByMasterOrder } from './excel-service.js';
 
+const DEFAULT_MASTER_FORMS = [
+  {
+    id: "form_absensi_mengajar",
+    name: "Form Absensi Mengajar",
+    category: "Absensi Mengajar",
+    icon: "fa-solid fa-clipboard-user",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfrm87oC00zamhQQBP4LS5BcwxSHa97M9plvLpYUHQ7dR-ybQ/viewform",
+    isActive: true,
+    order: 1
+  },
+  {
+    id: "form_jurnal_mengajar",
+    name: "Form Jurnal Mengajar",
+    category: "Jurnal Mengajar",
+    icon: "fa-solid fa-book-bookmark",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform",
+    isActive: true,
+    order: 2
+  },
+  {
+    id: "form_absensi_piket",
+    name: "Form Absensi Guru Piket",
+    category: "Piket",
+    icon: "fa-solid fa-user-shield",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeqL7g8V929dSqE1t_3y8oRgZe_fUJ_mC-V1rlroRzVWcns2w/viewform",
+    isActive: true,
+    order: 3
+  },
+  {
+    id: "form_wali_kelas",
+    name: "Pengumpulan Laporan Wali Kelas",
+    category: "Wali Kelas",
+    icon: "fa-solid fa-user-tie",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLScD-3NZu95GMfCK1w-q3lw-iV7nbQ1wcKldsKi12NG6bu0rRA/viewform",
+    isActive: true,
+    order: 4
+  },
+  {
+    id: "form_guru_wali",
+    name: "Form Pendampingan Guru Wali",
+    category: "Guru Wali",
+    icon: "fa-solid fa-people-roof",
+    baseUrl: "https://docs.google.com/forms/d/e/1FAIpQLSeVYQG1tPodad-cUyHW5Mzx3CmO3L8GOx8AzWXajJqYkqbkBg/viewform",
+    isActive: true,
+    order: 5
+  }
+];
+
 export function renderUserPortal(currentForms, activeTeacher, generateFormUrlForTeacher) {
   const container = document.getElementById('portal-forms-grid');
   const weekendBanner = document.getElementById('weekend-holiday-banner');
@@ -23,7 +71,8 @@ export function renderUserPortal(currentForms, activeTeacher, generateFormUrlFor
     }
   }
 
-  const normalized = sortAndNormalizeForms(currentForms);
+  const rawForms = (currentForms && currentForms.length > 0) ? currentForms : DEFAULT_MASTER_FORMS;
+  const normalized = sortAndNormalizeForms(rawForms);
   const activeForms = normalized.filter(f => f.isActive !== false);
 
   if (activeForms.length === 0) {
