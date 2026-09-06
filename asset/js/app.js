@@ -16,6 +16,7 @@ import {
   fetchTeachers,
   fetchForms,
   fetchSchedules,
+  fetchStudents,
   saveTeacherToFirestore,
   updateTeacherPin,
   deleteTeacherFromFirestore,
@@ -63,15 +64,45 @@ function getActiveTeacherSchedule(teacher, now = new Date()) {
 }
 
 function generateFormUrlForTeacher(form, teacher) {
-  return generateFormUrlForTeacherModule(form, teacher, new Date(), currentSchedules, {
+  const now = new Date();
+  const todaySchedule = getActiveTeacherSchedule(teacher, now);
+  const currentKelas = todaySchedule ? todaySchedule.kelas : (teacher ? teacher.class : '');
+  const teacherCleanNip = teacher && teacher.nip ? String(teacher.nip).replace(/\D/g, '') : '';
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const dateKey = `${yyyy}-${mm}-${dd}`;
+
+  // Cek jika ada simpanan presensi untuk sesi ini
+  const savedAttendStr = localStorage.getItem(`portal_attend_${teacherCleanNip}_${currentKelas}_${dateKey}`);
+  let customOpts = {
     materi: selectedLearningObjectiveMateri
-  });
+  };
+
+  if (savedAttendStr) {
+    try {
+      const saved = JSON.parse(savedAttendStr);
+      customOpts.jumlahHadir = saved.jumlahHadir;
+      const isAbsensi = form.id === "form_absensi_guru" || form.id === "form_absensi_mengajar" || (form.name && form.name.toLowerCase().includes("absensi mengajar"));
+      customOpts.ketTidakHadir = isAbsensi ? saved.absensiKet : saved.jurnalKet;
+    } catch (e) {}
+  } else if (currentStudents && currentStudents.length > 0 && currentKelas) {
+    const normalizedTargetClass = currentKelas.replace(/\s+/g, ' ').toLowerCase();
+    const classCount = currentStudents.filter(s => (s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase() === normalizedTargetClass).length;
+    if (classCount > 0) {
+      customOpts.jumlahHadir = classCount;
+      customOpts.ketTidakHadir = "Nihil";
+    }
+  }
+
+  return generateFormUrlForTeacherModule(form, teacher, now, currentSchedules, customOpts);
 }
 
 // State Aplikasi (100% Murni Dimuat Real-Time dari Cloud Firestore)
 let currentTeachers = [];
 let currentForms = [];
 let currentSchedules = [];
+let currentStudents = [];
 let activeTeacher = null;
 let currentUser = null;
 
@@ -355,7 +386,7 @@ const MAPEL_TP_CONFIG = {
   }
 };
 
-// Buka Modal Pemilihan Capaian Pembelajaran (TP) Khusus saat Form Jurnal Diklik
+// Buka Modal Pemilihan Capaian Pembelajaran (TP) & Presensi Dinamis Siswa
 async function openTpModalForJournal(formId, formName) {
   const modal = document.getElementById('modal-select-tp');
   const mapelSelectEl = document.getElementById('modal-select-tp-mapel');
@@ -366,8 +397,17 @@ async function openTpModalForJournal(formId, formName) {
   const previewBox = document.getElementById('modal-tp-preview-box');
   const counterEl = document.getElementById('modal-tp-counter');
   const btnSubmit = document.getElementById('btn-submit-tp-modal');
+  const btnOpenAbsensi = document.getElementById('btn-open-absensi-from-modal');
   const btnClose = document.getElementById('btn-close-tp-modal');
   const btnCancel = document.getElementById('btn-cancel-tp-modal');
+
+  // Attendance UI Elements
+  const classBadgeEl = document.getElementById('modal-attendance-class-badge');
+  const presentCountEl = document.getElementById('modal-attend-present-count');
+  const absentCountEl = document.getElementById('modal-attend-absent-count');
+  const absentListEl = document.getElementById('modal-attend-absent-list');
+  const btnAddAbsent = document.getElementById('btn-add-absent-student');
+  const btnResetAttendance = document.getElementById('btn-reset-attendance-all-present');
 
   if (!modal || !selectEl || !btnSubmit) return;
 
@@ -408,7 +448,6 @@ async function openTpModalForJournal(formId, formName) {
   const prefMapelKey = localStorage.getItem(`portal_last_mapel_${teacherCleanNip}`) || detectedMapelKey;
   let activeMapelKey = MAPEL_TP_CONFIG[prefMapelKey] || prefMapelKey === 'custom_manual' ? prefMapelKey : detectedMapelKey;
 
-  // Set nilai dropdown mapel
   if (mapelSelectEl) {
     mapelSelectEl.value = activeMapelKey;
   }
@@ -430,7 +469,42 @@ async function openTpModalForJournal(formId, formName) {
     name: 'Form Jurnal Mengajar Guru'
   };
 
-  // 2. Fungsi Regenerasi Final URL ke Google Form
+  const absensiForm = currentForms.find(f => f.id === 'form_absensi_guru' || f.id === 'form_absensi_mengajar' || (f.name && f.name.toLowerCase().includes('absensi mengajar'))) || {
+    id: 'form_absensi_mengajar',
+    name: 'Form Absensi Mengajar'
+  };
+
+  // 2. Filter Siswa Sesuai Kelas Aktif
+  const normalizedCurrentClass = String(currentKelas || '').replace(/\s+/g, ' ').toLowerCase();
+  let classStudents = currentStudents.filter(s => {
+    const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase();
+    return sClass === normalizedCurrentClass || sClass.includes(normalizedCurrentClass) || normalizedCurrentClass.includes(sClass);
+  });
+
+  const totalClassCount = classStudents.length || 36;
+  if (classBadgeEl) {
+    classBadgeEl.textContent = `${currentKelas} (${totalClassCount} Siswa)`;
+  }
+
+  // Load Saved Attendance
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const dateKey = `${yyyy}-${mm}-${dd}`;
+  const attendStorageKey = `portal_attend_${teacherCleanNip}_${currentKelas}_${dateKey}`;
+
+  let absentStudents = [];
+  const savedAttendStr = localStorage.getItem(attendStorageKey);
+  if (savedAttendStr) {
+    try {
+      const parsed = JSON.parse(savedAttendStr);
+      if (Array.isArray(parsed.absentStudents)) {
+        absentStudents = parsed.absentStudents;
+      }
+    } catch (e) {}
+  }
+
+  // 3. Fungsi Regenerasi Final URL ke Google Form (Jurnal & Absensi)
   const updateModalUrl = () => {
     const currentMapel = mapelSelectEl ? mapelSelectEl.value : activeMapelKey;
     const isCustom = currentMapel === 'custom_manual';
@@ -453,19 +527,166 @@ async function openTpModalForJournal(formId, formName) {
       localStorage.setItem(storageKey, meetingNum);
     }
 
-    // Tentukan Nama Mapel yang dikirim ke Google Form
     const finalMapelName = config ? config.formMapelName : (todaySchedule ? todaySchedule.mataPelajaran : '');
 
-    // Generate Final URL langsung ke tombol submit
-    const url = generateFormUrlForTeacherModule(targetForm, activeTeacher, new Date(), currentSchedules, {
-      materi: materiText,
-      mapel: finalMapelName
-    });
+    // Hitung Kehadiran Dinamis
+    const jumlahTidakHadir = absentStudents.length;
+    const jumlahHadir = Math.max(0, totalClassCount - jumlahTidakHadir);
+    const absensiKet = jumlahTidakHadir === 0 ? "Nihil" : `${jumlahTidakHadir} (${absentStudents.map(a => `${a.name}: ${a.reason}`).join(', ')})`;
+    const jurnalKet = jumlahTidakHadir === 0 ? "Nihil" : absentStudents.map(a => `${a.name} (${a.reason})`).join(', ');
 
-    btnSubmit.href = url;
+    // Simpan ke localStorage
+    localStorage.setItem(attendStorageKey, JSON.stringify({
+      absentStudents,
+      jumlahHadir,
+      jumlahTidakHadir,
+      absensiKet,
+      jurnalKet
+    }));
+
+    // Generate Final URL untuk Form Jurnal
+    const journalUrl = generateFormUrlForTeacherModule(targetForm, activeTeacher, new Date(), currentSchedules, {
+      materi: materiText,
+      mapel: finalMapelName,
+      jumlahHadir: jumlahHadir,
+      ketTidakHadir: jurnalKet
+    });
+    btnSubmit.href = journalUrl;
+
+    // Generate Final URL untuk Form Absensi
+    if (btnOpenAbsensi) {
+      const absensiUrl = generateFormUrlForTeacherModule(absensiForm, activeTeacher, new Date(), currentSchedules, {
+        jumlahHadir: jumlahHadir,
+        ketTidakHadir: absensiKet
+      });
+      btnOpenAbsensi.href = absensiUrl;
+    }
   };
 
-  // 3. Fungsi Memuat Silabus & TP untuk Mapel Terpilih
+  // 4. Render Dynamic Attendance UI
+  const renderAttendanceRows = () => {
+    const jumlahTidakHadir = absentStudents.length;
+    const jumlahHadir = Math.max(0, totalClassCount - jumlahTidakHadir);
+
+    if (presentCountEl) presentCountEl.textContent = `${jumlahHadir} Siswa`;
+    if (absentCountEl) {
+      if (jumlahTidakHadir === 0) {
+        absentCountEl.textContent = "0 (Nihil)";
+        absentCountEl.style.color = "#10b981";
+      } else {
+        absentCountEl.textContent = `${jumlahTidakHadir} Siswa`;
+        absentCountEl.style.color = "#ef4444";
+      }
+    }
+
+    if (!absentListEl) return;
+
+    if (absentStudents.length === 0) {
+      absentListEl.innerHTML = `
+        <div style="font-size: 0.78rem; color: var(--text-secondary); font-style: italic; padding: 4px 0; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Semua siswa hadir (Presensi Nihil).
+        </div>
+      `;
+      updateModalUrl();
+      return;
+    }
+
+    const isLightMode = document.body.classList.contains('light-mode');
+    const optBg = isLightMode ? '#ffffff' : '#171f33';
+    const optColor = isLightMode ? '#0f172a' : '#f8fafc';
+
+    absentListEl.innerHTML = absentStudents.map((item, idx) => {
+      const studentOptions = classStudents.map(s => {
+        const isSel = (s.nis && s.nis === item.nis) || (s.nama_siswa === item.name);
+        return `<option value="${s.nis || s.nama_siswa}" data-nama="${s.nama_siswa}" style="background-color: ${optBg} !important; color: ${optColor} !important;" ${isSel ? 'selected' : ''}>${s.nama_siswa} (${s.nis || '-'})</option>`;
+      }).join('');
+
+      return `
+        <div class="absent-student-row" data-index="${idx}" style="display: flex; gap: 6px; align-items: center;">
+          <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); width: 16px;">${idx + 1}.</span>
+          <select class="form-control select-absent-student" data-index="${idx}" style="flex: 2; padding: 0.45rem 0.6rem; font-size: 0.8rem; border-radius: var(--radius-sm); background-color: #171f33 !important; border: 1px solid rgba(255,255,255,0.15) !important; color: #f8fafc !important;">
+            ${studentOptions}
+          </select>
+          <select class="form-control select-absent-reason" data-index="${idx}" style="flex: 1.2; padding: 0.45rem 0.6rem; font-size: 0.8rem; border-radius: var(--radius-sm); background-color: #171f33 !important; border: 1px solid rgba(255,255,255,0.15) !important; color: #f8fafc !important;">
+            <option value="Sakit" ${item.reason === 'Sakit' ? 'selected' : ''}>🤒 Sakit</option>
+            <option value="Izin" ${item.reason === 'Izin' ? 'selected' : ''}>✉️ Izin</option>
+            <option value="Alfa" ${item.reason === 'Alfa' ? 'selected' : ''}>⚠️ Alfa</option>
+            <option value="Dispensasi" ${item.reason === 'Dispensasi' ? 'selected' : ''}>🏷️ Dispensasi</option>
+          </select>
+          <button type="button" class="btn-delete-absent" data-index="${idx}" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; width: 28px; height: 28px; border-radius: var(--radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;" title="Hapus">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    // Attach row change listeners
+    absentListEl.querySelectorAll('.select-absent-student').forEach(sel => {
+      sel.onchange = (e) => {
+        const index = parseInt(e.target.getAttribute('data-index'), 10);
+        const selectedOpt = e.target.options[e.target.selectedIndex];
+        const studentName = selectedOpt.getAttribute('data-nama') || selectedOpt.text;
+        const studentNis = e.target.value;
+        if (absentStudents[index]) {
+          absentStudents[index].nis = studentNis;
+          absentStudents[index].name = studentName;
+          renderAttendanceRows();
+        }
+      };
+    });
+
+    absentListEl.querySelectorAll('.select-absent-reason').forEach(sel => {
+      sel.onchange = (e) => {
+        const index = parseInt(e.target.getAttribute('data-index'), 10);
+        if (absentStudents[index]) {
+          absentStudents[index].reason = e.target.value;
+          updateModalUrl();
+        }
+      };
+    });
+
+    absentListEl.querySelectorAll('.btn-delete-absent').forEach(btn => {
+      btn.onclick = (e) => {
+        const index = parseInt(btn.getAttribute('data-index'), 10);
+        absentStudents.splice(index, 1);
+        renderAttendanceRows();
+      };
+    });
+
+    updateModalUrl();
+  };
+
+  // Button Listeners for Attendance
+  if (btnAddAbsent) {
+    btnAddAbsent.onclick = () => {
+      // Find first student not yet in absent list
+      const availableStudent = classStudents.find(s => !absentStudents.some(a => a.nis === s.nis || a.name === s.nama_siswa)) || classStudents[0];
+      if (availableStudent) {
+        absentStudents.push({
+          nis: availableStudent.nis || '',
+          name: availableStudent.nama_siswa || 'Siswa',
+          reason: 'Sakit'
+        });
+      } else {
+        absentStudents.push({
+          nis: '',
+          name: `Siswa ${absentStudents.length + 1}`,
+          reason: 'Sakit'
+        });
+      }
+      renderAttendanceRows();
+    };
+  }
+
+  if (btnResetAttendance) {
+    btnResetAttendance.onclick = () => {
+      absentStudents = [];
+      renderAttendanceRows();
+      showToast('Presensi di-set Semua Hadir (Nihil)');
+    };
+  }
+
+  // 5. Fungsi Memuat Silabus & TP untuk Mapel Terpilih
   const loadTpForMapel = async (mapelKey) => {
     activeMapelKey = mapelKey;
     localStorage.setItem(`portal_last_mapel_${teacherCleanNip}`, mapelKey);
@@ -488,7 +709,6 @@ async function openTpModalForJournal(formId, formName) {
 
     if (wrapperSelectObjective) wrapperSelectObjective.style.display = 'block';
 
-    // Load dari cache Firestore jika belum tersedia
     if (!learningObjectivesCache[mapelKey]) {
       showToast('Memuat silabus materi KBM...');
       learningObjectivesCache[mapelKey] = await fetchLearningObjectives(mapelKey);
@@ -513,7 +733,6 @@ async function openTpModalForJournal(formId, formName) {
       selectEl.innerHTML = `<option value="1" data-materi="" style="background-color: ${optBg} !important; color: ${optColor} !important;">(Gunakan teks materi standar)</option>`;
     }
 
-    // Set teks awal preview box dari pilihan yang aktif
     const selectedOption = selectEl.options[selectEl.selectedIndex];
     const initialMateri = selectedOption ? decodeURIComponent(selectedOption.getAttribute('data-materi') || '') : '';
     if (previewBox) {
@@ -550,7 +769,8 @@ async function openTpModalForJournal(formId, formName) {
     };
   }
 
-  // Inisialisasi awal saat modal dibuka
+  // Initial Load
+  renderAttendanceRows();
   await loadTpForMapel(activeMapelKey);
 
   // Setup Tombol Modal
@@ -561,6 +781,12 @@ async function openTpModalForJournal(formId, formName) {
     closeModal();
     showToast('Membuka Form Jurnal Mengajar...');
   };
+  if (btnOpenAbsensi) {
+    btnOpenAbsensi.onclick = () => {
+      closeModal();
+      showToast('Membuka Form Absensi Mengajar...');
+    };
+  }
 
   modal.classList.remove('hidden');
 }
@@ -607,10 +833,11 @@ function setupFirebaseConnection() {
 
 async function fetchFirestoreData() {
   try {
-    const [teachers, forms, schedules] = await Promise.all([
+    const [teachers, forms, schedules, students] = await Promise.all([
       fetchTeachers(),
       fetchForms(),
-      fetchSchedules()
+      fetchSchedules(),
+      fetchStudents()
     ]);
 
     if (teachers && teachers.length > 0) {
@@ -622,8 +849,11 @@ async function fetchFirestoreData() {
     if (schedules && schedules.length > 0) {
       currentSchedules = schedules;
     }
+    if (students && students.length > 0) {
+      currentStudents = students;
+    }
 
-    console.log(`🔥 [App] Dimuat dari Firestore: ${currentTeachers.length} Guru, ${currentForms.length} Form, ${currentSchedules.length} Jadwal`);
+    console.log(`🔥 [App] Dimuat dari Firestore: ${currentTeachers.length} Guru, ${currentForms.length} Form, ${currentSchedules.length} Jadwal, ${currentStudents.length} Siswa`);
   } catch (err) {
     console.error("❌ Error memuat data Firestore:", err);
   }

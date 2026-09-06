@@ -19,9 +19,8 @@ Dokumen ini berisi dokumentasi resmi mengenai aturan logika bisnis, pemetaan par
 | 3 | **HARI/TANGGAL** | `entry.1708105874` | ⚡ **Auto-Fill** | Tanggal hari ini (Format ISO: `YYYY-MM-DD`) |
 | 4 | **JAM KE** | `entry.585996771` | ⚡ **Auto-Fill** | Sesi jam pelajaran (contoh: `1-2`, `1-4`, `5-8`) |
 | 5 | **KELAS** | `entry.666017338` | ⚡ **Auto-Fill** | Nama kelas yang diajar (Spasi presisi: `XII  TEI 2`) |
-| 6 | **MATA PELAJARAN** | `entry.73505426` | ⚡ **Auto-Fill** | Nama mata pelajaran yang diampu sesuai jadwal |
-| 7 | **JUMLAH SISWA HADIR** | `entry.849827907` | ✍️ *Manual* | Dikosongkan (diisi manual oleh guru di kelas) |
-| 8 | **SISWA TIDAK HADIR** | `entry.1015848753` | ✍️ *Manual* | Dikosongkan (diisi manual oleh guru di kelas) |
+| 7 | **JUMLAH SISWA HADIR** | `entry.849827907` | ⚡ **Auto-Fill** | Dihitung otomatis (Total Kelas - Siswa Tidak Hadir) |
+| 8 | **JUMLAH & KET. SISWA TIDAK HADIR** | `entry.1015848753` | ⚡ **Auto-Fill** | Otomatis: `Nihil` atau `2 (Ahmad: Sakit, Budi: Izin)` |
 | 9 | **UPLOAD DOKUMENTASI** | `entry.1997017466` | 📸 *Manual* | Dikosongkan (untuk unggah foto bukti KBM) |
 
 ---

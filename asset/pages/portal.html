@@ -351,7 +351,7 @@
       <div class="modal-card" style="max-width: 540px; margin: auto; padding: 0; overflow: hidden;">
         <div class="modal-header" style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface);">
           <h3 style="color: var(--accent-primary); font-size: 1.15rem; margin: 0; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-book-journal-whills"></i> Form Jurnal Mengajar
+            <i class="fa-solid fa-book-journal-whills"></i> Form Jurnal & Presensi KBM
           </h3>
           <button class="modal-close-btn" id="btn-close-tp-modal" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary);"><i class="fa-solid fa-xmark"></i></button>
         </div>
@@ -395,19 +395,61 @@
           </div>
 
           <!-- Preview & Edit Teks Capaian Pembelajaran -->
-          <div style="text-align: left;">
+          <div style="text-align: left; margin-bottom: 1.25rem;">
             <label for="modal-tp-preview-box" style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
               <span><i class="fa-solid fa-quote-left"></i> Rumusan Capaian Materi (Dapat Diedit):</span>
               <span style="font-size: 0.72rem; color: var(--accent-primary);"><i class="fa-solid fa-pen"></i> Teks Auto-Fill</span>
             </label>
-            <textarea id="modal-tp-preview-box" class="form-control" rows="3" style="width: 100%; font-size: 0.84rem; color: var(--text-primary); background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: var(--radius-md); line-height: 1.5; resize: vertical; min-height: 68px;" placeholder="Tulis capaian atau materi pembelajaran pertemuan ini..."></textarea>
+            <textarea id="modal-tp-preview-box" class="form-control" rows="3" style="width: 100%; font-size: 0.84rem; color: var(--text-primary); background: var(--bg-surface); border: 1px solid var(--border-color); padding: 0.75rem 1rem; border-radius: var(--radius-md); line-height: 1.5; resize: vertical; min-height: 62px;" placeholder="Tulis capaian atau materi pembelajaran pertemuan ini..."></textarea>
+          </div>
+
+          <!-- Bagian Presensi Kehadiran Siswa Dinamis -->
+          <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: var(--radius-md); padding: 1rem; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 0.82rem; font-weight: 700; color: #10b981; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-users-viewfinder"></i> Presensi Kehadiran Siswa KBM
+              </span>
+              <span id="modal-attendance-class-badge" style="font-size: 0.74rem; background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 2px 8px; border-radius: 12px; font-weight: 700;">
+                Memuat Siswa...
+              </span>
+            </div>
+
+            <!-- Rekap Hadir & Tidak Hadir Pills -->
+            <div style="display: flex; gap: 8px; margin-bottom: 10px; font-size: 0.82rem; font-weight: 600;">
+              <div style="flex: 1; background: var(--bg-surface); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> Hadir:</span>
+                <span id="modal-attend-present-count" style="color: #10b981; font-weight: 700; font-size: 0.95rem;">-</span>
+              </div>
+              <div style="flex: 1; background: var(--bg-surface); padding: 6px 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: var(--text-secondary);"><i class="fa-solid fa-circle-xmark" style="color: #ef4444;"></i> Tidak Hadir:</span>
+                <span id="modal-attend-absent-count" style="color: #ef4444; font-weight: 700; font-size: 0.95rem;">0 (Nihil)</span>
+              </div>
+            </div>
+
+            <!-- Container Baris Siswa Tidak Hadir Dinamis -->
+            <div id="modal-attend-absent-list" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+              <!-- Dynamic Rows Added by JS -->
+            </div>
+
+            <!-- Action Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(16, 185, 129, 0.2);">
+              <button type="button" id="btn-add-absent-student" class="btn" style="font-size: 0.78rem; padding: 5px 10px; background: rgba(16, 185, 129, 0.12); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); border-radius: var(--radius-sm); cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;">
+                <i class="fa-solid fa-user-plus"></i> + Tambah Siswa Tidak Hadir
+              </button>
+              <button type="button" id="btn-reset-attendance-all-present" style="background: none; border: none; font-size: 0.75rem; color: #10b981; cursor: pointer; text-decoration: underline; font-weight: 600;">
+                Set Semua Hadir (Nihil)
+              </button>
+            </div>
           </div>
 
         </div>
-        <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 10px; justify-content: flex-end; background: var(--bg-surface);">
-          <button type="button" class="btn btn-secondary" id="btn-cancel-tp-modal">Batal</button>
-          <a href="#" id="btn-submit-tp-modal" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; text-decoration: none;">
-            <span>Lanjut Buka Google Form</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        <div class="modal-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; gap: 8px; justify-content: flex-end; align-items: center; background: var(--bg-surface); flex-wrap: wrap;">
+          <button type="button" class="btn btn-secondary" id="btn-cancel-tp-modal" style="font-size: 0.85rem; padding: 0.6rem 1rem;">Tutup</button>
+          <a href="#" id="btn-open-absensi-from-modal" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 0.85rem; padding: 0.6rem 1rem; text-decoration: none; border-color: rgba(99,102,241,0.4); color: var(--accent-primary);">
+            <i class="fa-solid fa-clipboard-user"></i> <span>Form Absensi</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
+          </a>
+          <a href="#" id="btn-submit-tp-modal" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.85rem; padding: 0.6rem 1.2rem; text-decoration: none;">
+            <i class="fa-solid fa-book-journal-whills"></i> <span>Buka Form Jurnal</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.72rem;"></i>
           </a>
         </div>
       </div>

@@ -147,10 +147,20 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
       }
     }
 
+    // Auto-Fill Presensi Siswa (Jumlah Siswa Hadir & Siswa Tidak Hadir)
+    const entryHadirKey = form.entryJumlahHadir || "entry.849827907";
+    const entryTidakHadirKey = form.entryKetTidakHadir || "entry.1015848753";
+    if (customOptions && customOptions.jumlahHadir !== undefined && customOptions.jumlahHadir !== null) {
+      params.set(entryHadirKey, String(customOptions.jumlahHadir));
+    }
+    if (customOptions && customOptions.ketTidakHadir !== undefined && customOptions.ketTidakHadir !== null && String(customOptions.ketTidakHadir).trim() !== '') {
+      params.set(entryTidakHadirKey, String(customOptions.ketTidakHadir).trim());
+    }
+
     return `${targetUrl}?${params.toString()}`;
   }
 
-  // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal KBM Lengkap (Jam Ke, Kelas, Mapel, Capaian Materi)
+  // 2. Form Jurnal Mengajar Pribadi Guru dengan Auto-Fill Jadwal KBM Lengkap (Jam Ke, Kelas, Mapel, Capaian Materi, Presensi)
   const isJurnalForm = form.id === "form_jurnal_mengajar" || (form.name && form.name.toLowerCase().includes("jurnal")) || form.category === "Jurnal Mengajar";
   if (isJurnalForm) {
     const rawUrl = (teacher && teacher.journalFormUrl && teacher.journalFormUrl.trim() !== '' && teacher.journalFormUrl !== '-') 
@@ -190,6 +200,16 @@ export function generateFormUrlForTeacher(form, teacher, now = new Date(), curre
     const selectedMateri = (customOptions && customOptions.materi) || (todaySchedule && todaySchedule.materi);
     if (selectedMateri && String(selectedMateri).trim() !== '') {
       params.set(entryMateriKey, String(selectedMateri).trim());
+    }
+
+    // Auto-Fill Presensi Siswa di Form Jurnal (Jumlah Hadir: entry.849827907, Keterangan: entry.1997017466 / entry.1015848753)
+    const journalHadirKey = form.entryJumlahHadir || "entry.849827907";
+    const journalTidakHadirKey = form.entryKetTidakHadir || "entry.1997017466";
+    if (customOptions && customOptions.jumlahHadir !== undefined && customOptions.jumlahHadir !== null) {
+      params.set(journalHadirKey, String(customOptions.jumlahHadir));
+    }
+    if (customOptions && customOptions.ketTidakHadir !== undefined && customOptions.ketTidakHadir !== null && String(customOptions.ketTidakHadir).trim() !== '') {
+      params.set(journalTidakHadirKey, String(customOptions.ketTidakHadir).trim());
     }
 
     return `${targetUrl}?${params.toString()}`;
@@ -299,7 +319,9 @@ export function sortAndNormalizeForms(formsList) {
         entryTanggal: "entry.1708105874",
         entryJamKe: "entry.585996771",
         entryKelas: "entry.666017338",
-        entryMapel: "entry.73505426"
+        entryMapel: "entry.73505426",
+        entryJumlahHadir: "entry.849827907",
+        entryKetTidakHadir: "entry.1015848753"
       };
     }
     const isPiket = f.id === "form_absensi_piket" || (f.name && f.name.toLowerCase().includes("piket")) || f.category === "Piket";

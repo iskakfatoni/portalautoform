@@ -64,7 +64,7 @@ export async function fetchCollection(collectionName) {
   // 2. Instant Fail-Safe via Firestore REST API
   try {
     const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=100&key=${apiKey}`;
+    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=300&key=${apiKey}`;
     const resp = await fetch(url);
     if (resp.ok) {
       const data = await resp.json();
@@ -76,6 +76,33 @@ export async function fetchCollection(collectionName) {
   }
 
   return [];
+}
+
+// 3b. Fetch Students (Master Siswa Cloud Firestore)
+export async function fetchStudents() {
+  let list = await fetchCollection('siswa');
+  if (!list || list.length === 0) {
+    const cached = localStorage.getItem('portal_students_cache');
+    if (cached) {
+      try {
+        list = JSON.parse(cached);
+      } catch (e) {
+        list = [];
+      }
+    }
+  }
+
+  if (list && list.length > 0) {
+    try {
+      localStorage.setItem('portal_students_cache', JSON.stringify(list));
+    } catch (e) {}
+  }
+
+  return list.sort((a, b) => {
+    const classComp = (a.nama_kelas || '').localeCompare(b.nama_kelas || '');
+    if (classComp !== 0) return classComp;
+    return (a.nama_siswa || '').localeCompare(b.nama_siswa || '');
+  });
 }
 
 // Default Fallback Master Guru (Primary Admin/Creator)

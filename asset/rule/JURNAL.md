@@ -17,13 +17,11 @@ Dokumen ini berisi spesifikasi teknis, pemetaan field (Entry ID), dan logika oto
 | 1 | **HARI/TANGGAL** | `entry.1708105874` | Date | Tanggal Hari Ini (`YYYY-MM-DD`) | `2026-08-17` |
 | 2 | **JAM KE** | `entry.585996771` | Short Text / Dropdown | Jam Ke dari Jadwal Aktif | `1-4` atau `5-6` |
 | 3 | **KELAS** | `entry.666017338` | Multiple Choice / Dropdown | Kelas Resmi dari Jadwal Aktif | `XII  TEI 2` |
-| 4 | **MATA PELAJARAN** | `entry.73505426` | Short Text / Dropdown | Mapel dari Jadwal Aktif | `Mapel Pilihan dan Sistem Kendali Elektronika` |
-| 5 | **CAPAIAN / MATERI** | `entry.1059038821` | Paragraph | Master TP / Pilihan Materi Guru | `Mengidentifikasi spesifikasi teknis ATmega328P...` |
-| 6 | **JUMLAH SISWA HADIR** | `entry.849827907` | Short Text / Number | Diisi Manual oleh Guru | *(Manual)* |
-| 7 | **JUMLAH SISWA TIDAK HADIR** | `entry.1015848753` | Short Text / Number | Diisi Manual oleh Guru | *(Manual)* |
-| 8 | **KETERANGAN SISWA TIDAK HADIR** | `entry.1997017466` | Paragraph | Diisi Manual oleh Guru | *(Manual)* |
-| 9 | **CATATAN** | `entry.500965626` | Paragraph | Diisi Manual oleh Guru | *(Manual)* |
-| 10 | **TINDAK LANJUT** | `entry.275444474` | Paragraph | Diisi Manual oleh Guru | *(Manual)* |
+| 6 | **JUMLAH SISWA HADIR** | `entry.849827907` | Short Text / Number | ⚡ **Auto-Fill** | Dihitung otomatis (`Total Siswa - Tidak Hadir`) |
+| 7 | **JUMLAH SISWA TIDAK HADIR** | `entry.1015848753` | Short Text / Number | ⚡ **Auto-Fill** | Jumlah yang tidak hadir (misal: `0` / `2`) |
+| 8 | **KETERANGAN SISWA TIDAK HADIR** | `entry.1997017466` | Paragraph | ⚡ **Auto-Fill** | Rincian Siswa: `Ahmad (Sakit), Budi (Izin)` / `Nihil` |
+| 9 | **CATATAN** | `entry.500965626` | Paragraph | ✍️ *Manual* | Opsional diisi manual oleh Guru |
+| 10 | **TINDAK LANJUT** | `entry.275444474` | Paragraph | ✍️ *Manual* | Opsional diisi manual oleh Guru |
 
 ---
 
