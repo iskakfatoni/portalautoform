@@ -441,12 +441,14 @@ async function openTpModalForJournal(formId, formName) {
     }
   }
 
+  const teacher = activeTeacher || {};
+  const teacherCleanNip = String(teacher.nip || '').replace(/\D/g, '');
   const now = new Date();
-  const todaySchedule = getActiveTeacherSchedule(activeTeacher, now, currentSchedules);
+  const todaySchedule = getActiveTeacherSchedule(teacher, now, currentSchedules);
 
   // 1. Deteksi Mapel Default dari Jadwal KBM Aktif
   const activeMapelName = todaySchedule ? (todaySchedule.mataPelajaran || '') : '';
-  const detectedKelas = todaySchedule ? todaySchedule.kelas : (activeTeacher.class || 'XI TEI 2');
+  const detectedKelas = todaySchedule ? todaySchedule.kelas : (teacher.class || 'XI TEI 2');
   const isKelas12 = detectedKelas && (detectedKelas.includes('XII') || detectedKelas.includes('12'));
 
   let detectedMapelKey = 'koding_ai_xi';
@@ -458,11 +460,11 @@ async function openTpModalForJournal(formId, formName) {
   } else {
     // Cek jadwal keseluruhan yang diampu guru
     const teachesKoding = currentSchedules.some(s => 
-      s.nip && activeTeacher.nip && String(s.nip).replace(/\D/g, '') === String(activeTeacher.nip).replace(/\D/g, '') &&
+      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
       s.mataPelajaran && (s.mataPelajaran.toLowerCase().includes('koding') || s.mataPelajaran.toLowerCase().includes('kecerdasan'))
     );
     const teachesSke = currentSchedules.some(s => 
-      s.nip && activeTeacher.nip && String(s.nip).replace(/\D/g, '') === String(activeTeacher.nip).replace(/\D/g, '') &&
+      s.nip && teacher.nip && String(s.nip).replace(/\D/g, '') === String(teacher.nip).replace(/\D/g, '') &&
       s.mataPelajaran && s.mataPelajaran.toLowerCase().includes('kendali')
     );
 
@@ -474,7 +476,6 @@ async function openTpModalForJournal(formId, formName) {
   }
 
   // Cek preferensi mapel terakhir yang dipilih guru dari localStorage
-  const teacherCleanNip = String(activeTeacher.nip || '').replace(/\D/g, '');
   const prefMapelKey = localStorage.getItem(`portal_last_mapel_${teacherCleanNip}`) || detectedMapelKey;
   let activeMapelKey = MAPEL_TP_CONFIG[prefMapelKey] || prefMapelKey === 'custom_manual' ? prefMapelKey : detectedMapelKey;
 
