@@ -845,9 +845,8 @@ body.light-mode .dark-icon { display: block; }
 
 /* Compact Active Teacher Bar */
 .teacher-compact-bar {
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #171f33 !important;
+  background-color: #171f33 !important;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 0.65rem 1.25rem;
@@ -857,6 +856,8 @@ body.light-mode .dark-icon { display: block; }
   margin-bottom: 1.25rem;
   box-shadow: var(--shadow-sm);
   gap: 12px;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .teacher-info-group {
@@ -931,14 +932,16 @@ body.light-mode .dark-icon { display: block; }
   border-radius: var(--radius-lg);
   text-decoration: none;
   color: var(--text-primary);
+  background: #171f33 !important;
+  background-color: #171f33 !important;
   box-shadow: var(--shadow-sm);
   transition: all var(--transition-fast);
   cursor: pointer;
   position: relative;
   overflow: hidden;
   border: 1.5px solid var(--border-color);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .form-direct-card:hover {
@@ -2609,9 +2612,8 @@ body.light-mode .btn-header-keluar { background: #fee2e2 !important; color: #b91
    Clean Active Teacher Name & NIP Card
    ========================================================================== */
 .teacher-compact-bar {
-  background: var(--bg-card);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: #171f33 !important;
+  background-color: #171f33 !important;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 0.9rem 1.25rem;
@@ -2620,6 +2622,10 @@ body.light-mode .btn-header-keluar { background: #fee2e2 !important; color: #b91
   align-items: center;
   margin-bottom: 1.15rem;
   box-shadow: var(--shadow-sm);
+  gap: 12px;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
   gap: 12px;
 }
 
@@ -2735,9 +2741,10 @@ body.light-mode .btn-header-keluar { background: #fee2e2 !important; color: #b91
   position: relative;
   overflow: hidden;
   border: 1px solid var(--border-color);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  background: var(--bg-card);
+  background: #171f33 !important;
+  background-color: #171f33 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .form-direct-card:hover {
