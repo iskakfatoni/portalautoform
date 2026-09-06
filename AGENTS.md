@@ -47,8 +47,7 @@ Setiap modifikasi logika *schedule resolver* atau tautan otomatisasi Google Form
 
 ## 5. 📱 Perintah Khusus /buildapk & Penanganan Repo Android
 * **Repo Android (`PORTAL-AutoForm-ANDROID`):**
-  * Dikelola dan di-handle langsung oleh pengguna melalui Android Studio.
-  * **AI Agent DILARANG melakukan `git push`** pada repository Android.
+  * Terintegrasi dengan proyek web dan diizinkan untuk dikelola, dimodifikasi, di-commit, serta di-**push** ke GitHub oleh AI Agent sesuai instruksi pengguna.
 * Jika pengguna memanggil perintah `/buildapk`:
   * Jalankan script otomatis [`asset/tools/build_apk.ps1`](file:///c:/Users/iskak/Antigravity-Projetcs/portalautoform/asset/tools/build_apk.ps1).
   * Output APK akan dikompilasi dari `c:\Users\iskak\Antigravity-Projetcs\PORTAL-AutoForm-ANDROID` dan otomatis disalin/ditimpa ke:
