@@ -418,6 +418,7 @@ function showPortalView(teacher) {
   if (classEl) classEl.textContent = teacher.class || '-';
   if (roleEl) roleEl.textContent = teacher.role || 'Guru';
 
+  switchToPortalView();
   renderUserPortalApp();
 }
 
