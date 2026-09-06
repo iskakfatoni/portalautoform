@@ -18,12 +18,7 @@ import { fetchTeachers } from './modules/firestore-service.js?v=3.9.5';
 
 let teachersData = [];
 
-document.addEventListener('DOMContentLoaded', async () => {
-  if (!navigator.onLine) {
-    window.location.href = 'asset/pages/offline.html';
-    return;
-  }
-
+async function bootstrapLogin() {
   initTheme('theme-toggle-btn');
   initLoginTabs();
   initTeacherLogin();
@@ -50,7 +45,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Auto-redirect jika sudah ada sesi NIP & PIN valid tersimpan
   checkExistingSession();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapLogin);
+} else {
+  bootstrapLogin();
+}
 
 // Load Real-Time Teachers from Cloud Firestore (Multi-Layer)
 async function loadSavedTeachers() {

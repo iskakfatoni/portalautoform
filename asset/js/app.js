@@ -106,13 +106,7 @@ let currentStudents = [];
 let activeTeacher = null;
 let currentUser = null;
 
-// Inisialisasi Saat Halaman Dimuat
-document.addEventListener('DOMContentLoaded', async () => {
-  if (!navigator.onLine) {
-    window.location.href = 'offline.html';
-    return;
-  }
-
+async function bootstrapApp() {
   initTheme('theme-toggle-btn');
   initNavigation();
   initModals();
@@ -133,7 +127,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 2. Inisialisasi Firebase & Auth Listener
   setupFirebaseConnection();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapApp);
+} else {
+  bootstrapApp();
+}
 
 /* ==========================================================================
    1. Tab Navigation & URL Routing Khusus per Guru (?nip=...)

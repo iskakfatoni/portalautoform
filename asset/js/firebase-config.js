@@ -3,12 +3,12 @@
  * Mendukung Firebase JS SDK v10 (Modular ESM via CDN)
  */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { 
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
-  signInWithEmailAndPassword,
+  signInWithEmailAndPassword, 
   signOut, 
   onAuthStateChanged 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -83,7 +83,11 @@ export function initFirebase() {
   const config = getActiveFirebaseConfig();
   if (config.apiKey && config.apiKey !== "YOUR_API_KEY") {
     try {
-      app = initializeApp(config);
+      if (getApps().length > 0) {
+        app = getApp();
+      } else {
+        app = initializeApp(config);
+      }
       auth = getAuth(app);
       db = getFirestore(app);
       googleProvider = new GoogleAuthProvider();
