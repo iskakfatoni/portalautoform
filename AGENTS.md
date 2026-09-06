@@ -42,3 +42,12 @@ Setiap modifikasi logika *schedule resolver* atau tautan otomatisasi Google Form
 * Aturan keamanan Firestore di [`firestore.rules`](file:///c:/Users/iskak/Antigravity-Projetcs/portalautoform/firestore.rules) harus selalu menjaga integritas:
   * Guru hanya dapat memperbarui data tertentu (seperti PIN mandiri).
   * Hak akses tulis/hapus penuh ke master data guru, jadwal, dan formulir dibatasi hanya untuk Administrator terdaftar (`iskakfatoni@gmail.com`).
+
+---
+
+## 5. 📱 Perintah Khusus /buildapk (Android Build & Deploy)
+Jika pengguna memanggil perintah `/buildapk`:
+* Jalankan script otomatis [`asset/tools/build_apk.ps1`](file:///c:/Users/iskak/Antigravity-Projetcs/portalautoform/asset/tools/build_apk.ps1).
+* Output APK akan dikompilasi dari `c:\Users\iskak\Antigravity-Projetcs\PORTAL-AutoForm-ANDROID` dan otomatis disalin/ditimpa ke:
+  `D:\Cloud\ISKAK\GOOGLE DRIVE\SHARE\APP ANDROID\PORTAL-AUTOFOORM\PORTAL-AutoForm.apk`
+
