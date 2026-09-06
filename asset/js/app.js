@@ -616,6 +616,7 @@ async function openAbsensiModal(formId, formName) {
       ketTidakHadir: absensiKet
     });
     btnSubmit.href = absensiUrl;
+    return absensiUrl;
   };
 
   // Render Baris Dropdown Siswa Tidak Hadir
@@ -764,9 +765,14 @@ async function openAbsensiModal(formId, formName) {
   }
 
   // Submit Handler
-  btnSubmit.onclick = () => {
+  btnSubmit.onclick = (e) => {
+    if (e) e.preventDefault();
     closeModal();
     showToast('Membuka Form Absensi Mengajar...');
+    const targetUrl = updateAbsensiUrl() || btnSubmit.href;
+    if (targetUrl && targetUrl !== '#' && !targetUrl.endsWith('/#')) {
+      window.location.href = targetUrl;
+    }
   };
 
   renderAttendanceRows();
@@ -915,6 +921,7 @@ async function openTpModalForJournal(formId, formName) {
       ketTidakHadir: savedAttend.jurnalKet
     });
     btnSubmit.href = journalUrl;
+    return journalUrl;
   };
 
   // 4. Load Silabus & Materi (CP)
@@ -996,9 +1003,14 @@ async function openTpModalForJournal(formId, formName) {
     };
   }
 
-  btnSubmit.onclick = () => {
+  btnSubmit.onclick = (e) => {
+    if (e) e.preventDefault();
     closeModal();
     showToast('Membuka Form Jurnal Mengajar...');
+    const targetUrl = updateModalUrl() || btnSubmit.href;
+    if (targetUrl && targetUrl !== '#' && !targetUrl.endsWith('/#')) {
+      window.location.href = targetUrl;
+    }
   };
 
   try {
@@ -1281,8 +1293,11 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
 
       if (btnYes) {
         btnYes.href = generatedUrl;
-        btnYes.target = "_blank";
-        btnYes.onclick = () => modal.classList.add('hidden');
+        btnYes.onclick = (e) => {
+          if (e) e.preventDefault();
+          modal.classList.add('hidden');
+          window.location.href = generatedUrl;
+        };
       }
 
       if (btnCancel) {
@@ -1292,11 +1307,11 @@ window.handleFormClick = async (event, formId, formName, generatedUrl) => {
       if (modal) modal.classList.remove('hidden');
     } else {
       // Jika belum isi, langsung buka
-      window.open(generatedUrl, '_blank');
+      window.location.href = generatedUrl;
     }
   } catch (err) {
     console.error("Gagal cek riwayat:", err);
-    window.open(generatedUrl, '_blank');
+    window.location.href = generatedUrl;
   }
 };
 

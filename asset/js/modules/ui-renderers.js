@@ -85,12 +85,13 @@ export function renderUserPortal(currentForms, activeTeacher, generateFormUrlFor
     const formIcon = form.icon || "fa-solid fa-file-signature";
     const themeIndex = (idx % 5) + 1;
 
-    // Gunakan onclick untuk intercept pengecekan sudah isi atau belum
     return `
       <a href="${generatedUrl}"
          class="form-direct-card card-theme-${themeIndex}"
          title="Buka ${form.name}"
-         onclick="if(window.handleFormClick) { window.handleFormClick(event, '${form.id}', '${form.name}', '${generatedUrl}'); return false; }">
+         data-form-id="${form.id}"
+         data-form-name="${encodeURIComponent(form.name)}"
+         data-form-url="${encodeURIComponent(generatedUrl)}">
         <div class="form-card-left">
           <div class="form-card-icon-box">
             <i class="${formIcon}"></i>
@@ -106,6 +107,21 @@ export function renderUserPortal(currentForms, activeTeacher, generateFormUrlFor
       </a>
     `;
   }).join('');
+
+  // Attach click listeners safely without string escaping issues
+  container.querySelectorAll('.form-direct-card').forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.preventDefault();
+      const formId = card.getAttribute('data-form-id');
+      const formName = decodeURIComponent(card.getAttribute('data-form-name') || '');
+      const generatedUrl = decodeURIComponent(card.getAttribute('data-form-url') || '');
+      if (window.handleFormClick) {
+        window.handleFormClick(e, formId, formName, generatedUrl);
+      } else if (generatedUrl && generatedUrl !== '#') {
+        window.location.href = generatedUrl;
+      }
+    });
+  });
 }
 
 export function renderTeachersTable(currentTeachers, onEditTeacher, onDeleteTeacher, filterQuery = '') {
