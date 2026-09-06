@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>PORTAL:AutoForm | Dashboard Utama</title>
   <meta name="description" content="Portal administrasi dan pelaporan otomatis berbasis NIP Guru dan Manajemen Cloud Firebase.">
 
@@ -39,7 +39,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <link rel="stylesheet" href="../css/style.css?v=3.5.0">
+  <link rel="stylesheet" href="../css/style.css?v=3.6.0">
 </head>
 <body class="dark-mode">
 
@@ -496,17 +496,17 @@
           
           <div class="input-group" style="margin-bottom: 1rem;">
             <label for="current-pin-input">PIN Saat Ini / Lama</label>
-            <input type="password" id="current-pin-input" class="form-control font-mono" placeholder="Masukkan PIN saat ini (default: 12345)" required autocomplete="current-password">
+            <input type="password" id="current-pin-input" class="form-control font-mono" placeholder="Masukkan PIN saat ini (default: 12345)" inputmode="numeric" required autocomplete="current-password">
           </div>
 
           <div class="input-group" style="margin-bottom: 1rem;">
             <label for="new-pin-input">PIN Baru (Minimal 4 Digit)</label>
-            <input type="password" id="new-pin-input" class="form-control font-mono" placeholder="Masukkan PIN baru" minlength="4" maxlength="20" required autocomplete="new-password">
+            <input type="password" id="new-pin-input" class="form-control font-mono" placeholder="Masukkan PIN baru" inputmode="numeric" minlength="4" maxlength="20" required autocomplete="new-password">
           </div>
 
           <div class="input-group" style="margin-bottom: 1rem;">
             <label for="confirm-new-pin-input">Konfirmasi PIN Baru</label>
-            <input type="password" id="confirm-new-pin-input" class="form-control font-mono" placeholder="Ketik ulang PIN baru" minlength="4" maxlength="20" required autocomplete="new-password">
+            <input type="password" id="confirm-new-pin-input" class="form-control font-mono" placeholder="Ketik ulang PIN baru" inputmode="numeric" minlength="4" maxlength="20" required autocomplete="new-password">
           </div>
 
           <div id="change-pin-error" class="landing-error-msg hidden" style="margin-top: 0.5rem;">
@@ -545,6 +545,6 @@
 
   </div>
 
-  <script type="module" src="../js/app.js?v=3.5.0"></script>
+  <script type="module" src="../js/app.js?v=3.6.0"></script>
 </body>
 </html>

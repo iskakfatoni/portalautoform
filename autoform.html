@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>PORTAL:AutoForm | Masuk</title>
   <meta name="description" content="Portal administrasi dan pelaporan otomatis berbasis NIP Guru dan Manajemen Cloud Firebase.">
 
@@ -36,7 +36,7 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
 
-  <link rel="stylesheet" href="asset/css/style.css?v=3.5.0">
+  <link rel="stylesheet" href="asset/css/style.css?v=3.6.0">
 </head>
 <body class="dark-mode landing-page">
 
@@ -101,6 +101,8 @@
               class="landing-nip-input font-mono"
               placeholder="Masukkan 18 Digit NIP Anda..."
               autocomplete="username"
+              inputmode="numeric"
+              pattern="[0-9]*"
               maxlength="25"
               autofocus
               required
@@ -117,6 +119,7 @@
               class="landing-nip-input landing-pin-input font-mono"
               placeholder="Masukkan PIN (Default: 12345)..."
               autocomplete="current-password"
+              inputmode="numeric"
               maxlength="20"
               required
             >
@@ -147,6 +150,6 @@
 
   </div>
 
-  <script type="module" src="asset/js/login.js?v=3.5.0"></script>
+  <script type="module" src="asset/js/login.js?v=3.6.0"></script>
 </body>
 </html>
