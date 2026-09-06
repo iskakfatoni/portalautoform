@@ -99,6 +99,30 @@ body.light-mode select optgroup {
   color: #0f172a !important;
 }
 
+/* Modal Capaian Pembelajaran (CP) Compact Typography */
+#modal-select-tp-mapel {
+  font-size: 0.80rem !important;
+  padding: 0.55rem 0.75rem !important;
+}
+
+#modal-select-learning-objective {
+  font-size: 0.78rem !important;
+  padding: 0.55rem 0.75rem !important;
+  line-height: 1.4 !important;
+}
+
+#modal-select-learning-objective option {
+  font-size: 0.78rem !important;
+  padding: 6px 8px !important;
+  line-height: 1.4 !important;
+}
+
+#modal-tp-preview-box {
+  font-size: 0.78rem !important;
+  line-height: 1.45 !important;
+  padding: 0.6rem 0.85rem !important;
+}
+
 /* Reset & Basics */
 * {
   margin: 0;
