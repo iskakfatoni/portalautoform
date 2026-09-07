@@ -66,7 +66,7 @@ AI Agent diizinkan langsung menjalankan perintah terminal berikut tanpa menunggu
 2. **Node.js & Package Managers (`npm`, `npx`, `node`)**:
    * Instalasi paket, audit, script build/test, verifikasi dependensi (`npm install`, `npm run ...`, `npx ...`, `node ...`).
 3. **Skrip Otomasi & PowerShell / Bash (`powershell`, `pwsh`)**:
-   * Eksekusi script internal seperti `asset/tools/build_apk.ps1`.
+   * Eksekusi script internal seperti `asset/tools/build_apk.ps1` dan `asset/tools/backup_repo.ps1`.
    * Perintah utilitas diagnostik/file non-destruktif (`Test-Path`, `Get-ChildItem`, `Get-Content`, `dir`, `echo`, `cat`).
 4. **Android Build Tools (`gradlew`, `gradle`)**:
    * Kompilasi Android APK / Bundle (`./gradlew assembleDebug`, `./gradlew clean`, dll.).
@@ -84,3 +84,14 @@ AI Agent **DILARANG KERAS** mengeksekusi perintah berikut secara otomatis tanpa 
    * `rm -rf`, `Remove-Item -Recurse -Force`, `del /s /q` pada direktori kerja penting.
 4. **Perubahan & Deploy Berskala Luas**:
    * `firebase deploy` (deploy penuh tanpa filter) atau perintah yang menimpa database/konfigurasi produksi secara masif.
+
+---
+
+## 7. 💾 Prosedur Backup Repositori ke `/backup`
+* Setiap kali sebelum melakukan perubahan arsitektur besar atau saat diinstruksikan oleh pengguna, AI Agent wajib/dapat memicu prosedur backup repositori ke folder `backup/`.
+* Skrip otomatis resmi: [`asset/tools/backup_repo.ps1`](file:///c:/Users/ISKAK/AntiGravity-Projects/portalautoform/asset/tools/backup_repo.ps1).
+* Output backup:
+  * Arsip ZIP berstempel waktu & commit: `backup/portalautoform_backup_YYYYMMDD_HHMMSS_commit_<hash>.zip`
+  * Snapshot folder terkini: `backup/snapshot_latest/`
+* Folder `backup/` wajib dikecualikan dari Git tracking melalui [`.gitignore`](file:///c:/Users/ISKAK/AntiGravity-Projects/portalautoform/.gitignore).
+
