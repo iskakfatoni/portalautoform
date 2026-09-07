@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$androidProjectDir = "c:\Users\iskak\Antigravity-Projetcs\PORTAL-AutoForm-ANDROID"
+$androidProjectDir = "C:\Users\ISKAK\StudioProjects\ISKAK-AutoForm-Android"
 $outputDir = "D:\Cloud\ISKAK\GOOGLE DRIVE\SHARE\APP ANDROID\PORTAL-AUTOFOORM"
 $outputApkName = "PORTAL-AutoForm.apk"
 $targetApkPath = Join-Path $outputDir $outputApkName
