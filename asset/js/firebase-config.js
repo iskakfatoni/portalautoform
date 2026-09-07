@@ -14,6 +14,9 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
   getFirestore, 
+  initializeFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   collection, 
   doc, 
   getDoc, 
@@ -89,11 +92,20 @@ export function initFirebase() {
         app = initializeApp(config);
       }
       auth = getAuth(app);
-      db = getFirestore(app);
+      try {
+        db = initializeFirestore(app, {
+          localCache: persistentLocalCache({
+            tabManager: persistentMultipleTabManager()
+          })
+        });
+      } catch (cacheErr) {
+        console.warn("Menggunakan getFirestore standar (fallback):", cacheErr);
+        db = getFirestore(app);
+      }
       googleProvider = new GoogleAuthProvider();
       googleProvider.setCustomParameters({ prompt: 'select_account' });
       isFirebaseActive = true;
-      console.log("🔥 Firebase connected successfully to project:", config.projectId);
+      console.log("🔥 Firebase connected successfully with offline persistence to project:", config.projectId);
     } catch (error) {
       console.error("Gagal inisialisasi Firebase:", error);
       isFirebaseActive = false;

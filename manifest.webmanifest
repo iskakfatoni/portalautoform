@@ -1,0 +1,24 @@
+{
+  "name": "PORTAL:AutoForm - SMKN 1 Jetis Mojokerto",
+  "short_name": "AutoForm",
+  "description": "Portal administrasi dan pelaporan otomatis berbasis NIP Guru dan Manajemen Cloud Firebase",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#4f46e5",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "asset/image/logo-smkn1jetis.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "asset/image/logo-smkn1jetis.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

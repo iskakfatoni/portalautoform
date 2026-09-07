@@ -14,8 +14,10 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Favicon -->
+  <!-- Favicon & PWA Manifest -->
   <link rel="icon" type="image/webp" href="asset/image/logo-smkn1jetis.webp">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#4f46e5">
 
   <link rel="stylesheet" href="asset/css/style.css?v=3.9.5">
   <style>
@@ -190,5 +192,16 @@
     </footer>
   </div>
 
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').then((reg) => {
+          console.log('✅ ServiceWorker registered:', reg.scope);
+        }).catch((err) => {
+          console.warn('❌ ServiceWorker registration failed:', err);
+        });
+      });
+    }
+  </script>
 </body>
 </html>

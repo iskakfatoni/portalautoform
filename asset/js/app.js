@@ -54,6 +54,18 @@ import {
   renderScheduleTable
 } from './modules/ui-renderers.js?v=3.9.5';
 
+import {
+  getTodayAttendanceKey,
+  getTodaySavedAttendance,
+  saveTodayAttendance,
+  getFilteredStudentsByClass
+} from './modules/attendance-modal.js?v=3.9.5';
+
+import {
+  openTeacherModalHelper,
+  openFormModalHelper
+} from './modules/admin-manager.js?v=3.9.5';
+
 // State Capaian / Tujuan Pembelajaran (TP)
 let selectedLearningObjectiveMateri = "";
 let learningObjectivesData = null;
@@ -443,51 +455,7 @@ const MAPEL_TP_CONFIG = {
   }
 };
 
-// Helper Key & Persistence Kehadiran Siswa Hari Ini
-function getTodayAttendanceKey(cleanNip, className) {
-  const now = new Date();
-  const yyyy = now.getFullYear();
-  const mm = String(now.getMonth() + 1).padStart(2, '0');
-  const dd = String(now.getDate()).padStart(2, '0');
-  const dateKey = `${yyyy}-${mm}-${dd}`;
-  return `portal_attend_${cleanNip}_${className}_${dateKey}`;
-}
 
-function getTodaySavedAttendance(cleanNip, className, totalCount = 36) {
-  const key = getTodayAttendanceKey(cleanNip, className);
-  const raw = localStorage.getItem(key);
-  if (raw) {
-    try {
-      const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.absentStudents)) {
-        return parsed;
-      }
-    } catch (e) {}
-  }
-  return {
-    absentStudents: [],
-    jumlahHadir: totalCount,
-    jumlahTidakHadir: 0,
-    absensiKet: "Nihil",
-    jurnalKet: "Nihil"
-  };
-}
-
-function saveTodayAttendance(cleanNip, className, attendObj) {
-  const key = getTodayAttendanceKey(cleanNip, className);
-  localStorage.setItem(key, JSON.stringify(attendObj));
-}
-
-// Helper Filter Siswa berdasarkan Kelas
-function getFilteredStudentsByClass(targetClass, studentList) {
-  const list = (studentList && studentList.length > 0) ? studentList : [];
-  const normalized = String(targetClass || '').replace(/\s+/g, ' ').toLowerCase();
-  let filtered = list.filter(s => {
-    const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase();
-    return sClass === normalized || sClass.includes(normalized) || normalized.includes(sClass);
-  });
-  return filtered.length > 0 ? filtered : list;
-}
 
 /* ==========================================================================
    MODAL 1: PRESENSI SISWA DINAMIS KHUSUS FORM ABSENSI MENGAJAR
@@ -1951,71 +1919,11 @@ function initModals() {
 }
 
 function openTeacherModal(teacher = null) {
-  const modal = document.getElementById('modal-teacher-form');
-  const title = document.getElementById('modal-teacher-title');
-  const nameInp = document.getElementById('edit-teacher-name');
-  const nipInp = document.getElementById('edit-teacher-nip');
-  const roleInp = document.getElementById('edit-teacher-role');
-  const classInp = document.getElementById('edit-teacher-class');
-  const guruWaliClassInp = document.getElementById('edit-teacher-guru-wali-class');
-  const journalInp = document.getElementById('edit-teacher-journal-url');
-  const pinInp = document.getElementById('edit-teacher-pin');
-
-  if (teacher) {
-    title.innerHTML = `<i class="fa-solid fa-user-pen"></i> Edit Data Guru`;
-    nameInp.value = teacher.name;
-    nameInp.readOnly = true;
-    nipInp.value = teacher.nip && teacher.nip !== '-' ? teacher.nip : '';
-    roleInp.value = teacher.role || 'Walikelas';
-    if (classInp) classInp.value = teacher.class || '-';
-    if (guruWaliClassInp) guruWaliClassInp.value = teacher.guruWaliClass || '-';
-    if (journalInp) journalInp.value = teacher.journalFormUrl || '';
-    if (pinInp) pinInp.value = teacher.pin || '12345';
-  } else {
-    title.innerHTML = `<i class="fa-solid fa-user-plus"></i> Tambah Data Guru`;
-    nameInp.value = '';
-    nameInp.readOnly = false;
-    nipInp.value = '';
-    roleInp.value = 'Walikelas';
-    if (classInp) classInp.value = '-';
-    if (guruWaliClassInp) guruWaliClassInp.value = '-';
-    if (journalInp) journalInp.value = '';
-    if (pinInp) pinInp.value = '12345';
-  }
-  modal.classList.remove('hidden');
+  openTeacherModalHelper(teacher);
 }
 
 function openFormModal(form = null) {
-  const modal = document.getElementById('modal-form-manage');
-  const title = document.getElementById('modal-form-title');
-  const idInp = document.getElementById('edit-form-id');
-  const nameInp = document.getElementById('edit-form-name');
-  const catInp = document.getElementById('edit-form-category');
-  const urlInp = document.getElementById('edit-form-url');
-  const descInp = document.getElementById('edit-form-desc');
-  const guruInp = document.getElementById('edit-entry-guru');
-  const nipInp = document.getElementById('edit-entry-nip');
-
-  if (form) {
-    title.innerHTML = `<i class="fa-solid fa-file-pen"></i> Edit Formulir`;
-    idInp.value = form.id;
-    nameInp.value = form.name;
-    catInp.value = form.category || '';
-    urlInp.value = form.baseUrl;
-    descInp.value = form.description || '';
-    guruInp.value = form.entryGuru || '';
-    nipInp.value = form.entryNip || '';
-  } else {
-    title.innerHTML = `<i class="fa-solid fa-file-circle-plus"></i> Tambah Formulir Baru`;
-    idInp.value = '';
-    nameInp.value = '';
-    catInp.value = 'Walikelas';
-    urlInp.value = '';
-    descInp.value = '';
-    guruInp.value = 'entry.1599393498';
-    nipInp.value = 'entry.65154558';
-  }
-  modal.classList.remove('hidden');
+  openFormModalHelper(form);
 }
 
 /* ==========================================================================
