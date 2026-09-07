@@ -53,4 +53,32 @@ Setiap modifikasi logika *schedule resolver* atau tautan otomatisasi Google Form
   * Output APK akan dikompilasi dari `c:\Users\iskak\Antigravity-Projetcs\PORTAL-AutoForm-ANDROID` dan otomatis disalin/ditimpa ke:
     `D:\Cloud\ISKAK\GOOGLE DRIVE\SHARE\APP ANDROID\PORTAL-AUTOFOORM\PORTAL-AutoForm.apk`
 
+---
 
+## 6. ⚙️ Kebijakan Eksekusi Perintah Terminal & Tooling
+
+### A. Perintah Otomatis Diizinkan (Always Allow)
+AI Agent diizinkan langsung menjalankan perintah terminal berikut tanpa menunggu konfirmasi manual jika bertujuan untuk inspeksi, build, run, atau operasi rutin:
+1. **Version Control (`git`)**:
+   * Operasi status, log, diff, checkout, add, commit, pull, branch, stash (`git status`, `git pull`, `git log`, `git diff`, `git add`, `git commit`, dll.).
+2. **Node.js & Package Managers (`npm`, `npx`, `node`)**:
+   * Instalasi paket, audit, script build/test, verifikasi dependensi (`npm install`, `npm run ...`, `npx ...`, `node ...`).
+3. **Skrip Otomasi & PowerShell / Bash (`powershell`, `pwsh`)**:
+   * Eksekusi script internal seperti `asset/tools/build_apk.ps1`.
+   * Perintah utilitas diagnostik/file non-destruktif (`Test-Path`, `Get-ChildItem`, `Get-Content`, `dir`, `echo`, `cat`).
+4. **Android Build Tools (`gradlew`, `gradle`)**:
+   * Kompilasi Android APK / Bundle (`./gradlew assembleDebug`, `./gradlew clean`, dll.).
+5. **Firebase CLI (`firebase`)**:
+   * Inspeksi dan deploy parsial non-destruktif (`firebase use`, `firebase deploy --only firestore:rules`, `firebase emulators:exec`, dll.).
+
+---
+
+### B. Perintah Wajib Konfirmasi Pengguna (Review / Manual Approval Required)
+AI Agent **DILARANG KERAS** mengeksekusi perintah berikut secara otomatis tanpa izin atau instruksi eksplisit pengguna:
+1. **`git push`**: Push perubahan ke repository remote (GitHub).
+2. **Operasi Destruktif / Force Reset Git**:
+   * `git reset --hard`, `git clean -f / -fd`, `git branch -D`, `git checkout -- .`.
+3. **Penghapusan File Permanen / Rekursif**:
+   * `rm -rf`, `Remove-Item -Recurse -Force`, `del /s /q` pada direktori kerja penting.
+4. **Perubahan & Deploy Berskala Luas**:
+   * `firebase deploy` (deploy penuh tanpa filter) atau perintah yang menimpa database/konfigurasi produksi secara masif.
