@@ -243,7 +243,7 @@ export async function updateTeacherPin(docId, newPin) {
       })
     });
     if (resp.ok) {
-      console.log(`✅ [Firestore REST] PIN guru (${cleanDocId}) berhasil diperbarui!`);
+      console.log(`✅ [Firestore REST] PIN guru (${docId}) berhasil diperbarui!`);
       return true;
     } else {
       console.error(`[Firestore REST] Gagal update PIN guru: ${resp.statusText}`);
