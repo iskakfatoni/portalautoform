@@ -14,33 +14,40 @@ service cloud.firestore {
     // 1. Koleksi Guru (teachers)
     match /teachers/{teacherId} {
       allow read: if true;
-      allow write: if isAuthorizedAdmin() || true;
-      allow update: if true;
+      allow create, delete: if isAuthorizedAdmin();
+      // Admin berhak mengubah seluruh data guru; Guru mandiri hanya dapat mengubah PIN & pinUpdatedAt
+      allow update: if isAuthorizedAdmin() || 
+                    (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pin', 'pinUpdatedAt']));
     }
 
     // 2. Koleksi Formulir (forms)
     match /forms/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
 
     // 3. Koleksi Jadwal Mengajar (schedules)
     match /schedules/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
 
     // 4. Koleksi Riwayat Pengisian (submissions)
     match /submissions/{document=**} {
-      allow read, write: if true;
+      allow read, create, update: if true;
+      allow delete: if isAuthorizedAdmin();
     }
 
     // 5. Koleksi Konfigurasi App (config)
     match /config/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
 
     // 6. Koleksi Capaian / Tujuan Pembelajaran (learning_objectives)
     match /learning_objectives/{document=**} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
 
     // ==========================================
@@ -49,40 +56,48 @@ service cloud.firestore {
 
     // Log & Sesi Absensi
     match /log_absensi/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, create, update: if true;
+      allow delete: if isAuthorizedAdmin();
     }
     match /sesi_absensi/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, create, update: if true;
+      allow delete: if isAuthorizedAdmin();
     }
 
     // Siswa, Kelas, Mapel & Links
     match /siswa/{docId} {
-      allow read, create, update, delete: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
     match /kelas/{docId} {
-      allow read, create, update, delete: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
     match /mapel/{docId} {
-      allow read, create, update, delete: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
     match /links/{docId} {
-      allow read, create, update, delete: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
 
     // Admin Devices & Settings
     match /admin_devices/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, write: if isAuthorizedAdmin();
     }
     match /settings/{docId} {
-      allow read, create, update, delete: if true;
+      allow read: if true;
+      allow write: if isAuthorizedAdmin();
     }
     
     // System Logs & Trash Bin
     match /system_logs/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, create: if true;
+      allow update, delete: if isAuthorizedAdmin();
     }
     match /trash_bin/{docId} {
-      allow read, create, update, delete: if true;
+      allow read, write: if isAuthorizedAdmin();
     }
   }
 }

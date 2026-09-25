@@ -44,7 +44,7 @@ export function parseFirestoreDoc(docObj) {
   return result;
 }
 
-// Fetch Generic Collection dengan Multi-Layer (SDK + REST API)
+// Fetch Generic Collection dengan Multi-Layer (SDK + REST API with Pagination)
 export async function fetchCollection(collectionName) {
   // 1. Coba via Firebase JS SDK
   const activeDb = getDb();
@@ -61,15 +61,29 @@ export async function fetchCollection(collectionName) {
     }
   }
 
-  // 2. Instant Fail-Safe via Firestore REST API
+  // 2. Instant Fail-Safe via Firestore REST API dengan Paginasi Penuh
   try {
     const { projectId, apiKey } = DEFAULT_FIREBASE_CONFIG;
-    const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=300&key=${apiKey}`;
-    const resp = await fetch(url);
-    if (resp.ok) {
-      const data = await resp.json();
-      const docs = data.documents || [];
-      return docs.map(parseFirestoreDoc);
+    let pageToken = '';
+    const allDocs = [];
+    do {
+      let url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${collectionName}?pageSize=300&key=${apiKey}`;
+      if (pageToken) {
+        url += `&pageToken=${encodeURIComponent(pageToken)}`;
+      }
+      const resp = await fetch(url);
+      if (resp.ok) {
+        const data = await resp.json();
+        const docs = data.documents || [];
+        allDocs.push(...docs.map(parseFirestoreDoc));
+        pageToken = data.nextPageToken || '';
+      } else {
+        break;
+      }
+    } while (pageToken);
+
+    if (allDocs.length > 0) {
+      return allDocs;
     }
   } catch (restErr) {
     console.error(`[Firestore REST] Gagal memuat koleksi '${collectionName}':`, restErr);
@@ -109,20 +123,8 @@ export async function fetchStudents() {
   });
 }
 
-// Default Fallback Master Guru (Primary Admin/Creator)
-export const DEFAULT_PRIMARY_TEACHER = {
-  id: "198109092022211004",
-  nip: "198109092022211004",
-  name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-  class: "XII TEI 2",
-  guruWaliClass: "XI TEI 1",
-  role: "Walikelas",
-  pin: "231008",
-  journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform",
-  orderIndex: 47
-};
 
-// 1. Fetch Teachers (Master Guru Cloud Firestore)
+// 1. Fetch Teachers (Master Guru Cloud Firestore - Pure SSoT)
 export async function fetchTeachers() {
   let list = await fetchCollection('teachers');
 
@@ -139,27 +141,9 @@ export async function fetchTeachers() {
 
   if (!list) list = [];
 
-  // Pastikan NIP Primary Teacher 198109092022211004 (MUCHAMAD ISKAK FATONI, S.Pd.) selalu tersedia
-  const cleanTargetNip = "198109092022211004";
-  const hasPrimary = list.some(t => t.nip && String(t.nip).replace(/\D/g, '') === cleanTargetNip);
-  if (!hasPrimary) {
-    list.unshift(DEFAULT_PRIMARY_TEACHER);
-  }
-
   const normalizedList = list.map(t => {
     const pin = (t.pin && String(t.pin).trim() !== '') ? String(t.pin).trim() : '12345';
     const nipStr = (t.nip !== undefined && t.nip !== null) ? String(t.nip).trim() : '';
-    if (nipStr.replace(/\D/g, '') === cleanTargetNip || (t.name && t.name.includes("ISKAK FATONI"))) {
-      return {
-        ...t,
-        nip: nipStr || cleanTargetNip,
-        name: t.name || DEFAULT_PRIMARY_TEACHER.name,
-        class: t.class || "XII TEI 2",
-        role: t.role || "Walikelas",
-        journalFormUrl: t.journalFormUrl || DEFAULT_PRIMARY_TEACHER.journalFormUrl,
-        pin: pin
-      };
-    }
     return {
       ...t,
       nip: nipStr,
@@ -201,7 +185,7 @@ export async function fetchSchedules() {
 export async function saveTeacherToFirestore(teacherData) {
   const activeDb = getDb();
   if (!activeDb) return false;
-  const docId = teacherData.nip && teacherData.nip !== '-' ? teacherData.nip : teacherData.name.replace(/[^a-zA-Z0-9]/g, '_');
+  const docId = teacherData.id || (teacherData.nip && teacherData.nip !== '-' ? teacherData.nip : teacherData.name.replace(/[^a-zA-Z0-9]/g, '_'));
   const payload = {
     ...teacherData,
     pin: (teacherData.pin && String(teacherData.pin).trim() !== '') ? String(teacherData.pin).trim() : '12345'

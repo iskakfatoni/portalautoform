@@ -39,10 +39,19 @@ export function saveTodayAttendance(cleanNip, className, attendObj) {
 
 export function getFilteredStudentsByClass(targetClass, studentList) {
   const list = (studentList && studentList.length > 0) ? studentList : [];
-  const normalized = String(targetClass || '').replace(/\s+/g, ' ').toLowerCase();
-  let filtered = list.filter(s => {
-    const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').toLowerCase();
-    return sClass === normalized || sClass.includes(normalized) || normalized.includes(sClass);
+  if (!targetClass || targetClass === '-') return [];
+  const normalized = String(targetClass || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  if (!normalized) return [];
+
+  const exact = list.filter(s => {
+    const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return sClass === normalized;
   });
-  return filtered.length > 0 ? filtered : list;
+  if (exact.length > 0) return exact;
+
+  const partial = list.filter(s => {
+    const sClass = String(s.nama_kelas || '').replace(/\s+/g, ' ').trim().toLowerCase();
+    return sClass && (sClass.includes(normalized) || normalized.includes(sClass));
+  });
+  return partial;
 }

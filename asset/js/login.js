@@ -220,20 +220,6 @@ function initTeacherLogin() {
       found = teachersData.find(t => t.name && t.name.toLowerCase().includes(searchName) && t.nip && t.nip !== '-');
     }
 
-    // 3. Fallback Khusus jika Firestore Rules di Firebase Console memblokir 403 (Unauthenticated Read Blocked)
-    if (!found && (cleanDigits === "198109092022211004" || rawValTrim.toLowerCase().includes("iskak fatoni"))) {
-      found = {
-        id: "198109092022211004",
-        nip: "198109092022211004",
-        name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-        class: "XII TEI 2",
-        guruWaliClass: "XI TEI 1",
-        role: "Walikelas",
-        pin: "231008",
-        journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
-      };
-    }
-
     if (!found) {
       showError(errorMsg, `NIP atau Nama <strong>${rawValTrim}</strong> tidak ditemukan di database Cloud Firestore.`);
       inputNip.focus();

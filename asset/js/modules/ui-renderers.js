@@ -251,6 +251,13 @@ export function renderScheduleTable(currentSchedules, onDeleteSchedule, filterQu
 
   tbody.innerHTML = filtered.map((s, idx) => {
     const timeRange = (s.jamMulai && s.jamSelesai) ? `${s.jamMulai} - ${s.jamSelesai}` : '-';
+    const cleanNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
+    const cleanName = (s.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const cleanHari = (s.hari || '').trim().toLowerCase();
+    const cleanJam = (s.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanKelas = (s.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+    const scheduleKey = s.id || `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
+
     return `
       <tr>
         <td>${idx + 1}</td>
@@ -263,7 +270,7 @@ export function renderScheduleTable(currentSchedules, onDeleteSchedule, filterQu
         <td class="font-mono">${s.nip || '-'}</td>
         <td>
           <div class="action-btns-row">
-            <button class="btn-icon-action btn-del btn-del-schedule" data-index="${idx}" title="Hapus Jadwal">
+            <button class="btn-icon-action btn-del btn-del-schedule" data-key="${encodeURIComponent(scheduleKey)}" title="Hapus Jadwal">
               <i class="fa-solid fa-trash"></i>
             </button>
           </div>
@@ -274,8 +281,8 @@ export function renderScheduleTable(currentSchedules, onDeleteSchedule, filterQu
 
   tbody.querySelectorAll('.btn-del-schedule').forEach(btn => {
     btn.addEventListener('click', () => {
-      const idx = parseInt(btn.getAttribute('data-index'), 10);
-      if (onDeleteSchedule) onDeleteSchedule(idx);
+      const key = decodeURIComponent(btn.getAttribute('data-key') || '');
+      if (onDeleteSchedule) onDeleteSchedule(key);
     });
   });
 }

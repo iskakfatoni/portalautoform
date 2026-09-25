@@ -169,17 +169,21 @@ export async function processImportedScheduleRows(rows, getDb, showToast, onSche
     const activeDb = getDb();
     if (activeDb) {
       try {
-        const batch = writeBatch(activeDb);
-        newSchedules.forEach((s) => {
-          const cleanNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
-          const cleanName = (s.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-          const cleanHari = (s.hari || '').trim().toLowerCase();
-          const cleanJam = (s.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
-          const cleanKelas = (s.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
-          const docId = `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
-          batch.set(doc(activeDb, "schedules", docId), s);
-        });
-        await batch.commit();
+        const CHUNK_SIZE = 400;
+        for (let i = 0; i < newSchedules.length; i += CHUNK_SIZE) {
+          const chunk = newSchedules.slice(i, i + CHUNK_SIZE);
+          const batch = writeBatch(activeDb);
+          chunk.forEach((s) => {
+            const cleanNip = (s.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
+            const cleanName = (s.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+            const cleanHari = (s.hari || '').trim().toLowerCase();
+            const cleanJam = (s.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+            const cleanKelas = (s.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+            const docId = `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
+            batch.set(doc(activeDb, "schedules", docId), s);
+          });
+          await batch.commit();
+        }
         console.log("🔥 Berhasil mengunggah", newSchedules.length, "jadwal ke Cloud Firestore!");
         showToast(`✅ Berhasil mengimpor & sinkron ${newSchedules.length} jadwal ke Cloud Firestore!`);
       } catch (e) {
@@ -257,12 +261,16 @@ export async function processImportedExcelRows(rows, currentTeachers, getDb, isF
   const activeDb = getDb();
   if (activeDb && isFirebaseActive) {
     try {
-      const batch = writeBatch(activeDb);
-      importedList.forEach(t => {
-        const docId = t.nip && t.nip !== '-' ? t.nip : t.name.replace(/[^a-zA-Z0-9]/g, '_');
-        batch.set(doc(activeDb, "teachers", docId), t);
-      });
-      await batch.commit();
+      const CHUNK_SIZE = 400;
+      for (let i = 0; i < importedList.length; i += CHUNK_SIZE) {
+        const chunk = importedList.slice(i, i + CHUNK_SIZE);
+        const batch = writeBatch(activeDb);
+        chunk.forEach(t => {
+          const docId = t.nip && t.nip !== '-' ? t.nip : t.name.replace(/[^a-zA-Z0-9]/g, '_');
+          batch.set(doc(activeDb, "teachers", docId), t);
+        });
+        await batch.commit();
+      }
       if (statusDiv) statusDiv.innerHTML = `<span style="color:var(--success);">✅ Berhasil mengimpor <strong>${importedList.length} guru</strong> ke Cloud Firestore!</span>`;
     } catch (e) {
       if (statusDiv) statusDiv.textContent = `Disimpan lokal (Gagal sync cloud: ${e.message})`;

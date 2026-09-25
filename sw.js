@@ -1,9 +1,10 @@
-const CACHE_NAME = 'portal-autoform-v1.0';
+const CACHE_NAME = 'portal-autoform-v1.1';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './autoform.html',
   './asset/pages/portal.html',
+  './asset/pages/offline.html',
   './manifest.webmanifest',
   './asset/css/style.css',
   './asset/image/logo-smkn1jetis.webp',
@@ -11,6 +12,8 @@ const STATIC_ASSETS = [
   './asset/js/firebase-config.js',
   './asset/js/login.js',
   './asset/js/app.js',
+  './asset/js/modules/admin-manager.js',
+  './asset/js/modules/attendance-modal.js',
   './asset/js/modules/auth-manager.js',
   './asset/js/modules/excel-service.js',
   './asset/js/modules/firestore-service.js',
@@ -51,13 +54,13 @@ self.addEventListener('activate', (event) => {
 
 // Fetch Event Strategy:
 // - Firestore REST / API / Google Forms: Network only (never cache POST or dynamic API)
-// - Static Fonts & Icons (Google Fonts / FontAwesome): Cache-First with Network Fallback
-// - App Shell & Local Code: Stale-While-Revalidate
+// - External CDN (Google Fonts, FontAwesome, Firebase SDK): Cache-First with Network Fallback
+// - App Shell & Local Code: Stale-While-Revalidate with search param tolerance & offline page fallback
 self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
-  // Jangan cache request non-GET atau protokol non-http/https (misal: file:// atau chrome-extension://)
+  // Jangan cache request non-GET atau protokol non-http/https
   if (request.method !== 'GET' || !url.protocol.startsWith('http')) {
     return;
   }
@@ -72,11 +75,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Aset Eksternal: Google Fonts & FontAwesome CDN (Cache First)
+  // Aset Eksternal: Google Fonts, FontAwesome CDN, dan Firebase SDK Modular (Cache First)
   if (
     url.hostname.includes('fonts.googleapis.com') ||
     url.hostname.includes('fonts.gstatic.com') ||
-    url.hostname.includes('cdnjs.cloudflare.com')
+    url.hostname.includes('cdnjs.cloudflare.com') ||
+    url.hostname.includes('www.gstatic.com')
   ) {
     event.respondWith(
       caches.match(request).then((cachedResponse) => {
@@ -97,9 +101,9 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Aset Lokal Aplikasi (Stale-While-Revalidate)
+  // Aset Lokal Aplikasi (Stale-While-Revalidate dengan toleransi query parameter)
   event.respondWith(
-    caches.match(request).then((cachedResponse) => {
+    caches.match(request, { ignoreSearch: true }).then((cachedResponse) => {
       const fetchPromise = fetch(request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
@@ -108,8 +112,13 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return networkResponse;
-      }).catch((err) => {
+      }).catch(async (err) => {
         console.log('[ServiceWorker] Offline fallback for:', request.url);
+        if (cachedResponse) return cachedResponse;
+        if (request.mode === 'navigate') {
+          const fallback = await caches.match('./asset/pages/offline.html');
+          if (fallback) return fallback;
+        }
         return cachedResponse;
       });
 

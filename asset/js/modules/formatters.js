@@ -39,39 +39,36 @@ export function formatTimeString(timeStr) {
     return `${hh}:${mm}`;
   }
 
+  // Jika berupa angka atau string angka desimal murni Excel (misal 0.5416666666666666 untuk 13:00 atau 0.2916666 untuk 07:00)
+  const rawNum = typeof timeStr === 'number' ? timeStr : (!s.includes(':') ? parseFloat(s) : NaN);
+  if (!isNaN(rawNum) && rawNum >= 0 && rawNum < 1) {
+    const totalSeconds = Math.round(rawNum * 24 * 3600);
+    const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+    const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
+
   // Jika format "HH:MM" standar
   if (/^\d{1,2}:\d{2}$/.test(s)) {
     const [h, m] = s.split(':');
     return `${String(parseInt(h, 10)).padStart(2, '0')}:${m}`;
   }
 
-  // Cek jika mengandung angka pecahan Excel yang terformat sebagai "00:XXXX" atau "0.XXXX"
-  let numVal = NaN;
+  // Jika format "HH.MM" (menggunakan titik)
+  if (/^\d{1,2}\.\d{2}$/.test(s)) {
+    const [h, m] = s.split('.');
+    return `${String(parseInt(h, 10)).padStart(2, '0')}:${m}`;
+  }
+
+  // Cek jika mengandung format waktu dengan pemisah titik (misal 07.15.00)
   s = s.replace(/\./g, ':');
   if (s.includes(':')) {
     const parts = s.split(':');
     if (parts.length >= 2) {
-      const hhStr = parts[0].trim();
-      const mmStr = parts[1].trim();
-
-      if (hhStr === '00' && mmStr.length > 3 && !isNaN(mmStr)) {
-        numVal = parseFloat(`0.${mmStr}`);
-      } else {
-        const hh = String(parseInt(hhStr, 10) || 0).padStart(2, '0');
-        const mm = String(parseInt(mmStr, 10) || 0).padStart(2, '0');
-        return `${hh}:${mm}`;
-      }
+      const hh = String(parseInt(parts[0].trim(), 10) || 0).padStart(2, '0');
+      const mm = String(parseInt(parts[1].trim(), 10) || 0).padStart(2, '0');
+      return `${hh}:${mm}`;
     }
-  } else {
-    numVal = parseFloat(s);
-  }
-
-  // Konversi angka desimal Excel murni (misal 0.5416666666666666 untuk 13:00)
-  if (!isNaN(numVal) && numVal >= 0 && numVal < 1) {
-    const totalSeconds = Math.round(numVal * 24 * 3600);
-    const hh = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
-    const mm = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
-    return `${hh}:${mm}`;
   }
 
   return s;

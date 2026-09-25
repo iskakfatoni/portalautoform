@@ -173,23 +173,34 @@ async function bootstrapApp() {
   initLiveClock();
   initImportExport();
 
-  // Bersihkan cache lokal usang agar data 100% murni memori & Cloud Firestore
-  localStorage.removeItem('portal_teachers_data');
-  localStorage.removeItem('portal_forms_data');
-  localStorage.removeItem('portal_schedule_data');
+  // Muat cache lokal jika ada untuk instant render tanpa kedipan
+  const cachedTeachers = localStorage.getItem('portal_teachers_cache');
+  if (cachedTeachers) {
+    try {
+      const parsed = JSON.parse(cachedTeachers);
+      if (Array.isArray(parsed) && parsed.length > 0) currentTeachers = parsed;
+    } catch (e) {}
+  }
+  const cachedStudents = localStorage.getItem('portal_students_cache');
+  if (cachedStudents) {
+    try {
+      const parsed = JSON.parse(cachedStudents);
+      if (Array.isArray(parsed) && parsed.length > 0) currentStudents = parsed;
+    } catch (e) {}
+  }
 
   // Setup Portal Guru & Form Builder
   setupUserPortal();
   setupFormBuilder();
 
-  // Render Portal secara langsung tanpa menunggu jaringan
+  // Cek parameter sesi awal
   checkUrlParamsForTeacher();
 
-  // 1. Muat data langsung dari Cloud Firestore di latar belakang
-  await fetchFirestoreData();
-
-  // 2. Inisialisasi Firebase & Auth Listener
+  // 1. Inisialisasi Firebase & Auth Listener
   setupFirebaseConnection();
+
+  // 2. Muat data mutakhir langsung dari Cloud Firestore di latar belakang
+  await fetchFirestoreData();
 }
 
 if (document.readyState === 'loading') {
@@ -339,7 +350,13 @@ function checkUrlParamsForTeacher() {
   const params = new URLSearchParams(window.location.search);
   const nipParam = params.get('nip');
   const adminParam = params.get('admin');
+  const logoutParam = params.get('logout');
   const teachersList = (currentTeachers && currentTeachers.length > 0) ? currentTeachers : [];
+
+  if (logoutParam === 'true') {
+    window.location.replace('../../autoform.html?logout=true');
+    return;
+  }
 
   if (adminParam === 'true') {
     switchToAdminPanel();
@@ -348,17 +365,6 @@ function checkUrlParamsForTeacher() {
 
   const savedNip = localStorage.getItem('portal_logged_nip') || localStorage.getItem('portal_remember_nip');
   const savedPin = localStorage.getItem('portal_logged_pin') || localStorage.getItem('portal_remember_pin');
-
-  const fallbackIskak = {
-    id: "198109092022211004",
-    nip: "198109092022211004",
-    name: "MUCHAMAD ISKAK FATONI, S.Pd.",
-    class: "XII TEI 2",
-    guruWaliClass: "XI TEI 1",
-    role: "Walikelas",
-    pin: "231008",
-    journalFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfjyDwlnrARMtXAIKoDfFKeXOmdboY3BzLrniikGApFQctXqQ/viewform"
-  };
 
   const targetNip = (nipParam && nipParam !== '-') ? nipParam : savedNip;
 
@@ -369,21 +375,6 @@ function checkUrlParamsForTeacher() {
       const tNipStr = String(t.nip).trim();
       return (cleanTargetNip && tNipStr.replace(/\D/g, '') === cleanTargetNip) || (tNipStr === String(targetNip).trim());
     });
-
-    if (!found && (cleanTargetNip === "198109092022211004" || String(targetNip).toLowerCase().includes("iskak"))) {
-      found = fallbackIskak;
-    }
-
-    if (!found && targetNip) {
-      found = {
-        id: targetNip,
-        nip: targetNip,
-        name: `Guru (${targetNip})`,
-        class: "XI TEI 2",
-        role: "Guru",
-        pin: savedPin || "12345"
-      };
-    }
 
     if (found) {
       localStorage.setItem('portal_logged_nip', found.nip);
@@ -397,6 +388,18 @@ function checkUrlParamsForTeacher() {
       showPortalView(found);
       return;
     }
+
+    // Jika daftar guru belum termuat dari jaringan, tunda redirect sampai fetchFirestoreData selesai
+    if (teachersList.length === 0) {
+      return;
+    }
+
+    // NIP dicari tetapi tidak terdaftar di master guru Firestore
+    console.warn(`[Portal] NIP ${targetNip} tidak ditemukan di database Cloud Firestore.`);
+    localStorage.removeItem('portal_logged_nip');
+    localStorage.removeItem('portal_logged_pin');
+    window.location.replace('../../autoform.html');
+    return;
   }
 
   const demoAdmin = sessionStorage.getItem('portal_demo_admin');
@@ -405,8 +408,8 @@ function checkUrlParamsForTeacher() {
     return;
   }
 
-  // Fallback Guru Default (Pak Iskak) agar tampilan portal tidak pernah blank
-  showPortalView(fallbackIskak);
+  // Jika tidak ada NIP maupun sesi login yang valid, alihkan ke landing login
+  window.location.replace('../../autoform.html');
 }
 
 function showPortalView(teacher) {
@@ -1010,8 +1013,6 @@ function setupFirebaseConnection() {
         handleAdminLogoutState();
       }
     });
-
-    fetchFirestoreData();
   } else {
     if (cloudBadgeDot) cloudBadgeDot.classList.remove('online');
     if (cloudBadgeText) cloudBadgeText.textContent = "Mode Demo Lokal";
@@ -1354,29 +1355,36 @@ function renderFormsTableApp() {
 function renderScheduleTableApp(filterQuery = '') {
   renderScheduleTable(
     currentSchedules,
-    (idx) => {
+    (scheduleKey) => {
       if (confirm('Yakin ingin menghapus jadwal ini?')) {
-        deleteScheduleHandler(idx);
+        deleteScheduleHandler(scheduleKey);
       }
     },
     filterQuery
   );
 }
 
-async function deleteScheduleHandler(index) {
-  if (currentSchedules && currentSchedules[index]) {
-    const item = currentSchedules[index];
-    currentSchedules.splice(index, 1);
+async function deleteScheduleHandler(scheduleKey) {
+  if (!currentSchedules || currentSchedules.length === 0) return;
+
+  const getScheduleKey = (item) => {
+    const cleanNip = (item.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
+    const cleanName = (item.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
+    const cleanHari = (item.hari || '').trim().toLowerCase();
+    const cleanJam = (item.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+    const cleanKelas = (item.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
+    return item.id || `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
+  };
+
+  const targetIndex = currentSchedules.findIndex(s => getScheduleKey(s) === scheduleKey);
+  if (targetIndex >= 0) {
+    const item = currentSchedules[targetIndex];
+    currentSchedules.splice(targetIndex, 1);
     renderScheduleTableApp();
 
     if (db && isFirebaseActive) {
       try {
-        const cleanNip = (item.nip || '').trim().replace(/[\s\.\-]+/g, '') || 'nonip';
-        const cleanName = (item.name || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '_');
-        const cleanHari = (item.hari || '').trim().toLowerCase();
-        const cleanJam = (item.jamKe || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
-        const cleanKelas = (item.kelas || '').trim().replace(/[^a-zA-Z0-9]/g, '_');
-        const docId = item.id || `sch_${cleanNip}_${cleanName}_${cleanHari}_${cleanJam}_${cleanKelas}`.substring(0, 100);
+        const docId = item.id || scheduleKey;
         await deleteDoc(doc(db, "schedules", docId));
       } catch (e) {
         console.warn("Gagal hapus jadwal dari Firestore:", e);
@@ -1416,7 +1424,7 @@ async function deleteTeacherHandler(teacherName) {
 
   if (teacher) {
     try {
-      const docId = teacher.nip && teacher.nip !== '-' ? teacher.nip : teacher.name.replace(/[^a-zA-Z0-9]/g, '_');
+      const docId = teacher.id || (teacher.nip && teacher.nip !== '-' ? teacher.nip : teacher.name.replace(/[^a-zA-Z0-9]/g, '_'));
       await deleteTeacherFromFirestore(docId);
     } catch (e) {
       console.warn("Firestore delete warning:", e);
